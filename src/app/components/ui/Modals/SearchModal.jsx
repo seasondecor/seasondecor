@@ -4,7 +4,7 @@ import * as React from "react";
 
 import Modal from "../Modal";
 import useSearchModal from "@/app/hooks/useSearchModal";
-import Input from "../inputs/Input";
+import Input from "../Inputs/Input";
 import { FcSearch } from "react-icons/fc";
 
 const SearchModal = ({}) => {

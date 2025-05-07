@@ -17,10 +17,6 @@ export function useCreateOrder() {
 
         const addressId = data.get ? data.get("addressId") : data.addressId;
 
-        console.log(
-          `Creating order with cartId=${cartId}, addressId=${addressId}`
-        );
-
         // Use the cart ID in the URL path and addressId as a query parameter
         return await BaseRequest.Post(
           `/${SUB_URL}/createOrder/${cartId}?addressId=${addressId}`

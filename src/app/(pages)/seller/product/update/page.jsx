@@ -84,6 +84,8 @@ const ProductUpdate = () => {
         })));
       }
 
+      console.log("Existing images:", existingImages);
+
       // Set selected category
       const category = dataCategory?.find(cat => cat.id === productDetails.categoryId);
       if (category) {
@@ -98,12 +100,9 @@ const ProductUpdate = () => {
   }, [productDetails, dataProvider, dataCategory, reset]);
 
   const handleImageUpload = (uploadedImages) => {
+    // These are only the new files being uploaded, not the existing ones
     setImages(uploadedImages);
-    setValue(
-      "images",
-      uploadedImages.map((img) => img.url)
-    );
-    console.log("Uploaded Images:", uploadedImages);
+    console.log("New uploaded image files:", uploadedImages.length);
   };
 
   const CategoryOptions =
@@ -255,7 +254,7 @@ const ProductUpdate = () => {
           <div className="step-1 form-detail">
             <FootTypo
               footlabel="Basic information"
-              className="text-2xl font-semibold border-b-[1px] pt-10 pb-5"
+              className="text-2xl font-semibold pt-10 pb-5"
             />
             <div className="form inline-flex items-center w-full h-full gap-5 my-5">
               <FootTypo

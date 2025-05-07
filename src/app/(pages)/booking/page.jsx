@@ -8,38 +8,61 @@ import ServiceCard from "@/app/components/ui/card/ServiceCard";
 import EmptyState from "@/app/components/EmptyState";
 import RollingGallery from "@/app/components/ui/animated/RollingGallery";
 import Container from "@/app/components/layouts/Container";
-import { ListSidebar } from "@/app/components/ui/ListWrapper";
 import { MultiSearch } from "@/app/components/ui/search/MultiSearch";
 import { generateSlug } from "@/app/helpers";
-import Button from "@/app/components/ui/Buttons/Button";
-import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
+import { Skeleton } from "@mui/material";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 
-const filters = [
-  {
-    label: "Sort by",
-    options: [
-      { id: 0, name: "All" },
-      { id: 1, name: "Newest" },
-      { id: 2, name: "Oldest" },
-      { id: 3, name: "Rating" },
-    ],
-  },
-];
+// ServiceCardSkeleton component to display while loading
+const ServiceCardSkeleton = () => {
+  return (
+    <div className="mb-10 grid w-full grid-cols-1 md:grid-cols-4 gap-4 px-4 xl:px-0 hover:shadow-lg transition-shadow duration-300 rounded-lg p-4">
+      <div className="order-last md:order-first flex flex-col gap-2 space-y-4 p-4">
+        <Skeleton variant="text" width="70%" height={28} />
+        <Skeleton variant="rounded" width="40%" height={36} />
+        
+        <div className="flex flex-col gap-2">
+          <Skeleton variant="text" width="50%" height={20} />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton variant="rounded" width={80} height={28} />
+            <Skeleton variant="rounded" width={80} height={28} />
+            <Skeleton variant="rounded" width={80} height={28} />
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Skeleton variant="circular" width={20} height={20} />
+          <Skeleton variant="text" width="40%" height={20} />
+        </div>
+        
+        <Skeleton variant="rounded" width={120} height={40} />
+      </div>
+
+      {[1, 2, 3].map((index) => (
+        <div
+          key={index}
+          className="relative aspect-[4/3] w-full overflow-hidden rounded-lg"
+        >
+          <Skeleton variant="rectangular" width="100%" height="100%" animation="wave" />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const BookingPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10; 
+  const pageSize = 10;
 
   const {
     data: listDecorService,
     isLoading: isInitialLoading,
-    isError,
     refetch: refetchInitialList,
   } = useGetListDecorService({
     pageIndex: currentPage,
     pageSize: pageSize,
     // Force pagination to be used for all requests
-    forcePagination: true 
+    forcePagination: true,
   });
 
   // State to hold search results
@@ -47,11 +70,10 @@ const BookingPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
-  
+
   // Calculate correct total pages based on totalCount and pageSize
-  const calculatedTotalPages = listDecorService?.totalCount 
-    ? Math.ceil(listDecorService.totalCount / pageSize) 
-    : 0;
+  const totalCount = listDecorService?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
   // Handle scroll event
   useEffect(() => {
@@ -81,25 +103,17 @@ const BookingPage = () => {
     setHasSearched(true);
   };
 
+  // Handle pagination change
+  const handlePaginationChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
   // Data to display (either search results or current page data)
-  const displayData = hasSearched 
-    ? searchResults?.data 
+  const displayData = hasSearched
+    ? searchResults?.data
     : listDecorService?.data || [];
-  
+
   const isLoading = isInitialLoading || isSearching;
-
-  // Pagination controls
-  const handleLoadMore = () => {
-    if (calculatedTotalPages && currentPage < calculatedTotalPages) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
 
   return (
     <>
@@ -153,8 +167,10 @@ const BookingPage = () => {
         <Container>
           <div className="flex flex-col gap-10 md:gap-20">
             {isLoading ? (
-              <div className="flex justify-center py-10">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
+              <div className="grid grid-cols-1 gap-8">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <ServiceCardSkeleton key={`skeleton-${index}`} />
+                ))}
               </div>
             ) : (
               <>
@@ -196,9 +212,30 @@ const BookingPage = () => {
               </>
             )}
 
-            <div className="flex justify-center gap-4">
-              <Button onClick={handlePreviousPage} disabled={currentPage === 1} className="text-primary" icon={<MdNavigateBefore size={20} />}/>
-              <Button onClick={handleLoadMore} disabled={currentPage === calculatedTotalPages} className="text-primary" icon={<MdNavigateNext size={20} />}/>
+            <div className="flex justify-center gap-4 mt-8">
+              <button
+                onClick={() =>
+                  currentPage > 1 &&
+                  handlePaginationChange(currentPage - 1)
+                }
+                disabled={currentPage <= 1}
+                className="p-1 border rounded-full disabled:opacity-50"
+              >
+                <IoIosArrowBack size={20} />
+              </button>
+              <span className="flex items-center">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  currentPage < totalPages &&
+                  handlePaginationChange(currentPage + 1)
+                }
+                disabled={currentPage >= totalPages}
+                className="p-1 border rounded-full disabled:opacity-50"
+              >
+                <IoIosArrowForward size={20} />
+              </button>
             </div>
           </div>
         </Container>

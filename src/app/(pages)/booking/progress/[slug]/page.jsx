@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useGetTrackingByBookingCode } from "@/app/queries/tracking/tracking.query";
 import { FootTypo } from "@/app/components/ui/Typography";
 import { Timeline } from "@/app/components/ui/animated/TimeLine";
-import { formatDate } from "@/app/helpers";
+import { formatDateTime } from "@/app/helpers";
 import { Skeleton, Divider, Chip } from "@mui/material";
 import Image from "next/image";
 import { TbArrowLeft } from "react-icons/tb";
@@ -18,7 +18,8 @@ import { IoWalletOutline } from "react-icons/io5";
 import { IoCheckmarkCircleSharp, IoTimeOutline } from "react-icons/io5";
 import Folder from "@/app/components/ui/animated/Folder";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
-import { BiCommentDetail } from "react-icons/bi";
+import { Typography } from "@mui/material";
+import { CiFlag1 } from "react-icons/ci";
 
 const ViewTrackingPage = () => {
   const { slug } = useParams();
@@ -30,8 +31,6 @@ const ViewTrackingPage = () => {
   const provider = searchParams.get("provider") || "";
   const providerAvatar = searchParams.get("avatar") || "";
 
-  console.log(status);
-
   const { data: trackingData, isPending } = useGetTrackingByBookingCode(slug);
   const [bookingCode, setBookingCode] = useState("");
   const [timelineData, setTimelineData] = useState([]);
@@ -42,7 +41,15 @@ const ViewTrackingPage = () => {
     if (Array.isArray(trackingData)) {
       const bookingCode = trackingData[0].bookingCode;
       const formattedTimelineData = trackingData.map((item) => ({
-        title: formatDate(item.createdAt),
+        title: (() => {
+          const { date, time } = formatDateTime(item.createdAt);
+          return (
+            <div className="flex flex-col items-center gap-2">
+              <FootTypo footlabel={date} />
+              <FootTypo footlabel={time} />
+            </div>
+          );
+        })(),
         content: (
           <div className="flex flex-col gap-5 h-full">
             <span>
@@ -104,6 +111,84 @@ const ViewTrackingPage = () => {
     }
   }, [trackingData]);
 
+  // Timeline loading skeleton component
+  const TimelineLoadingSkeleton = () => (
+    <div className="space-y-6 animate-pulse">
+      <div className="flex items-center space-x-3">
+        <Skeleton animation="wave" variant="circular" width={40} height={40} />
+        <Skeleton animation="wave" variant="text" width="60%" height={30} />
+      </div>
+
+      {[1, 2, 3].map((index) => (
+        <div
+          key={index}
+          className="ml-5 pl-6 border-l-2 border-gray-200 dark:border-gray-700 pb-8 space-y-4"
+        >
+          <div className="flex items-center space-x-3">
+            <Skeleton
+              animation="wave"
+              variant="circular"
+              width={24}
+              height={24}
+            />
+            <Skeleton animation="wave" variant="text" width="40%" height={24} />
+          </div>
+
+          <div className="ml-8 space-y-4">
+            <Skeleton animation="wave" variant="text" width="25%" height={20} />
+            <Skeleton
+              animation="wave"
+              variant="rectangular"
+              width="100%"
+              height={60}
+            />
+            <Skeleton animation="wave" variant="text" width="25%" height={20} />
+            <Skeleton
+              animation="wave"
+              variant="rectangular"
+              width="100%"
+              height={120}
+            />
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <Skeleton
+                animation="wave"
+                variant="rectangular"
+                width="100%"
+                height={120}
+                className="rounded-lg"
+              />
+              <Skeleton
+                animation="wave"
+                variant="rectangular"
+                width="100%"
+                height={120}
+                className="rounded-lg"
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Status card loading skeleton
+  const StatusCardSkeleton = () => (
+    <BorderBox className="flex flex-col items-center justify-center p-6 text-center gap-4 animate-pulse">
+      <Skeleton animation="wave" variant="circular" width={60} height={60} />
+      <Skeleton animation="wave" variant="text" width="80%" height={30} />
+      <Skeleton animation="wave" variant="text" width="90%" height={20} />
+      <Skeleton animation="wave" variant="text" width="60%" height={20} />
+      <Skeleton
+        animation="wave"
+        variant="rectangular"
+        width="70%"
+        height={40}
+        className="rounded-full"
+      />
+    </BorderBox>
+  );
+
   return (
     <Container>
       <button
@@ -113,27 +198,39 @@ const ViewTrackingPage = () => {
         <TbArrowLeft size={20} />
         <FootTypo footlabel="Go Back" className="!m-0" />
       </button>
-      <div className="grid grid-cols-6 grid-rows-1 gap-4">
-        <div className="col-span-4">
-          <div className="relative w-full overflow-clip ">
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="col-span-1 md:col-span-2 lg:col-span-4">
+          <div className="relative w-full overflow-clip">
             {isPending ? (
-              <>
-                <Skeleton animation="wave" width="100%" />
-                <Skeleton animation="wave" variant="text" width="100%" />
-                <Skeleton animation="wave" variant="text" width="100%" />
-              </>
+              <TimelineLoadingSkeleton />
             ) : timelineData.length > 0 ? (
               <Timeline
                 data={timelineData}
                 title={`Tracking Progress ${bookingCode} `}
               />
             ) : (
-              <p>No tracking information available</p>
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="mb-4">
+                  <IoTimeOutline size={50} className="mx-auto text-gray-400" />
+                </div>
+                <FootTypo
+                  footlabel="No tracking information available yet"
+                  className="text-lg font-medium mb-2"
+                />
+                <FootTypo
+                  footlabel="The provider will update the progress of your service here"
+                  className="text-gray-500 dark:text-gray-400"
+                />
+              </div>
             )}
           </div>
         </div>
-        <div className="col-span-2">
-          {status === 9 ? (
+
+        <div className="col-span-1 md:col-span-1 lg:col-span-2">
+          {isPending ? (
+            <StatusCardSkeleton />
+          ) : status === 9 ? (
             <BorderBox className="flex flex-col items-center justify-center p-6 text-center gap-3">
               <FootTypo
                 footlabel="Complete Your Experience"
@@ -166,7 +263,7 @@ const ViewTrackingPage = () => {
                 onClick={() =>
                   router.push(`/payment/${bookingCode}?type=final`)
                 }
-                className="bg-action text-white"
+                className="bg-action text-white w-full sm:w-auto"
               />
             </BorderBox>
           ) : status === 10 ? (
@@ -180,24 +277,23 @@ const ViewTrackingPage = () => {
                 size={60}
                 className="self-center"
               />
-              <FootTypo footlabel="Your payment has been successfully completed !" />
+              <FootTypo footlabel="Your payment has been successfully completed!" />
               <FootTypo
                 footlabel="Waiting for the provider to confirm your payment."
                 className="text-sm text-gray-500 dark:text-gray-400 italic"
               />
-              <span className="flex flex-row items-center gap-2">
+              <span className="flex flex-row items-center gap-2 mt-2">
                 <Avatar
                   userImg={providerAvatar}
                   name={provider}
                   w={40}
                   h={40}
                 />
-                <FootTypo footlabel={provider} />{" "}
+                <FootTypo footlabel={provider} />
               </span>
             </BorderBox>
           ) : status === 11 ? (
             <>
-              {" "}
               <BorderBox className="flex flex-col items-center justify-center p-6 text-center gap-3">
                 <FootTypo
                   footlabel="You service is completed "
@@ -239,6 +335,25 @@ const ViewTrackingPage = () => {
                   <FootTypo footlabel={provider} />
                 </span>
               </BorderBox>
+
+              <Divider textAlign="center" className="py-5" flexItem>
+                If you have issue with your service
+              </Divider>
+              <div className="flex flex-col items-center justify-center gap-4">
+                <Typography variant="body2" className="text-center mb-4">
+                  If you're experiencing any issues with your service such as
+                  quality concerns, or communication problems, please
+                  send a report. Our provider will review and respond within 24
+                  hours.
+                </Typography>
+
+                <Button
+                  onClick={() => router.push("/support")}
+                  icon={<CiFlag1 size={20} />}
+                  label="Request Support"
+                  className="bg-action text-white self-center"
+                />
+              </div>
             </>
           ) : (
             <BorderBox className="flex flex-col items-center justify-center p-6 text-center gap-4">

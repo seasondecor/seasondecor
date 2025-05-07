@@ -41,22 +41,24 @@ export const EditAvatar = ({ userImg, className, childStyle }) => {
 
   return (
     <div className={clsx("relative flex gap-3 items-center", className)}>
-      <Avatar userImg={preview} h={120} w={120} className="cursor-pointer" />
-      <label
-        className={clsx(
-          "absolute bottom-0 inline-flex items-center gap-1 rounded bg-black bg-opacity-50 p-1 text-sm text-white dark:bg-white dark:text-black cursor-pointer hover:bg-primary",
-          childStyle
-        )}
-      >
-        <MdEdit />
-        Edit
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageChange}
-        />
-      </label>
+      <div className="relative">
+        <Avatar userImg={preview} h={80} w={80} className="cursor-pointer" />
+        <label
+          className={clsx(
+            "absolute bottom-0 right-0 inline-flex items-center gap-1 rounded bg-action p-[1px] text-sm text-white dark:bg-white dark:text-black cursor-pointer hover:bg-primary",
+            childStyle
+          )}
+        >
+          <MdEdit />
+          Edit
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+        </label>
+      </div>
       {selectedFile && (
         <Button
           label="Update"

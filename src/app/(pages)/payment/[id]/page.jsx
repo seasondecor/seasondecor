@@ -119,6 +119,7 @@ const PaymentDetailPage = () => {
     const fullAddress = addressParts.join(", ");
     return fullAddress || "No address provided";
   };
+  
 
   // Helper function to get payment type title
   const getPaymentTitle = () => {
@@ -522,6 +523,8 @@ const PaymentDetailPage = () => {
                 productId={item.productId}
                 href={`/products/${generateSlug(item.productName)}`}
                 provider={item.provider}
+                isReviewed={item.isReviewed}
+                allowReview={false}
               />
             ))}
             {(!orderDetail?.orderDetails ||
@@ -604,7 +607,7 @@ const PaymentDetailPage = () => {
         <Divider />
 
         {/* Money Transfer Information */}
-        {!paymentType === "order" && (
+        {paymentType !== "order" && (
           <Paper
             elevation={0}
             className="rounded-lg mb-8 bg-white dark:bg-transparent overflow-hidden dark:text-white"
@@ -652,12 +655,13 @@ const PaymentDetailPage = () => {
 
                   <div className="sm:text-right mt-2 sm:mt-0">
                     <FootTypo
-                      footlabel="Amount"
+                      footlabel="Ammout to transfer"
                       className="text-slate-500 dark:text-slate-400 mb-2"
                     />
                     <p className="font-bold text-lg text-amber-600 dark:text-amber-400">
                       {formatCurrency(
                         paymentData?.totalPrice ||
+                          paymentData?.depositAmount ||
                           paymentData?.finalPaymentAmount ||
                           0
                       )}
@@ -710,6 +714,7 @@ const PaymentDetailPage = () => {
                     <p className="font-bold text-lg text-green-600 dark:text-green-400">
                       {formatCurrency(
                         paymentData?.totalPrice ||
+                          paymentData?.depositAmount ||
                           paymentData?.finalPaymentAmount ||
                           0
                       )}

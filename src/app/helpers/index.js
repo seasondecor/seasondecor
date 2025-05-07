@@ -207,3 +207,35 @@ export const formatDateTime = (dateString) => {
 export const createMarkup = (htmlContent) => {
   return { __html: htmlContent };
 };
+
+
+export const renderAttachment = (url) => {
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  
+  if (isImage) {
+    return (
+      <a 
+        href={url} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="block w-28 h-28 bg-cover bg-center rounded border border-gray-200 shadow-sm hover:opacity-90 transition-opacity"
+        style={{ backgroundImage: `url(${url})` }}
+      />
+    );
+  } else {
+    return (
+      <a 
+        href={url} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded text-sm hover:bg-gray-50 transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" fill="#2196F3"/>
+          <path d="M14 2V8H20L14 2Z" fill="#90CAF9"/>
+        </svg>
+        {url.split('/').pop()}
+      </a>
+    );
+  }
+};

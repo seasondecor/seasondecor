@@ -5,13 +5,10 @@ import SellerWrapper from "../../components/SellerWrapper";
 import Stepper, { Step } from "@/app/components/ui/animated/Stepper";
 import { FootTypo } from "@/app/components/ui/Typography";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
-import Input from "@/app/components/ui/inputs/Input";
-import { TbCurrencyDong } from "react-icons/tb";
+import Input from "@/app/components/ui/Inputs/Input";
 import { useForm } from "react-hook-form";
 import { Field } from "@headlessui/react";
-import ExampleNumberField from "@/app/components/ui/Select/NumberField";
 import { useGetListDecorCategory } from "@/app/queries/list/category.list.query";
-import { useUser } from "@/app/providers/userprovider";
 import DropdownSelectReturnObj from "@/app/components/ui/Select/DropdownObject";
 import Button2 from "@/app/components/ui/Buttons/Button2";
 import { useCreateDecorService } from "@/app/queries/service/service.query";
@@ -43,8 +40,11 @@ const ServiceCreate = () => {
   const [selectedSeasons, setSelectedSeasons] = React.useState([]);
 
   const handleDateSelect = (date) => {
-    setStartDate(date);
-    setValue("startDate", date);
+    // Create a new date object to avoid timezone issues
+    const selectedDate = new Date(date);
+    //console.log("Selected date:", selectedDate.toDateString());
+    setStartDate(selectedDate);
+    setValue("startDate", selectedDate);
     setShowCalendar(false);
   };
 
@@ -119,7 +119,14 @@ const ServiceCreate = () => {
 
       // Add start date to form data
       if (data.startDate) {
-        const formattedDate = data.startDate.toISOString().split("T")[0];
+        // Fix timezone issue by creating a date with the local date parts
+        const localDate = new Date(data.startDate);
+        const year = localDate.getFullYear();
+        const month = localDate.getMonth() + 1; // getMonth() is 0-indexed
+        const day = localDate.getDate();
+        
+        // Format as YYYY-MM-DD with proper padding
+        const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         console.log("Sending start date to API:", formattedDate);
         formData.append("StartDate", formattedDate);
       }
@@ -230,45 +237,50 @@ const ServiceCreate = () => {
               />
               <ImageUpload onImageChange={handleImageUpload} />
             </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Service Style :"
-                className="!m-0 text-lg font-semibold w-40"
-              />
-              <Input
-                id="style"
-                placeholder="Service's style"
-                required
-                className="pl-3"
-                register={register}
-              />
-            </div>
-            <div className="flex flex-row gap-5">
-              <div className="form inline-flex items-center w-full h-full gap-5 my-5">
+            
+            {/* Two-column grid layout for Style and Available at */}
+            <div className="grid grid-cols-2 gap-8 my-5">
+              <div className="form flex items-center gap-5">
                 <FootTypo
-                  footlabel="Available at :"
-                className="!m-0 text-lg font-semibold w-40"
-              />
-              <div className="w-[200px]">
-                <ProvinceDistrictWardSelect
-                  setValue={setValue}
+                  footlabel="Service Style :"
+                  className="!m-0 text-lg font-semibold w-40"
+                />
+                <Input
+                  id="style"
+                  placeholder="Service's style"
+                  required
+                  className="pl-3 w-full"
                   register={register}
-                  combineAsString={true}
-                  onChange={(locationString) => {
-                    if (typeof locationString === "string") {
-                      setValue("province", locationString);
-                      console.log("Combined location set to:", locationString);
-                    }
-                  }}
                 />
               </div>
+              
+              <div className="form flex items-center gap-5">
+                <FootTypo
+                  footlabel="Available at :"
+                  className="!m-0 text-lg font-semibold w-40"
+                />
+                <div className="w-full">
+                  <ProvinceDistrictWardSelect
+                    setValue={setValue}
+                    register={register}
+                    combineAsString={true}
+                    onChange={(locationString) => {
+                      if (typeof locationString === "string") {
+                        setValue("province", locationString);
+                        console.log("Combined location set to:", locationString);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
+            
+            <div className="form flex items-center w-full gap-5 my-5">
               <FootTypo
                 footlabel="Category :"
                 className="!m-0 text-lg font-semibold w-40"
               />
-              <div className="w-[200px]">
+              <div className="w-[300px]">
                 <DropdownSelectReturnObj
                   options={CategoryOptions}
                   value={selectedCategory}
@@ -279,7 +291,6 @@ const ServiceCreate = () => {
                   lisboxClassName="mt-10"
                 />
               </div>
-            </div>
             </div>
           </div>
         </Step>
@@ -306,7 +317,7 @@ const ServiceCreate = () => {
           </div>
           <div className="form inline-flex items-start w-full h-full gap-5 my-5">
             <FootTypo
-              footlabel="Service Start Date :"
+              footlabel="Start Date :"
               className="!m-0 text-lg font-semibold w-40"
             />
             <div className="relative w-[300px]">

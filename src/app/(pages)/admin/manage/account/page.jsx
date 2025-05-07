@@ -17,7 +17,7 @@ const ManageAccount = () => {
     pageIndex: 1,
     pageSize: 10,
     sortBy: "",
-    descending: false,
+    descending: true,
     status: "",
     gender: "",
     isVerified: "",
@@ -64,7 +64,7 @@ const ManageAccount = () => {
       value: filters.gender,
     },
     {
-      label: "Is Disabled",
+      label: "Status",
       type: "boolean",
       options: [
         { id: "true", name: "Disabled" },
@@ -133,21 +133,6 @@ const ManageAccount = () => {
       cell: ({ row }) => <RoleChip status={row.original.roleId} />,
     },
     {
-      header: "Verified",
-      accessorKey: "isVerified",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded-full text-white text-sm text-center font-bold ${
-              row.original.isVerified ? "bg-green" : "bg-yellow"
-            }`}
-          >
-            {row.original.isVerified ? "Verified" : "Unverified"}
-          </span>
-        </div>
-      ),
-    },
-    {
       header: "Location",
       accessorKey: "location",
     },
@@ -158,7 +143,7 @@ const ManageAccount = () => {
           <Button
             label="Ban"
             onClick={() => handleBanAccount(row.original.id)}
-            className="p-2 bg-red"
+            className="bg-red text-white"
             icon={<IoPersonRemoveSharp size={20} />}
           />
         </div>
@@ -253,7 +238,7 @@ const ManageAccount = () => {
               Error loading accounts: {error.message}
             </div>
           ) : data.length === 0 && !isLoading ? (
-            <div className="p-4 bg-white rounded-lg shadow">
+            <div>
               <h2 className="text-xl font-semibold mb-4">No Accounts Found</h2>
               <p>
                 No accounts match your filter criteria. Try adjusting your

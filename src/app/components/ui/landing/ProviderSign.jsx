@@ -7,7 +7,7 @@ import ButtonInvert from "../Buttons/ButtonInvert";
 import { FaLongArrowAltRight } from "react-icons/fa";
 import { AnimatedTooltip } from "./components/AnimatedTooltip";
 import { people } from "@/app/constant/people";
-import Input from "../inputs/Input";
+import Input from "../Inputs/Input";
 import { IoIosMail } from "react-icons/io";
 import { HeadTypo, BodyTypo, FootTypo } from "../Typography";
 import { useSession } from "next-auth/react";
@@ -35,7 +35,6 @@ const ProviderSign = () => {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     reset,
   } = useForm({
     resolver: yupResolver(schema),

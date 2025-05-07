@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import SellerWrapper from "../components/SellerWrapper";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { FootTypo } from "@/app/components/ui/Typography";
@@ -40,27 +40,58 @@ import { CiClock1 } from "react-icons/ci";
 import { RiBaseStationLine } from "react-icons/ri";
 import CountUp from "@/app/components/ui/animated/CountUp";
 import { LuLamp } from "react-icons/lu";
+import EmptyState from "@/app/components/EmptyState";
+import DataMapper from "@/app/components/DataMapper";
+import { useGetSupportTicketForProvider } from "@/app/queries/support/support.query";
+import TicketCard from "@/app/components/ui/card/TicketCard";
+import {
+  useReplyTicket,
+  useMarkAsSolved,
+} from "@/app/queries/support/support.query";
+import { formatDateTime } from "@/app/helpers";
+import { TextField, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { FaInfoCircle } from "react-icons/fa";
+import { renderAttachment } from "@/app/helpers";
+import ImageUpload from "@/app/components/ui/upload/ImageUpload";
+import Button from "@/app/components/ui/Buttons/Button";
+
 // Register ChartJS components
 Chart.register(
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
+  CategoryScale,
+  LinearScale,
+  BarElement,
   LineElement,
   PointElement,
-  Title, 
-  Tooltip, 
+  Title,
+  Tooltip,
   Legend
 );
 
 const SellerDashboard = () => {
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [replyImages, setReplyImages] = useState([]);
+  const [showReplyForm, setShowReplyForm] = useState(false);
+
   const { data: providerDashboard, isLoading: isProviderDashboardLoading } =
     useGetProviderDashboard();
   const { data: monthlyRevenue, isLoading: isMonthlyRevenueLoading } =
     useGetMonthlyRevenue();
   const { data: topCustomerSpending, isLoading: isTopCustomerSpendingLoading } =
     useGeTopCustomerSpending();
+  const { data: supportTickets, isLoading: isSupportTicketsLoading } =
+    useGetSupportTicketForProvider();
+
+  const { mutate: replyTicket, isLoading: isReplyTicketLoading } =
+    useReplyTicket();
+
+  const { mutate: markAsSolved, isLoading: isMarkAsSolvedLoading } =
+    useMarkAsSolved();
+
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const [replyMessage, setReplyMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Function to calculate percentage growth
   const calculateGrowth = (currentValue, previousValue) => {
@@ -197,6 +228,79 @@ const SellerDashboard = () => {
     ],
   };
 
+  const handleTicketSelect = (ticket) => {
+    setSelectedTicket(ticket);
+    setShowReplyForm(false);
+  };
+
+  const handleCloseTicketDetails = () => {
+    setSelectedTicket(null);
+    setShowReplyForm(false);
+  };
+
+  const handleImageChange = (files) => {
+    setReplyImages(files);
+  };
+
+  const toggleReplyForm = () => {
+    setShowReplyForm((prev) => !prev);
+    if (!showReplyForm) {
+      setReplyMessage("");
+      setReplyImages([]);
+    }
+  };
+
+  const handleSubmitReply = () => {
+    if (!replyMessage.trim() || !selectedTicket?.id) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const formData = new FormData();
+      formData.append("Description", replyMessage);
+      formData.append("TicketId", selectedTicket.id);
+
+      // Add images to formData if any
+      if (replyImages && replyImages.length > 0) {
+        replyImages.forEach((file, index) => {
+          formData.append(`Attachments`, file);
+        });
+      }
+
+      replyTicket(formData, {
+        onSuccess: () => {
+          setReplyMessage("");
+          setReplyImages([]);
+          setShowReplyForm(false);
+
+          // Manually update the UI with the new reply while we wait for the refetch
+          const now = new Date();
+          const newReply = {
+            description: replyMessage,
+            createdAt: now.toISOString(),
+            attachmentUrls:
+              replyImages.length > 0
+                ? replyImages.map((file) => URL.createObjectURL(file))
+                : [],
+          };
+
+          // Create a new ticket object with the reply appended
+          const updatedTicket = {
+            ...selectedTicket,
+            replies: [...(selectedTicket.replies || []), newReply],
+          };
+
+          // Update the selected ticket
+          setSelectedTicket(updatedTicket);
+        },
+      });
+    } catch (error) {
+      console.error("Error submitting reply:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SellerWrapper>
       <div className="w-full px-2 py-4 sm:px-0">
@@ -274,8 +378,9 @@ const SellerDashboard = () => {
                   </div>
                   <div className="text-xs">
                     <span className="font-medium">+</span>{" "}
-                    {formatCurrency(providerDashboard?.thisWeekTotalRevenue) || 0} since last
-                    week
+                    {formatCurrency(providerDashboard?.thisWeekTotalRevenue) ||
+                      0}{" "}
+                    since last week
                   </div>
                 </BorderBox>
                 <BorderBox className="p-4">
@@ -619,7 +724,7 @@ const SellerDashboard = () => {
                         />
                         <div className="text-2xl font-bold text-error">
                           <CountUp
-                            to={providerDashboard?.cancelledBookings || 0}
+                            to={providerDashboard?.canceledBookings || 0}
                             direction="up"
                             duration={0.5}
                           />
@@ -743,51 +848,60 @@ const SellerDashboard = () => {
                     <div className="h-[300px]">
                       <Line
                         data={{
-                          labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Current"],
+                          labels: [
+                            "Week 1",
+                            "Week 2",
+                            "Week 3",
+                            "Week 4",
+                            "Current",
+                          ],
                           datasets: [
                             {
                               label: "Revenue Growth",
                               data: [
-                                providerDashboard?.lastMonthTotalRevenue * 0.2 || 0,
-                                providerDashboard?.lastMonthTotalRevenue * 0.4 || 0,
-                                providerDashboard?.lastMonthTotalRevenue * 0.7 || 0,
+                                providerDashboard?.lastMonthTotalRevenue *
+                                  0.2 || 0,
+                                providerDashboard?.lastMonthTotalRevenue *
+                                  0.4 || 0,
+                                providerDashboard?.lastMonthTotalRevenue *
+                                  0.7 || 0,
                                 providerDashboard?.lastWeekTotalRevenue || 0,
                                 providerDashboard?.thisWeekTotalRevenue || 0,
                               ],
-                              borderColor: 'rgb(0, 216, 255)',
-                              backgroundColor: 'rgba(0, 216, 255, 0.1)',
+                              borderColor: "rgb(0, 216, 255)",
+                              backgroundColor: "rgba(0, 216, 255, 0.1)",
                               borderWidth: 2,
                               fill: true,
                               tension: 0.4,
-                              pointBackgroundColor: 'rgb(0, 216, 255)',
-                              pointBorderColor: '#fff',
+                              pointBackgroundColor: "rgb(0, 216, 255)",
+                              pointBorderColor: "#fff",
                               pointBorderWidth: 2,
                               pointRadius: 4,
                               pointHoverRadius: 6,
-                            }
-                          ]
+                            },
+                          ],
                         }}
                         options={{
                           responsive: true,
                           maintainAspectRatio: false,
                           plugins: {
                             legend: {
-                              position: 'top',
+                              position: "top",
                               labels: {
-                                color: isDark ? '#fff' : '#666',
+                                color: isDark ? "#fff" : "#666",
                                 font: {
                                   size: 12,
-                                }
-                              }
+                                },
+                              },
                             },
                             title: {
                               display: true,
-                              text: 'Weekly Revenue Trend',
-                              color: isDark ? '#fff' : '#666',
+                              text: "Weekly Revenue Trend",
+                              color: isDark ? "#fff" : "#666",
                               font: {
                                 size: 14,
-                                weight: 'bold',
-                              }
+                                weight: "bold",
+                              },
                             },
                             tooltip: {
                               backgroundColor: isDark ? "#374151" : "#fff",
@@ -846,51 +960,66 @@ const SellerDashboard = () => {
                     <div className="h-[300px]">
                       <Line
                         data={{
-                          labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Current"],
+                          labels: [
+                            "Week 1",
+                            "Week 2",
+                            "Week 3",
+                            "Week 4",
+                            "Current",
+                          ],
                           datasets: [
                             {
                               label: "Booking Growth",
                               data: [
-                                Math.max(1, providerDashboard?.lastWeekBookings * 0.3) || 1,
-                                Math.max(2, providerDashboard?.lastWeekBookings * 0.5) || 2,
-                                Math.max(3, providerDashboard?.lastWeekBookings * 0.8) || 3,
+                                Math.max(
+                                  1,
+                                  providerDashboard?.lastWeekBookings * 0.3
+                                ) || 1,
+                                Math.max(
+                                  2,
+                                  providerDashboard?.lastWeekBookings * 0.5
+                                ) || 2,
+                                Math.max(
+                                  3,
+                                  providerDashboard?.lastWeekBookings * 0.8
+                                ) || 3,
                                 providerDashboard?.lastWeekBookings || 4,
                                 providerDashboard?.thisWeekBookings || 5,
                               ],
-                              borderColor: 'rgb(75, 192, 192)',
-                              backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                              borderColor: "rgb(75, 192, 192)",
+                              backgroundColor: "rgba(75, 192, 192, 0.1)",
                               borderWidth: 2,
                               fill: true,
                               tension: 0.4,
-                              pointBackgroundColor: 'rgb(75, 192, 192)',
-                              pointBorderColor: '#fff',
+                              pointBackgroundColor: "rgb(75, 192, 192)",
+                              pointBorderColor: "#fff",
                               pointBorderWidth: 2,
                               pointRadius: 4,
                               pointHoverRadius: 6,
-                            }
-                          ]
+                            },
+                          ],
                         }}
                         options={{
                           responsive: true,
                           maintainAspectRatio: false,
                           plugins: {
                             legend: {
-                              position: 'top',
+                              position: "top",
                               labels: {
-                                color: isDark ? '#fff' : '#666',
+                                color: isDark ? "#fff" : "#666",
                                 font: {
                                   size: 12,
-                                }
-                              }
+                                },
+                              },
                             },
                             title: {
                               display: true,
-                              text: 'Weekly Booking Trend',
-                              color: isDark ? '#fff' : '#666',
+                              text: "Weekly Booking Trend",
+                              color: isDark ? "#fff" : "#666",
                               font: {
                                 size: 14,
-                                weight: 'bold',
-                              }
+                                weight: "bold",
+                              },
                             },
                             tooltip: {
                               backgroundColor: isDark ? "#374151" : "#fff",
@@ -941,14 +1070,282 @@ const SellerDashboard = () => {
               </div>
             </TabPanel>
             <TabPanel className="bg-transparent space-y-5 animate-tab-fade-in">
-              <div className="p-4">
-                <FootTypo
-                  footlabel="Analytics Content"
-                  className="!m-0 text-lg font-semibold"
-                />
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
-                  View your business analytics and reports here.
-                </p>
+              <div className="grid grid-cols-2 grid-rows-1 gap-4">
+                <div className="flex flex-col gap-4">
+                  <FootTypo
+                    footlabel="All Tickets"
+                    className="!m-0 text-lg font-semibold"
+                  />
+                  <DataMapper
+                    data={supportTickets?.data || []}
+                    Component={TicketCard}
+                    emptyStateComponent={
+                      <EmptyState title="No tickets found" />
+                    }
+                    loading={isSupportTicketsLoading}
+                    getKey={(item) => item.id}
+                    componentProps={(ticket) => {
+                      const { date, time } = formatDateTime(ticket.createAt);
+
+                      return {
+                        id: ticket.id,
+                        date: date,
+                        time: time,
+                        status: ticket.isSolved,
+                        subject: ticket.subject,
+                        reportedBy: ticket.customerName,
+                        onClick: () => handleTicketSelect(ticket),
+                      };
+                    }}
+                  />
+                </div>
+                <BorderBox className="p-0 relative">
+                  {selectedTicket ? (
+                    <div className="h-full flex flex-col">
+                      <div className="p-4 border-b flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <FootTypo
+                            footlabel={`Ticket #${selectedTicket.id}`}
+                            className="!m-0 text-lg font-semibold"
+                          />
+                          <FootTypo
+                            footlabel={selectedTicket.subject || "No subject"}
+                            className="!m-0 text-sm text-gray-600 dark:text-gray-400"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <IconButton
+                            size="small"
+                            onClick={handleCloseTicketDetails}
+                          >
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </div>
+                      </div>
+
+                      <div className="flex-grow overflow-y-auto p-4">
+                        <div className="space-y-4">
+                          <div>
+                            <FootTypo
+                              footlabel="Description"
+                              className="!m-0 font-medium mb-1"
+                            />
+                            <div className="border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800">
+                              <FootTypo
+                                footlabel={
+                                  selectedTicket.description ||
+                                  "No description provided"
+                                }
+                                className="!m-0 whitespace-pre-wrap"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between text-sm text-gray-500">
+                            <span>
+                              Created:{" "}
+                              {formatDateTime(selectedTicket.createAt).date} at{" "}
+                              {formatDateTime(selectedTicket.createAt).time}
+                            </span>
+                            {selectedTicket.bookingCode && (
+                              <span>Booking: {selectedTicket.bookingCode}</span>
+                            )}
+                          </div>
+
+                          {selectedTicket.attachmentUrls &&
+                            selectedTicket.attachmentUrls.length > 0 && (
+                              <div>
+                                <FootTypo
+                                  footlabel="Attachments"
+                                  className="!m-0 font-medium mb-2"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedTicket.attachmentUrls.map(
+                                    (url, index) => (
+                                      <div key={index}>
+                                        {renderAttachment(url)}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                          {selectedTicket.replies &&
+                            selectedTicket.replies.length > 0 && (
+                              <div>
+                                <FootTypo
+                                  footlabel="Your Replies"
+                                  className="!m-0 font-medium mb-2"
+                                />
+                                <div className="space-y-3">
+                                  {selectedTicket.replies.map(
+                                    (reply, index) => (
+                                      <div
+                                        key={index}
+                                        className={`p-3 rounded-md bg-gray-100 dark:bg-gray-700`}
+                                      >
+                                        <div className="flex justify-between items-center mb-1">
+                                          <FootTypo
+                                            footlabel={
+                                              formatDateTime(reply.createAt)
+                                                .date +
+                                              " at " +
+                                              formatDateTime(reply.createAt)
+                                                .time
+                                            }
+                                            className="!m-0 text-xs text-gray-500"
+                                          />
+                                        </div>
+                                        <FootTypo
+                                          footlabel={reply.description}
+                                          className="!m-0 whitespace-pre-wrap mb-2"
+                                        />
+
+                                        {/* Render attachments if they exist */}
+                                        {reply.attachmentUrls &&
+                                          reply.attachmentUrls.length > 0 && (
+                                            <div className="mt-3">
+                                              <FootTypo
+                                                footlabel="Attachments:"
+                                                className="!m-0 text-xs font-medium mb-2"
+                                              />
+                                              <div className="flex flex-wrap gap-2">
+                                                {reply.attachmentUrls.map(
+                                                  (url, idx) => (
+                                                    <div key={idx}>
+                                                      {renderAttachment(url)}
+                                                    </div>
+                                                  )
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
+
+                                        {/* Handle nested attachmentUrlIs if present */}
+                                        {reply.attachmentUrlIs &&
+                                          reply.attachmentUrlIs.length > 0 && (
+                                            <div className="mt-3">
+                                              <FootTypo
+                                                footlabel="Attachments:"
+                                                className="!m-0 text-xs font-medium mb-2"
+                                              />
+                                              <div className="flex flex-wrap gap-2">
+                                                {reply.attachmentUrlIs.map(
+                                                  (item, idx) => (
+                                                    <div key={idx}>
+                                                      {item.url &&
+                                                        renderAttachment(
+                                                          item.url
+                                                        )}
+                                                    </div>
+                                                  )
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      </div>
+
+                      {!selectedTicket.isSolved && (
+                        <div className="p-4 border-t mt-auto">
+                          {showReplyForm ? (
+                            <div className="flex flex-col gap-3">
+                              <div className="flex justify-between items-center">
+                                <FootTypo
+                                  footlabel="Reply to Customer"
+                                  className="font-medium"
+                                />
+                                <button
+                                  className="text-gray-500 hover:text-gray-700"
+                                  onClick={toggleReplyForm}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+
+                              <TextField
+                                fullWidth
+                                placeholder="Type your reply..."
+                                value={replyMessage}
+                                onChange={(e) =>
+                                  setReplyMessage(e.target.value)
+                                }
+                                multiline
+                                rows={2}
+                                variant="outlined"
+                                size="small"
+                                className="dark:bg-white"
+                              />
+
+                              <div className="mb-3">
+                                <FootTypo
+                                  footlabel="Attachments (optional)"
+                                  className="!m-0 font-medium mb-2 text-sm"
+                                />
+                                <ImageUpload
+                                  onImageChange={handleImageChange}
+                                />
+                              </div>
+
+                              <Button
+                                label={
+                                  isSubmitting ? "Sending..." : "Send Reply"
+                                }
+                                className="bg-action text-white self-end"
+                                onClick={handleSubmitReply}
+                                isLoading={isSubmitting}
+                                disabled={isSubmitting || !replyMessage.trim()}
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              {!selectedTicket.isSolved ? (
+                                <div className="flex gap-2">
+                                  <Button
+                                    label="Reply to Customer"
+                                    className="bg-action text-white"
+                                    onClick={toggleReplyForm}
+                                  />
+                                  <Button
+                                    label="Mark as Solved"
+                                    onClick={() =>
+                                      markAsSolved(selectedTicket.id)
+                                    }
+                                    isLoading={isMarkAsSolvedLoading}
+                                  />
+                                </div>
+                              ) : (
+                                <FootTypo
+                                  footlabel="Ticket is closed"
+                                  className="!m-0 text-sm text-gray-500"
+                                />
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-gray-500">
+                      <FaInfoCircle size={30} />
+                      <FootTypo
+                        footlabel="Select a ticket to view details"
+                        className="!m-0 text-lg font-medium mb-2"
+                      />
+                      <FootTypo
+                        footlabel="Click on any ticket from the list to see its details and reply to the customer."
+                        className="!m-0 text-sm max-w-md"
+                      />
+                    </div>
+                  )}
+                </BorderBox>
               </div>
             </TabPanel>
           </TabPanels>

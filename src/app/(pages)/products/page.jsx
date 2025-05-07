@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DataMapper from "@/app/components/DataMapper";
 import ProductCard from "@/app/components/ui/card/ProductCard";
 import EmptyState from "@/app/components/EmptyState";
@@ -20,8 +20,36 @@ import {
 } from "@mui/material";
 import { generateSlug } from "@/app/helpers";
 import Container from "@/app/components/layouts/Container";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+
+// Skeleton component for product card
+const ProductCardSkeleton = () => {
+  return (
+    <Paper elevation={1} sx={{ p: 2, height: "100%", borderRadius: "10px" }}>
+      <Skeleton
+        variant="rectangular"
+        height={200}
+        sx={{ borderRadius: "8px", mb: 2 }}
+      />
+      <Skeleton variant="text" height={24} width="80%" sx={{ mb: 1 }} />
+      <Skeleton variant="text" height={20} width="40%" sx={{ mb: 1 }} />
+      <Skeleton variant="text" height={24} width="60%" sx={{ mb: 1 }} />
+      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+        <Skeleton variant="rounded" width={80} height={36} />
+        <Skeleton variant="circular" width={36} height={36} />
+      </Box>
+    </Paper>
+  );
+};
 
 const ListProductPage = () => {
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 1,
+    pageSize: 10,
+    status: "",
+  });
+
   const [filterParams, setFilterParams] = useState({
     pageIndex: 1,
     pageSize: 10,
@@ -35,13 +63,34 @@ const ListProductPage = () => {
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [sortValue, setSortValue] = useState("default");
 
+  // Update filterParams when pagination changes
+  useEffect(() => {
+    setFilterParams(prev => ({
+      ...prev,
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize
+    }));
+  }, [pagination]);
+
   // Fetch products with filter params
   const {
     data: productsData,
     isLoading,
-    isError,
+    refetch: refetchProducts
   } = useGetListProduct(filterParams);
+
+
   const products = productsData?.data || [];
+  const totalCount = productsData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pagination.pageSize) || 1;
+
+  // Handle pagination change
+  const handlePaginationChange = (newPage) => {
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: newPage,
+    }));
+  };
 
   // Handle price input changes
   const handleMinPriceChange = (event) => {
@@ -98,13 +147,28 @@ const ListProductPage = () => {
     }
   };
 
+  // Render skeleton loaders while data is loading
+  const renderSkeletons = () => {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+        {Array.from(new Array(6)).map((_, index) => (
+          <ProductCardSkeleton key={index} />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Container>
       <div className="min-h-screen pt-5">
         <div className="flex container rounded-lg">
           {/* Sidebar Filters */}
           <div className="flex-shrink-0 w-[250px] mr-6">
-            <Paper elevation={0} sx={{ p: 2, border: "1px solid #eee" , borderRadius: "10px" }} className="dark:bg-transparent dark:text-white">
+            <Paper
+              elevation={0}
+              sx={{ p: 2, border: "1px solid #eee", borderRadius: "10px" }}
+              className="dark:bg-transparent dark:text-white"
+            >
               <Typography variant="h6" fontWeight={600} gutterBottom>
                 Filters
               </Typography>
@@ -236,12 +300,30 @@ const ListProductPage = () => {
           {/* Product Grid */}
           <div className="flex-grow">
             {isLoading ? (
-              <Typography variant="body1">Loading products...</Typography>
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <Skeleton variant="text" width={150} height={24} />
+                  <Skeleton variant="text" width={100} height={24} />
+                </Box>
+                {renderSkeletons()}
+              </>
             ) : products.length === 0 ? (
               <EmptyState title="No products found" />
             ) : (
               <div>
-                <Typography variant="body2" color="text.secondary" mb={2} className="dark:text-white">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  mb={2}
+                  className="dark:text-white"
+                >
                   Showing {products.length} results
                 </Typography>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
@@ -268,6 +350,34 @@ const ListProductPage = () => {
                     })}
                   />
                 </div>
+              </div>
+            )}
+
+            {totalCount > 0 && (
+              <div className="flex justify-center mt-4 gap-4">
+                <button
+                  onClick={() =>
+                    pagination.pageIndex > 1 &&
+                    handlePaginationChange(pagination.pageIndex - 1)
+                  }
+                  disabled={pagination.pageIndex <= 1}
+                  className="p-1 border rounded-full disabled:opacity-50"
+                >
+                  <IoIosArrowBack size={20} />
+                </button>
+                <span className="flex items-center">
+                  Page {pagination.pageIndex} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    pagination.pageIndex < totalPages &&
+                    handlePaginationChange(pagination.pageIndex + 1)
+                  }
+                  disabled={pagination.pageIndex >= totalPages}
+                  className="p-1 border rounded-full disabled:opacity-50"
+                >
+                  <IoIosArrowForward size={20} />
+                </button>
               </div>
             )}
           </div>

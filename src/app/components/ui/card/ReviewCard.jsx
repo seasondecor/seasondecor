@@ -8,7 +8,6 @@ import { formatDate } from "@/app/helpers";
 import Image from "next/image";
 
 const ReviewCard = ({
-  id,
   comment,
   rate,
   createAt,

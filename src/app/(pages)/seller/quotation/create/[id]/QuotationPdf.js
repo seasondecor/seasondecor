@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { PDFViewer, PDFDownloadLink, Document, Page, Text, View, StyleSheet, pdf, Image } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink, Document, Page, Text, View, pdf, Image } from '@react-pdf/renderer';
 import Button from "@/app/components/ui/Buttons/Button";
 import { IoDownloadOutline } from "react-icons/io5";
 import { styles as baseStyles } from '../../style';
@@ -11,7 +11,7 @@ const styles = {
   ...baseStyles,
   page: {
     ...baseStyles.page,
-    padding: 25,
+    padding: 30,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
@@ -19,12 +19,12 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    borderBottom: '2px solid #FF385C',
-    paddingBottom: 8,
+    marginBottom: 20,
+    borderBottom: '3px solid #FF385C',
+    paddingBottom: 10,
   },
   logo: {
-    width: 100,
+    width: 120,
     height: 50,
     objectFit: 'contain',
   },
@@ -32,85 +32,101 @@ const styles = {
     alignItems: 'flex-end',
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FF385C',
     textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#666',
-    marginTop: 2,
+    marginTop: 3,
   },
   section: {
     ...baseStyles.section,
-    marginBottom: 10,
-    padding: 8,
+    marginBottom: 15,
+    padding: 12,
     backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    borderLeft: '3px solid #FF385C',
+    borderRadius: 6,
+    borderLeft: '4px solid #FF385C',
   },
   sectionTitle: {
     ...baseStyles.sectionTitle,
     fontSize: 14,
     color: '#333',
     borderBottom: '1px solid #ddd',
-    paddingBottom: 4,
-    marginBottom: 6,
+    paddingBottom: 5,
+    marginBottom: 8,
+    fontWeight: 'bold',
   },
   text: {
     ...baseStyles.text,
     fontSize: 9,
-    lineHeight: 1.3,
-    color: '#555',
+    lineHeight: 1.4,
+    color: '#444',
   },
   tableContainer: {
     ...baseStyles.tableContainer,
-    marginTop: 6,
-    marginBottom: 6,
+    marginTop: 8,
+    marginBottom: 10,
   },
   tableTitle: {
     ...baseStyles.tableTitle,
     color: '#FF385C',
     fontWeight: 'bold',
-    fontSize: 11,
-    marginBottom: 3,
+    fontSize: 12,
+    marginBottom: 4,
   },
   table: {
     ...baseStyles.table,
-    borderRadius: 4,
+    borderRadius: 5,
     overflow: 'hidden',
+    border: '1px solid #eaeaea',
   },
   tableHeader: {
     ...baseStyles.tableHeader,
     backgroundColor: '#FF385C',
     color: '#fff',
-    minHeight: 18,
+    minHeight: 20,
   },
   tableRow: {
     ...baseStyles.tableRow,
-    minHeight: 22,
+    minHeight: 24,
     borderBottomColor: '#e1e1e1',
   },
   tableCell: {
     ...baseStyles.tableCell,
-    padding: 4,
+    padding: 5,
     fontSize: 8,
+  },
+  noteCell: {
+    ...baseStyles.tableCell,
+    padding: 5,
+    fontSize: 8,
+    maxWidth: 120,
+    wordWrap: 'break-word',
+    whiteSpace: 'pre-wrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   subtotal: {
     ...baseStyles.subtotal,
     backgroundColor: '#f5f5f5',
-    padding: 5,
-    marginTop: 3,
+    padding: 6,
+    marginTop: 4,
     borderRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   total: {
     ...baseStyles.total,
-    marginTop: 8,
-    padding: 6,
+    marginTop: 10,
+    padding: 8,
     backgroundColor: '#FF385C',
     color: 'white',
-    borderRadius: 4,
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   totalLabel: {
     ...baseStyles.totalLabel,
@@ -124,32 +140,36 @@ const styles = {
   },
   infoBox: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 15,
+    borderRadius: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#eaeaea',
   },
   infoColumn: {
     flex: 1,
-    padding: 6,
+    padding: 10,
   },
   infoLabel: {
     fontSize: 8,
     color: '#777',
-    marginBottom: 1,
+    marginBottom: 2,
   },
   infoValue: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#333',
   },
   footer: {
     ...baseStyles.footer,
-    marginTop: 10,
-    paddingTop: 8,
-    borderTop: '1px solid #e1e1e1',
+    marginTop: 20,
+    paddingTop: 10,
+    borderTop: '2px solid #eaeaea',
     alignItems: 'center',
     paddingBottom: 0,
   },
   footerText: {
-    color: '#888',
+    color: '#666',
     fontSize: 8,
     marginBottom: 2,
   },
@@ -158,14 +178,16 @@ const styles = {
     fontWeight: 'bold',
   },
   infoGroup: {
-    marginTop: 4,
+    marginTop: 5,
   },
   compactRows: {
     maxHeight: 200,
   },
   termsText: {
-    fontSize: 8,
-    lineHeight: 1.2,
+    fontSize: 9,
+    lineHeight: 1.4,
+    color: '#444',
+    marginTop: 3,
   }
 };
 
@@ -243,6 +265,7 @@ const QuotationDocument = ({ data = {} }) => {
     materials = [],
     constructionTasks = [],
     depositPercentage = 20,
+    note = 'N/A',
     logoUrl = '/logo/logo-white.png' // Default logo URL
   } = data;
 
@@ -293,13 +316,14 @@ const QuotationDocument = ({ data = {} }) => {
           />
           <View style={styles.headerRight}>
             <Text style={styles.title}>QUOTATION #{quotationCode}</Text>
+            <Text style={styles.subtitle}>Created: {new Date().toLocaleDateString()}</Text>
           </View>
         </View>
 
         {/* Client & Event Information */}
         <View style={styles.infoBox}>
-          <View style={styles.infoColumn}>
-            <Text style={styles.sectionTitle}>Customer Details</Text>
+          <View style={[styles.infoColumn, { backgroundColor: '#f9f9f9' }]}>
+            <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Customer Details</Text>
             <View style={styles.infoGroup}>
               <Text style={styles.infoLabel}>Name</Text>
               <Text style={styles.infoValue}>{customerName}</Text>
@@ -309,8 +333,8 @@ const QuotationDocument = ({ data = {} }) => {
               <Text style={styles.infoValue}>{customerEmail}</Text>
             </View>
           </View>
-          <View style={styles.infoColumn}>
-            <Text style={styles.sectionTitle}>Quotation Details</Text>
+          <View style={[styles.infoColumn, { backgroundColor: '#f5f5f5' }]}>
+            <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Quotation Details</Text>
             <View style={styles.infoGroup}>
               <Text style={styles.infoLabel}>Created Date</Text>
               <Text style={styles.infoValue}>{new Date().toLocaleDateString()}</Text>
@@ -324,7 +348,7 @@ const QuotationDocument = ({ data = {} }) => {
 
         {/* Service Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quotation Breakdown</Text>
+          <Text style={[styles.sectionTitle, { color: '#FF385C' }]}>Quotation Breakdown</Text>
           
           {/* Materials Table */}
           <View style={styles.tableContainer}>
@@ -332,8 +356,11 @@ const QuotationDocument = ({ data = {} }) => {
             <View style={[styles.table, styles.compactRows]}>
               {/* Table Header */}
               <View style={[styles.tableRow, styles.tableHeader]}>
-                <View style={[styles.tableCell, { flex: 3 }]}>
+                <View style={[styles.tableCell, { flex: 2 }]}>
                   <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Material Name</Text>
+                </View>
+                <View style={[styles.tableCell, { flex: 1 }]}>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Note</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 1 }]}>
                   <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Quantity</Text>
@@ -358,8 +385,11 @@ const QuotationDocument = ({ data = {} }) => {
                         { backgroundColor: isEvenRow ? '#fff' : '#f5f9ff' }
                       ]}
                     >
-                      <View style={[styles.tableCell, { flex: 3 }]}>
+                      <View style={[styles.tableCell, { flex: 2 }]}>
                         <Text>{item.materialName || 'N/A'}</Text>
+                      </View>
+                      <View style={[styles.noteCell, { flex: 1 }]}>
+                        <Text>{item.note || 'N/A'}</Text>
                       </View>
                       <View style={[styles.tableCell, { flex: 1 }]}>
                         <Text>{item.quantity || 0}</Text>
@@ -371,7 +401,7 @@ const QuotationDocument = ({ data = {} }) => {
                   );
                 })
               ) : (
-                <View style={styles.tableRow}>
+                <View style={[styles.tableRow, { minHeight: 28 }]}>
                   <View style={[styles.tableCell, { flex: 6 }]}>
                     <Text>No materials added</Text>
                   </View>
@@ -387,22 +417,25 @@ const QuotationDocument = ({ data = {} }) => {
           </View>
           
           {/* Labour Tasks Table */}
-          <View style={[styles.tableContainer, { marginTop: 8 }]}>
+          <View style={[styles.tableContainer, { marginTop: 12 }]}>
             <Text style={styles.tableTitle}>Labour Tasks</Text>
             <View style={[styles.table, styles.compactRows]}>
               {/* Table Header */}
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <View style={[styles.tableCell, { flex: 3 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Task Name</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Task Name</Text>
+                </View>
+                <View style={[styles.tableCell, { flex: 1.5 }]}>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Note</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 1 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Cost</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Cost</Text>
                 </View>
-                <View style={[styles.tableCell, { flex: 1 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Unit</Text>
+                <View style={[styles.tableCell, { flex: 1}]}>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Unit</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 0.8 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Area</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Dimension</Text>
                 </View>
               </View>
               
@@ -418,16 +451,21 @@ const QuotationDocument = ({ data = {} }) => {
                       key={`task-${index}`} 
                       style={[
                         styles.tableRow, 
-                        { backgroundColor: isEvenRow ? '#fff' : '#f5f9ff' }
+                        { backgroundColor: isEvenRow ? '#fff' : '#f8f8f8', minHeight: 28 }
                       ]}
                     >
                       <View style={[styles.tableCell, { flex: 3 }]}>
                         <Text>{item.taskName || 'N/A'}</Text>
                       </View>
+                      <View style={[styles.noteCell, { flex: 1.5 }]}>
+                        <Text style={{ fontSize: 7 }}>
+                          {item.note || 'N/A'}
+                        </Text>
+                      </View>
                       <View style={[styles.tableCell, { flex: 1 }]}>
                         <Text>{formatVND(parsedCost)}</Text>
                       </View>
-                      <View style={[styles.tableCell, { flex: 1 }]}>
+                      <View style={[styles.tableCell, { flex: 1}]}>
                         <Text>{item.unit || 'N/A'}</Text>
                       </View>
                       <View style={[styles.tableCell, { flex: 0.8 }]}>
@@ -437,7 +475,7 @@ const QuotationDocument = ({ data = {} }) => {
                   );
                 })
               ) : (
-                <View style={styles.tableRow}>
+                <View style={[styles.tableRow, { minHeight: 28 }]}>
                   <View style={[styles.tableCell, { flex: 6.6 }]}>
                     <Text>No labour tasks added</Text>
                   </View>
@@ -453,7 +491,7 @@ const QuotationDocument = ({ data = {} }) => {
           </View>
 
           {/* Grand Total and Deposit - Inline */}
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', gap: 8}}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', gap: 10, marginTop: 5}}>
             <View style={[styles.total, {flex: 1}]}>
               <Text style={[styles.totalLabel, { color: 'white' }]}>Grand Total:</Text>
               <Text style={[styles.totalValue, { color: 'white' }]}>{formatVND(grandTotal)}</Text>
@@ -467,7 +505,7 @@ const QuotationDocument = ({ data = {} }) => {
 
         {/* Terms & Conditions - more compact */}
         <View style={[styles.section, {marginBottom: 0}]}>
-          <Text style={styles.sectionTitle}>Terms and Conditions</Text>
+          <Text style={[styles.sectionTitle, { color: '#333' }]}>Terms and Conditions</Text>
           <Text style={styles.termsText}>{terms || 'Payment due within 30 days. Cancellation policy: 50% refund if canceled 30 days before the event.'}</Text>
         </View>
 

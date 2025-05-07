@@ -6,6 +6,7 @@ import "nprogress/nprogress.css";
 const SUB_URL = `api/Review`;
 
 export function useReviewProduct() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data) => {
       if (!data) throw new Error("No review data provided");
@@ -15,6 +16,12 @@ export function useReviewProduct() {
       } finally {
         nProgress.done();
       }
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["order_detail"] }),
+        queryClient.invalidateQueries({ queryKey: ["order_list"] }),
+      ]);
     },
   });
 }

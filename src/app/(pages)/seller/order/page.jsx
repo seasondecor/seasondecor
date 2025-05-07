@@ -4,23 +4,72 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import SellerWrapper from "../components/SellerWrapper";
 import DataTable from "@/app/components/ui/table/DataTable";
 import { useGetOrderListByProvider } from "@/app/queries/list/order.list.query";
-import { useRouter } from "next/navigation";
 import {
   Skeleton,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Box,
+  Paper,
 } from "@mui/material";
 import Button from "@/app/components/ui/Buttons/Button";
 import StatusChip from "@/app/components/ui/statusChip/StatusChip";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
 import { CiWallet } from "react-icons/ci";
+import { BsClock } from "react-icons/bs";
+import { formatDateTime } from "@/app/helpers";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
 
+// Skeleton loader for the order table
+const OrderTableSkeleton = () => {
+  return (
+    <Paper elevation={0} className="w-full overflow-hidden border dark:bg-gray-800 dark:border-gray-700">
+      <Box p={2} mb={2} display="flex" justifyContent="space-between" alignItems="center">
+        <Skeleton variant="text" width={150} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="text" width={100} height={30} />
+          <Skeleton variant="text" width={80} height={30} />
+        </Box>
+      </Box>
+      
+      <Box px={2}>
+        <Box mb={2} display="flex" width="100%" sx={{ borderBottom: '1px solid #eee' }}>
+          {[15, 20, 20, 20, 15].map((width, index) => (
+            <Box key={index} width={`${width}%`} p={1.5}>
+              <Skeleton variant="text" width="80%" height={24} />
+            </Box>
+          ))}
+        </Box>
+        
+        {[...Array(5)].map((_, rowIndex) => (
+          <Box key={rowIndex} display="flex" width="100%" sx={{ borderBottom: '1px solid #f5f5f5' }}>
+            {[15, 20, 20, 20, 15].map((width, colIndex) => (
+              <Box key={colIndex} width={`${width}%`} p={2}>
+                {colIndex === 4 ? (
+                  <Skeleton variant="rounded" width={80} height={30} />
+                ) : (
+                  <Skeleton variant="text" width={colIndex === 0 ? "40%" : "80%"} height={24} />
+                )}
+              </Box>
+            ))}
+          </Box>
+        ))}
+      </Box>
+      
+      <Box p={2} display="flex" justifyContent="space-between" alignItems="center">
+        <Skeleton variant="text" width={100} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="rounded" width={120} height={36} />
+          <Skeleton variant="rounded" width={120} height={36} />
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
+
 const OrderPage = () => {
-  const router = useRouter();
   const searchInputRef = useRef(null);
   const [filters, setFilters] = useState({
     status: "",
@@ -104,11 +153,19 @@ const OrderPage = () => {
     {
       header: "Order Date",
       accessorKey: "createdAt",
-      cell: ({ row }) => (
-        <span>
-          {new Date(row.original.orderDate).toLocaleDateString("vi-VN")}
-        </span>
-      ),
+      cell: ({ row }) => {
+        if (!row.original.orderDate) return <span>N/A</span>;
+        
+        const dateTime = formatDateTime(row.original.orderDate);
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium">{dateTime.date}</span>
+            <span className="text-xs text-gray-500 inline-flex items-center gap-1">
+              <BsClock /> {dateTime.time}
+            </span>
+          </div>
+        );
+      },
     },
     {
       header: "Status",
@@ -214,11 +271,7 @@ const OrderPage = () => {
       <FilterSelectors />
 
       {isLoading && orders.length === 0 ? (
-        <>
-          <Skeleton animation="wave" variant="text" width="100%" height={20} />
-          <Skeleton animation="wave" variant="text" width="100%" height={20} />
-          <Skeleton animation="wave" variant="text" width="100%" height={20} />
-        </>
+        <OrderTableSkeleton />
       ) : error ? (
         <div className="bg-red-100 text-red-700 p-4 rounded">
           Error loading orders: {error.message}

@@ -21,7 +21,7 @@ export const authOptions = {
             password: credentials.password,
           });
 
-          console.log("API Response:", response);
+         // console.log("API Response:", response);
 
 
           return {

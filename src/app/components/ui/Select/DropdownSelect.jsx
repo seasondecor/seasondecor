@@ -7,7 +7,7 @@ import {
 } from "@headlessui/react";
 import clsx from "clsx";
 import { RiArrowDropDownLine } from "react-icons/ri";
-import { Label } from "../inputs/Label";
+import { Label } from "../Inputs/Label";
 
 export default function DropdownSelect({
   label,

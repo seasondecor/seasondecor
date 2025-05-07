@@ -32,7 +32,7 @@ const QuotationCard = ({
             className="!m-0 text-sm"
           />
         </div>
-        {isQuoteExisted && !isContractExist && (
+        {isQuoteExisted && !isContractExist && status !== 4 && (
           <div className="absolute top-[-10] right-4">
             <span className="flex flex-row items-center">
               <MdOutlineKeyboardDoubleArrowRight

@@ -30,12 +30,12 @@ const DataTable = ({
     pageIndex: initialPageIndex,
     pageSize,
   });
-  
+
   const isInitialMount = useRef(true);
 
   // Update local pagination state when pageSize or initialPageIndex props change
   useEffect(() => {
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
       pageSize,
       pageIndex: initialPageIndex,
@@ -56,14 +56,15 @@ const DataTable = ({
       isInitialMount.current = false;
       return;
     }
-    
+
     if (onPaginationChange) {
-      console.log("Table pagination changed:", pagination);
-      
-      const apiPageIndex = pagination.pageIndex === 0 ? 1 : pagination.pageIndex + 1;
-      
-      console.log("Converting to API pageIndex:", apiPageIndex);
-      
+      //console.log("Table pagination changed:", pagination);
+
+      const apiPageIndex =
+        pagination.pageIndex === 0 ? 1 : pagination.pageIndex + 1;
+
+      //console.log("Converting to API pageIndex:", apiPageIndex);
+
       onPaginationChange({
         ...pagination,
         pageIndex: apiPageIndex,
@@ -72,10 +73,11 @@ const DataTable = ({
   }, [pagination, onPaginationChange]);
 
   // Calculate if pagination should be shown
-  const shouldShowPagination = showPagination && (
-    (manualPagination && (pageCount > 1 || totalCount > pagination.pageSize)) || 
-    (!manualPagination && table.getPageCount() > 1)
-  );
+  const shouldShowPagination =
+    showPagination &&
+    ((manualPagination &&
+      (pageCount > 1 || totalCount > pagination.pageSize)) ||
+      (!manualPagination && table.getPageCount() > 1));
 
   const table = useReactTable({
     data: data || [],
@@ -87,7 +89,9 @@ const DataTable = ({
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
+    getPaginationRowModel: manualPagination
+      ? undefined
+      : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(), // Always include sorted model for client-side sorting
     manualPagination,
     manualSorting,
@@ -96,13 +100,12 @@ const DataTable = ({
 
   // Debug function for pagination buttons
   const handlePageChange = (action) => {
-    
-    if (action === 'first') table.setPageIndex(0);
-    if (action === 'previous') table.previousPage();
-    if (action === 'next') table.nextPage();
-    if (action === 'last') table.setPageIndex(table.getPageCount() - 1);
-    
-    console.log("After:", table.getState().pagination);
+    if (action === "first") table.setPageIndex(0);
+    if (action === "previous") table.previousPage();
+    if (action === "next") table.nextPage();
+    if (action === "last") table.setPageIndex(table.getPageCount() - 1);
+
+    // console.log("After:", table.getState().pagination);
   };
 
   return (
@@ -157,7 +160,10 @@ const DataTable = ({
             </tr>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+              <tr
+                key={row.id}
+                className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-6 py-4">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -172,25 +178,25 @@ const DataTable = ({
         <div className="flex items-center justify-between p-4 border-t">
           <div className="flex gap-2">
             <Button
-              onClick={() => handlePageChange('first')}
+              onClick={() => handlePageChange("first")}
               disabled={!table.getCanPreviousPage() || isLoading}
               className=" disabled:opacity-50"
               label="First"
             />
             <Button
-              onClick={() => handlePageChange('previous')}
+              onClick={() => handlePageChange("previous")}
               disabled={!table.getCanPreviousPage() || isLoading}
               className=" disabled:opacity-50"
               label="Previous"
             />
             <Button
-              onClick={() => handlePageChange('next')}
+              onClick={() => handlePageChange("next")}
               disabled={!table.getCanNextPage() || isLoading}
               className=" disabled:opacity-50"
               label="Next"
             />
             <Button
-              onClick={() => handlePageChange('last')}
+              onClick={() => handlePageChange("last")}
               disabled={!table.getCanNextPage() || isLoading}
               className=" disabled:opacity-50"
               label="Last"
@@ -212,13 +218,13 @@ const DataTable = ({
             )}
             <select
               value={table.getState().pagination.pageSize}
-              onChange={e => {
+              onChange={(e) => {
                 table.setPageSize(Number(e.target.value));
               }}
               className="border rounded px-2 py-1"
               disabled={isLoading}
             >
-              {[1, 2, 3, 5, 10, 20, 30, 50].map(pageSize => (
+              {[1, 2, 3, 5, 10, 20, 30, 50].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>
                   Show {pageSize}
                 </option>

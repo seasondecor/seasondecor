@@ -4,9 +4,10 @@ import React from "react";
 import { MdAdd } from "react-icons/md";
 import Button from "@/app/components/ui/Buttons/Button";
 import { IoIosRemove } from "react-icons/io";
-import Input from "@/app/components/ui/inputs/Input";
+import Input from "@/app/components/ui/Inputs/Input";
 import { formatCurrency } from "@/app/helpers";
-import { AiOutlineStop, AiOutlineExclamationCircle } from "react-icons/ai";
+import { AiOutlineStop } from "react-icons/ai";
+import { Textarea } from "@headlessui/react";
 
 const MaterialTab = ({
   materials,
@@ -33,21 +34,24 @@ const MaterialTab = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                   Material Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quantity
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Note
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cost
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Quantity <span className="text-red">*</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                  Cost <span className="text-red">*</span>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                   Remove
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-500 divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
               {materials.length > 0 ? (
                 materials.map((material, index) => (
                   <tr key={`material-${index}`}>
@@ -63,9 +67,30 @@ const MaterialTab = ({
                             e.target.value
                           )
                         }
-                        className="pl-3"
+                        className={`pl-3 ${
+                          !material.materialName ? "border-red" : ""
+                        }`}
                         placeholder="Material name"
+                        required
                         register={() => ({})}
+                      />
+                      {!material.materialName && (
+                        <p className="text-red text-xs mt-1">Required field</p>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Textarea
+                        id={`materials.${index}.note`}
+                        name={`materials.${index}.note`}
+                        value={material.note || ""}
+                        onChange={(e) =>
+                          onMaterialChange(index, "note", e.target.value)
+                        }
+                        className="pl-3 w-full p-2 border rounded"
+                        placeholder="Add detail notes"
+                        rows={3}
+                        required
+                        //register={() => ({})}
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -80,12 +105,21 @@ const MaterialTab = ({
                             parseInt(e.target.value) || 0
                           )
                         }
-                        className="pl-3"
-                        min="0"
+                        className={`pl-3 ${
+                          material.quantity <= 0 ? "border-red" : ""
+                        }`}
+                        min="1"
                         placeholder="0"
+                        required
                         register={() => ({})}
                       />
+                      {material.quantity <= 0 && (
+                        <p className="text-red text-xs mt-1">
+                          Must be greater than 0
+                        </p>
+                      )}
                     </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Input
                         id={`materials.${index}.cost`}
@@ -98,11 +132,21 @@ const MaterialTab = ({
                           //console.log(`Setting material ${index} cost to:`, rawValue);
                           onMaterialChange(index, "cost", rawValue);
                         }}
-                        className="pl-3"
+                        className={`pl-3 ${
+                          !material.cost || parseFloat(material.cost) <= 0
+                            ? "border-red"
+                            : ""
+                        }`}
                         placeholder="0"
+                        required
                         register={() => ({})}
                         control={control}
                       />
+                      {(!material.cost || parseFloat(material.cost) <= 0) && (
+                        <p className="text-red text-xs mt-1">
+                          Must be greater than 0
+                        </p>
+                      )}
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -111,10 +155,10 @@ const MaterialTab = ({
                           label="Remove"
                           onClick={() => onRemoveMaterial(index)}
                           className="bg-red"
-                          icon={<IoIosRemove size={20} />}
+                          icon={<IoIosRemove size={18} />}
                         />
                       ) : (
-                        <AiOutlineStop size={20} />
+                        <AiOutlineStop size={18} />
                       )}
                     </td>
                   </tr>

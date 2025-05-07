@@ -27,7 +27,7 @@ import ReviewCard from "@/app/components/ui/card/ReviewCard";
 import { FaFlag } from "react-icons/fa";
 import Link from "next/link";
 import HostSection from "@/app/(pages)/booking/components/HostSection";
-import { Skeleton, Box, Grid, Paper } from "@mui/material";
+import { Skeleton, Box } from "@mui/material";
 import useInfoModal from "@/app/hooks/useInfoModal";
 import PickDate from "@/app/(pages)/booking/components/PickDate";
 import { useBookService } from "@/app/queries/book/book.query";
@@ -36,113 +36,206 @@ import DropdownSelectReturnObj from "@/app/components/ui/Select/DropdownObject";
 import { useGetAllAddress } from "@/app/queries/user/address.query";
 import { useRouter } from "next/navigation";
 import { seasons } from "@/app/constant/season";
-import { useGetPaginatedBookingsForCustomer } from "@/app/queries/list/booking.list.query";
 import { FcFolder } from "react-icons/fc";
 import { BorderBox } from "@/app/components/ui/BorderBox";
 import { toast } from "sonner";
 import ResultModal from "@/app/components/ui/Modals/ResultModal";
-import { Label } from "@/app/components/ui/inputs/Label";
+import { Label } from "@/app/components/ui/Inputs/Label";
 import { Field, Textarea } from "@headlessui/react";
 import { CiClock1 } from "react-icons/ci";
 import Spinner from "@/app/components/Spinner";
 import { useGetListReviewByService } from "@/app/queries/list/review.list.query";
 import DataMapper from "@/app/components/DataMapper";
 import EmptyState from "@/app/components/EmptyState";
+import { RiErrorWarningFill } from "react-icons/ri";
 
 // Service Detail Skeleton Component
 const ServiceDetailSkeleton = () => {
   return (
     <Container>
       <Box className="w-full">
-        <Skeleton variant="text" width={150} height={30} className="mb-5" />
-        <Skeleton variant="text" width={300} height={50} className="mb-4" />
+        {/* Breadcrumbs skeleton */}
+        <Skeleton variant="text" width={300} height={20} className="mb-6" />
         
+        {/* Title skeleton */}
+        <Skeleton variant="text" width={300} height={40} className="mb-4" />
+
         {/* Image Gallery Skeleton */}
-        <Grid container spacing={2} className="mb-10">
-          <Grid item xs={12} md={6}>
-            <Skeleton variant="rectangular" height={500} className="rounded-lg" />
-          </Grid>
-          <Grid item xs={12} md={6} className="hidden md:block">
-            <Grid container spacing={2}>
-              {[1, 2, 3, 4].map((i) => (
-                <Grid item xs={6} key={i}>
-                  <Skeleton variant="rectangular" height={240} className="rounded-lg" />
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-        </Grid>
-        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-10">
+          <div className="relative h-[400px] md:h-[500px] overflow-hidden rounded-lg">
+            <Skeleton variant="rectangular" height="100%" animation="wave" className="rounded-lg" />
+          </div>
+          <div className="hidden md:grid grid-cols-2 gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="relative h-[244px] overflow-hidden rounded-lg">
+                <Skeleton variant="rectangular" height="100%" animation="wave" className="rounded-lg" />
+              </div>
+            ))}
+          </div>
+          {/* Mobile skeleton images */}
+          <div className="grid grid-cols-3 gap-2 md:hidden">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="relative h-[120px] overflow-hidden rounded-lg">
+                <Skeleton variant="rectangular" height="100%" animation="wave" className="rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Content Skeleton */}
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Box className="space-y-6">
-              <Box className="flex items-center gap-2">
-                <Skeleton variant="circular" width={30} height={30} />
-                <Skeleton variant="text" width={200} />
-              </Box>
-              
-              <Box className="flex items-center gap-2">
-                <Skeleton variant="text" width={100} />
-                <Box className="flex flex-wrap gap-2">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} variant="rectangular" width={80} height={30} className="rounded-xl" />
-                  ))}
-                </Box>
-              </Box>
-              
-              <Box className="flex items-center gap-2">
-                <Skeleton variant="circular" width={30} height={30} />
-                <Skeleton variant="text" width={250} />
-              </Box>
-              
-              <Box className="space-y-2">
-                <Skeleton variant="text" width={140} />
-                <Skeleton variant="rectangular" height={200} className="rounded-lg" />
-                <Skeleton variant="text" width={100} />
-              </Box>
-              
-              <Box className="mt-8 pt-6 border-t">
-                <Box className="flex gap-4">
-                  <Skeleton variant="rectangular" width={150} height={50} className="rounded-lg" />
-                  <Skeleton variant="rectangular" width={150} height={50} className="rounded-lg" />
-                </Box>
-              </Box>
-            </Box>
-          </Grid>
-          
-          <Grid item xs={12} md={6}>
-            <Box className="space-y-6">
-              <Skeleton variant="text" width={160} />
-              <Skeleton variant="rectangular" height={56} className="rounded-lg" />
-              <Skeleton variant="rectangular" height={300} className="rounded-lg" />
-              <Skeleton variant="text" width={180} className="mx-auto mt-4" />
-            </Box>
-          </Grid>
-        </Grid>
-        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left column */}
+          <div className="space-y-6">
+            {/* Category */}
+            <div className="flex items-center gap-2 mb-4">
+              <Skeleton variant="circular" width={20} height={20} />
+              <Skeleton variant="text" width={120} height={20} />
+              <Skeleton variant="rectangular" width={100} height={28} className="rounded-md" />
+            </div>
+
+            {/* Seasons */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <Skeleton variant="text" width={80} height={20} />
+              <div className="flex flex-wrap gap-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} variant="rectangular" width={80} height={28} className="rounded-xl" />
+                ))}
+              </div>
+            </div>
+
+            {/* Location */}
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" width={20} height={20} />
+              <Skeleton variant="text" width={200} height={20} />
+            </div>
+
+            {/* Warning */}
+            <div className="flex items-start gap-3">
+              <Skeleton variant="circular" width={20} height={20} />
+              <Skeleton variant="text" width="90%" height={40} />
+            </div>
+
+            {/* Favorites */}
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" width={20} height={20} />
+              <Skeleton variant="text" width={100} height={20} />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Skeleton variant="text" width={120} height={25} />
+              <Skeleton variant="rectangular" height={100} className="rounded-lg" />
+              <Skeleton variant="text" width={80} height={20} />
+            </div>
+
+            {/* Notes textarea */}
+            <div className="space-y-2">
+              <Skeleton variant="text" width={200} height={20} />
+              <Skeleton variant="rectangular" height={150} className="rounded-lg" />
+            </div>
+
+            {/* Buttons */}
+            <div className="pt-6 border-t">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Skeleton variant="rectangular" width={150} height={45} className="rounded-lg" />
+                <Skeleton variant="rectangular" width={150} height={45} className="rounded-lg" />
+              </div>
+            </div>
+          </div>
+
+          {/* Right column */}
+          <div className="space-y-6">
+            {/* Address selection */}
+            <div>
+              <Skeleton variant="text" width={150} height={25} className="mb-2" />
+              <Skeleton variant="rectangular" height={56} className="rounded-lg w-full" />
+            </div>
+
+            {/* Date picker */}
+            <div>
+              <Skeleton variant="text" width={250} height={25} className="mb-2" />
+              <Skeleton variant="rectangular" height={300} className="rounded-lg w-full" />
+              <Skeleton variant="text" width={200} height={20} className="mx-auto mt-4" />
+            </div>
+
+            {/* Report link */}
+            <div className="flex items-center justify-center gap-2 mt-10">
+              <Skeleton variant="circular" width={14} height={14} />
+              <Skeleton variant="text" width={120} height={15} />
+            </div>
+          </div>
+        </div>
+
         {/* Reviews Section Skeleton */}
-        <Box className="mt-16 border-t pt-8">
-          <Box className="relative flex justify-center">
-            <Skeleton variant="rectangular" width={280} height={40} className="rounded-xl" />
-          </Box>
-          
-          <Box className="my-8">
-            <Skeleton variant="rectangular" height={180} className="rounded-lg" />
-          </Box>
-          
-          <Box className="mt-6">
-            <Skeleton variant="rectangular" height={120} className="rounded-lg mb-6" />
-            
-            <Grid container spacing={4}>
-              {[1, 2, 3, 4].map((i) => (
-                <Grid item xs={12} md={6} key={i}>
-                  <Skeleton variant="rectangular" height={200} className="rounded-lg" />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Box>
+        <div className="mt-16 border-t pt-8 relative">
+          {/* Title */}
+          <div className="relative flex justify-center">
+            <Skeleton variant="rectangular" width={280} height={40} className="rounded-xl absolute top-[-25px]" />
+          </div>
+
+          {/* Rating overview */}
+          <div className="my-8 pt-6">
+            <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+              <div className="text-center">
+                <Skeleton variant="circular" width={120} height={120} className="mx-auto" />
+                <Skeleton variant="text" width={100} height={24} className="mx-auto mt-2" />
+              </div>
+              <div className="flex flex-col gap-2 w-full max-w-md">
+                {[5, 4, 3, 2, 1].map((i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Skeleton variant="text" width={20} height={20} />
+                    <Skeleton variant="rectangular" height={16} width="70%" className="rounded-full" />
+                    <Skeleton variant="text" width={30} height={16} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Review form placeholder */}
+          <div className="my-10">
+            <Skeleton variant="rectangular" height={150} className="rounded-lg w-full" />
+          </div>
+
+          {/* Individual Reviews */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton variant="circular" width={48} height={48} />
+                  <div>
+                    <Skeleton variant="text" width={120} height={20} />
+                    <Skeleton variant="text" width={80} height={16} />
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((j) => (
+                    <Skeleton key={j} variant="circular" width={16} height={16} />
+                  ))}
+                </div>
+                <Skeleton variant="text" width="100%" height={60} />
+                <div className="flex gap-2">
+                  {[1, 2].map((j) => (
+                    <Skeleton key={j} variant="rectangular" width={60} height={60} className="rounded-lg" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Host Section */}
+          <div className="mt-10 border-t pt-6">
+            <Skeleton variant="text" width={200} height={25} className="mb-4" />
+            <div className="flex items-center gap-4">
+              <Skeleton variant="circular" width={80} height={80} />
+              <div className="space-y-2">
+                <Skeleton variant="text" width={150} height={25} />
+                <Skeleton variant="text" width={200} height={20} />
+                <Skeleton variant="text" width={120} height={20} />
+              </div>
+            </div>
+          </div>
+        </div>
       </Box>
     </Container>
   );
@@ -162,8 +255,8 @@ const ServiceDetail = () => {
   const { mutate: bookService, isPending: isBookingPending } = useBookService();
   const [selectedBookingData, setSelectedBookingData] = React.useState(null);
   const { data: addressData, isLoading: addressLoading } = useGetAllAddress();
-  const { data: bookings, isLoading: isBookingsLoading } =
-    useGetPaginatedBookingsForCustomer(pagination);
+  //const { data: bookings, isLoading: isBookingsLoading } =
+  //  useGetPaginatedBookingsForCustomer(pagination);
 
   const [resultModalOpen, setResultModalOpen] = React.useState(false);
   const [resultModalData, setResultModalData] = React.useState({
@@ -186,7 +279,8 @@ const ServiceDetail = () => {
     },
   });
 
-  const { data: serviceDetail, isLoading: isServiceLoading } = useGetDecorServiceById(serviceId);
+  const { data: serviceDetail, isLoading: isServiceLoading } =
+    useGetDecorServiceById(serviceId);
   const { data: favorites, isLoading: isLoadingFavorites } =
     useGetListFavorite();
 
@@ -201,11 +295,12 @@ const ServiceDetail = () => {
     useAddFavoriteDecorService();
 
   // Use pagination to prevent loading all services at once
-  const { data: listDecorService, isLoading: isListLoading } = useGetListDecorService({
-    pageIndex: 1,
-    pageSize: 10,
-    forcePagination: true,
-  });
+  const { data: listDecorService, isLoading: isListLoading } =
+    useGetListDecorService({
+      pageIndex: 1,
+      pageSize: 10,
+      forcePagination: true,
+    });
 
   useEffect(() => {
     setSelectedAddress(null);
@@ -370,7 +465,7 @@ const ServiceDetail = () => {
                   className="object-cover hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
-                  unoptimized={true}
+                  unoptimized
                 />
               </div>
 
@@ -464,8 +559,29 @@ const ServiceDetail = () => {
             <div className="flex items-center gap-2">
               <MdLocationOn size={20} />
               <span className="text-sm font-medium">
-                {serviceDetail.sublocation || "Location not specified"}
+                Fast support in{" "}
+                <FootTypo
+                  footlabel={
+                    serviceDetail.sublocation || "Location not specified"
+                  }
+                  className="font-bold"
+                />
               </span>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <RiErrorWarningFill
+                size={20}
+                className="text-warning mt-0.5 flex-shrink-0"
+              />
+              <div>
+                <span className="text-sm font-medium">
+                  For customers located farther, we are still committed to
+                  delivering quality service, but please note that response
+                  times may be slightly longer due to travel or logistical
+                  constraints.
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -485,9 +601,10 @@ const ServiceDetail = () => {
                   className="!m-0 font-bold text-lg"
                 />
                 <div className="mt-3 rounded-lg">
-                  <p className="whitespace-pre-line break-words line-clamp-6 text-gray-700 dark:text-gray-300 pb-3">
-                    {serviceDetail.description || "No description available"}
-                  </p>
+                  <div 
+                    className="whitespace-pre-line line-clamp-2"
+                    dangerouslySetInnerHTML={{ __html: serviceDetail.description || "" }}
+                  />
                   <button
                     className="text-primary font-semibold underline"
                     onClick={() =>
@@ -637,6 +754,9 @@ const ServiceDetail = () => {
 
             {!serviceDetail.isBooked && (
               <PickDate
+                title="Pick your desired date to survey"
+                description="This schedule is the latest updated from the provider"
+                footerLabel="Please select a date for your survey"
                 availableDates={serviceDetail.availableDates || []}
                 onDateSelect={(dateData) => {
                   console.log("Selected date data:", dateData);
@@ -678,11 +798,15 @@ const ServiceDetail = () => {
         {/* Ratings Overview */}
         {isReviewsLoading ? (
           <Box className="w-full my-6 pb-6 text-sm border-b border-gray-200 dark:border-gray-700">
-            <Skeleton variant="rectangular" height={180} className="rounded-lg" />
+            <Skeleton
+              variant="rectangular"
+              height={180}
+              className="rounded-lg"
+            />
           </Box>
         ) : (
-          <OverallRating 
-            overallRating={review?.averageRate || 0} 
+          <OverallRating
+            overallRating={review?.averageRate || 0}
             rateCount={review?.rateCount || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }}
             totalReviews={review?.totalCount || 0}
           />
@@ -696,7 +820,7 @@ const ServiceDetail = () => {
           totalReviews={review?.totalCount || 0}
         />
       </div>
-      
+
       {/* Individual Reviews */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-8">
         {isReviewsLoading ? (
@@ -711,7 +835,11 @@ const ServiceDetail = () => {
                   </Box>
                 </Box>
                 <Skeleton variant="text" width={100} className="mb-2" />
-                <Skeleton variant="rectangular" height={80} className="rounded-lg" />
+                <Skeleton
+                  variant="rectangular"
+                  height={80}
+                  className="rounded-lg"
+                />
               </Box>
             ))}
           </>

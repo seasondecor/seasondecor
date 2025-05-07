@@ -83,7 +83,7 @@ const SuccessView = ({
           },
           secondary: {
             label: actionLabel || "Go Home",
-            action: () => router.push(redirectPath || "/booking/request"),
+            action: handleRedirect || (() => router.push(redirectPath || "/booking/request")),
           },
         };
       case "final":
@@ -95,7 +95,7 @@ const SuccessView = ({
           },
           secondary: {
             label: actionLabel || "Go Home",
-            action: handleRedirect || (() => router.push("/")),
+            action: handleRedirect || (() => router.push(redirectPath || "/booking/request")),
           },
         };
       case "order":
@@ -103,8 +103,8 @@ const SuccessView = ({
         return {
           primary: {
             label: "View Orders",
-            path: redirectPath || "/",
-            action: () => router.push(redirectPath || "/"),
+            path: redirectPath || "/user/orders/completed",
+            action: () => router.push(redirectPath || "/user/orders/completed"),
           },
           secondary: {
             label: actionLabel || "Go Home",

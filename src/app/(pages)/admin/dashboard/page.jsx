@@ -235,7 +235,7 @@ const AdminDashboard = () => {
         displayColors: false,
         callbacks: {
           label: function (context) {
-            return formatCurrency(context.raw);
+            return formatNumber(context.raw) + " ₫";
           },
         },
       },
@@ -250,7 +250,7 @@ const AdminDashboard = () => {
         ticks: {
           color: isDark ? "#9CA3AF" : "#666",
           callback: function (value) {
-            return formatCurrency(value);
+            return formatNumber(value) + " ₫";
           },
           font: { size: 12 },
         },
@@ -332,6 +332,11 @@ const AdminDashboard = () => {
     );
   }, [adminMonthlyRevenue]);
 
+  // Add this function to format numbers with dot separators
+  const formatNumber = (number) => {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
   return (
     <AdminWrapper>
       <div className="w-full grid grid-cols-1 md:grid-cols-3 grid-rows-auto md:grid-rows-3 gap-4">
@@ -380,11 +385,14 @@ const AdminDashboard = () => {
                 {isLoadingAdminMonthlyRevenue ? (
                   "Loading..."
                 ) : (
-                  <CountUp
-                    to={totalRevenue}
-                    formatter={(value) => formatCurrency(value)}
-                    duration={1}
-                  />
+                  <>
+                    <CountUp
+                      to={totalRevenue}
+                      duration={1}
+                      formatter={(value) => formatNumber(value)}
+                    />
+                    <span className="ml-1">₫</span>
+                  </>
                 )}
               </div>
               <FootTypo

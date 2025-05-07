@@ -11,12 +11,12 @@ import {
   useRemoveProductFromQuotation,
 } from "@/app/queries/quotation/quotation.query";
 import { BorderBox } from "@/app/components/ui/BorderBox";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import { formatDate, formatCurrency } from "@/app/helpers";
 import Button from "@/app/components/ui/Buttons/Button";
 import DataTable from "@/app/components/ui/table/DataTable";
 import { TbLayoutList, TbFileText, TbSignature } from "react-icons/tb";
-import { FaCheck, FaTimes } from "react-icons/fa6";
+import { FaCheck } from "react-icons/fa6";
 import { Divider } from "@mui/material";
 import { IoIosRemove } from "react-icons/io";
 import useInfoModal from "@/app/hooks/useInfoModal";
@@ -41,14 +41,21 @@ import ScrollAnimationWrapper from "@/app/components/ScrollAnimation";
 import Skeleton from "@mui/material/Skeleton";
 import useProductRemoveModal from "@/app/hooks/useProductRemoveModal";
 import ProductRemoveModal from "@/app/components/ui/Modals/ProductRemoveModal";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { MdNotes } from "react-icons/md";
+import { HiOutlineFilter } from "react-icons/hi";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import QuotationChangeRequestView from "../View/View";
 
 const QuotationDetailPage = () => {
   const params = useParams();
   const slug = params.slug;
-  const [activeTab, setActiveTab] = useState("details");
   const [processedMaterials, setProcessedMaterials] = useState([]);
   const [processedTasks, setProcessedTasks] = useState([]);
   const [isStatusChecked, setIsStatusChecked] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState([]);
+  const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
   const infoModal = useInfoModal();
   const { mutate: confirmQuotation, isPending: isConfirming } =
     useConfirmQuotation();
@@ -108,19 +115,58 @@ const QuotationDetailPage = () => {
 
     if (quotationDetail?.status === 1) {
       dispatch(setQuotationConfirmed(true));
+    } else {
+      dispatch(setQuotationConfirmed(false));
     }
-  }, [quotationDetail, dispatch]);
+
+    // Cleanup function to reset state when unmounting or changing quotation
+    return () => {
+      dispatch(setQuotationExisted(false));
+      dispatch(setQuotationSigned(false));
+      dispatch(setQuotationConfirmed(false));
+      setIsStatusChecked(false);
+    };
+  }, [quotationDetail, dispatch, slug]);
 
   // Only fetch related products when status has been checked
-  const { data: relatedProduct, isLoading: isRelatedProductLoading } =
-    useGetListRelatedProduct(pagination, slug, isStatusChecked);
+  const {
+    data: relatedProduct,
+    isLoading: isRelatedProductLoading,
+    refetch: refetchRelatedProducts,
+  } = useGetListRelatedProduct(pagination, slug, isStatusChecked);
 
   const products = relatedProduct?.data || [];
+  const totalProductCount = relatedProduct?.totalCount || 0;
+  const totalPages = Math.ceil(totalProductCount / pagination.pageSize) || 1;
+
+  // Extract unique categories from products
+  useEffect(() => {
+    if (products && products.length > 0) {
+      const uniqueCategories = [
+        ...new Set(products.map((p) => p.category)),
+      ].filter(Boolean);
+      setCategories(["all", ...uniqueCategories]);
+    }
+  }, [products]);
+
+  // Get filtered products based on selected category
+  const filteredProducts =
+    selectedCategory === "all"
+      ? products
+      : products.filter((product) => product.category === selectedCategory);
 
   const normalizeArray = (data) => {
     if (Array.isArray(data)) return data;
     if (typeof data === "object") return Object.values(data);
     return [];
+  };
+
+  // Handle pagination change
+  const handlePaginationChange = (newPage) => {
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: newPage,
+    }));
   };
 
   if (isQuotationDetailLoading) {
@@ -285,7 +331,7 @@ const QuotationDetailPage = () => {
 
   // For the products section
   const ProductsSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
       {[1, 2, 3, 4].map((item) => (
         <div key={item} className="border rounded-lg overflow-hidden">
           <Skeleton variant="rectangular" height={180} />
@@ -307,410 +353,629 @@ const QuotationDetailPage = () => {
     </div>
   );
 
+  // Category chip component
+  const CategoryChip = ({ category, isSelected, onClick }) => {
+    return (
+      <button
+        onClick={onClick}
+        className={`px-4 py-2 rounded-full text-sm font-medium mr-2 mb-2 transition-all duration-200 ${
+          isSelected
+            ? "bg-primary text-white shadow-md hover:bg-primary-dark"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+        }`}
+      >
+        {category === "all" ? "All Products" : category}
+      </button>
+    );
+  };
+
+  // Handle opening change request dialog
+  const handleOpenChangeRequest = () => {
+    setIsChangeRequestOpen(true);
+  };
+
+  // Handle closing change request dialog
+  const handleCloseChangeRequest = () => {
+    setIsChangeRequestOpen(false);
+  };
+
   return (
     <Container>
       <ProductRemoveModal onRemoveProduct={handleRemoveProductFromQuotation} />
-      <MuiBreadcrumbs />
 
-      {/* Tab Navigation */}
-      <div className="flex my-4 border-b">
-        <button
-          className={`px-4 py-2 flex items-center gap-2 ${
-            activeTab === "details"
-              ? "border-b-2 border-primary text-primary font-medium"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("details")}
-        >
-          <TbLayoutList size={20} />
-          <span>Details</span>
-        </button>
+      {isChangeRequestOpen ? (
+        <QuotationChangeRequestView onClose={handleCloseChangeRequest} />
+      ) : (
+        <>
+          <MuiBreadcrumbs />
 
-        <button
-          className={`px-4 py-2 flex items-center gap-2 ${
-            activeTab === "pdf"
-              ? "border-b-2 border-primary text-primary font-medium"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("pdf")}
-        >
-          <TbFileText size={20} />
-          <span>PDF Document</span>
-        </button>
-      </div>
-
-      {activeTab === "details" ? (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 grid-rows-1 gap-4 font-semibold">
-            <BorderBox className="section-left">
-              <div className="flex flex-row gap-2 items-center">
-                <FootTypo footlabel="Quotation Code" className="!m-0 text-sm" />
-                <FootTypo
-                  footlabel={quotationDetail?.quotationCode}
-                  className="!m-0 text-lg bg-primary text-white rounded-md px-2 py-1"
-                />
-              </div>
-
-              <div className="flex flex-row gap-2 items-center mt-3">
-                <FootTypo footlabel="Created Date" className="!m-0 text-sm" />
-                <FootTypo
-                  footlabel={formatDate(quotationDetail?.createdAt)}
-                  className="!m-0 text-lg"
-                />
-              </div>
-              <div className="flex flex-row gap-2 items-center mt-3">
-                <FootTypo footlabel="Status" className="!m-0 text-sm" />
-                <StatusChip
-                  status={quotationDetail?.status}
-                  isQuotation={true}
-                />
-              </div>
-              {quotationDetail?.status === 1 &&
-                !quotationDetail?.isContractExisted && (
-                  <div className="flex flex-row gap-2 items-center mt-3">
-                    <PiSealWarning size={20} />
-                    <FootTypo
-                      footlabel="The provider is preparing the contract"
-                      className="!m-0 text-sm"
-                    />
-                  </div>
-                )}
-              {quotationDetail?.isContractExisted &&
-                !quotationDetail?.isSigned && (
-                  <div className="flex flex-row gap-2 items-center mt-3">
-                    <TbSignature size={20} color="blue" />
-                    <FootTypo
-                      footlabel="Your contract is ready to sign"
-                      className="!m-0 text-sm"
-                    />
-                  </div>
-                )}
-              {quotationDetail?.isSigned && (
-                <div className="flex flex-row gap-2 items-center mt-3">
-                  <BsCheckCircleFill size={20} color="green" />
-                  <FootTypo
-                    footlabel="Contract signed"
-                    className="!m-0 text-sm"
-                  />
-                </div>
-              )}
-            </BorderBox>
-            <BorderBox className="section-right">
-              <div className="flex flex-row gap-2 items-center">
-                <FootTypo footlabel="Material Cost" className="!m-0 text-sm" />
-                <FootTypo
-                  footlabel={formatCurrency(quotationDetail?.materialCost)}
-                  className="!m-0 text-lg"
-                />
-              </div>
-              <div className="flex flex-row gap-2 items-center mt-3">
-                <FootTypo
-                  footlabel="Construction Cost"
-                  className="!m-0 text-sm"
-                />
-                <FootTypo
-                  footlabel={formatCurrency(quotationDetail?.constructionCost)}
-                  className="!m-0 text-lg"
-                />
-              </div>
-              <div className="flex flex-row gap-2 items-center mt-3">
-                <FootTypo footlabel="Total Cost" className="!m-0 text-sm" />
-                <FootTypo
-                  footlabel={formatCurrency(quotationDetail?.totalCost)}
-                  className="!m-0 text-lg font-bold text-primary"
-                />
-                <FootTypo
-                  footlabel={`(Deposit: ${
-                    quotationDetail?.depositPercentage || 0
-                  }%)`}
-                  className="!m-0 text-lg"
-                />
-              </div>
-              {quotationDetail?.status === 0 && (
-                <div className="flex flex-row gap-5 items-center mt-3">
-                  <Button
-                    label="Accept Quotation"
-                    className="bg-action text-lg font-bold text-white"
-                    icon={<FaCheck size={20} />}
-                    onClick={handleAcceptQuotation}
-                  />
-                  <Divider orientation="vertical" flexItem />
-                  <Button
-                    label="Reject Quotation"
-                    className="text-lg font-bold bg-red text-white"
-                    icon={<IoIosRemove size={20} />}
-                  />
-                </div>
-              )}
-            </BorderBox>
+          <div className="flex items-center my-6">
+            <MdNotes
+              className="text-blue-600 dark:text-blue-400 mr-2"
+              size={28}
+            />
+            <BodyTypo bodylabel="Quotation Details" className="text-xl" />
           </div>
 
-          {/* Materials Section */}
-          <BorderBox>
-            <h2 className="text-xl font-semibold mb-4">Materials </h2>
-            {processedMaterials.length > 0 ? (
-              <DataTable
-                data={processedMaterials}
-                columns={materialColumns}
-                showPagination={false}
-                manualSorting={false}
-                pageSize={pagination.pageSize}
-              />
-            ) : (
-              <p className="text-gray-500">No materials available</p>
-            )}
-          </BorderBox>
-
-          {/* Labour Tasks Section */}
-          <BorderBox>
-            <h2 className="text-xl font-semibold mb-4">Labour Tasks</h2>
-            {processedTasks.length > 0 ? (
-              <DataTable
-                data={processedTasks}
-                columns={constructionColumns}
-                showPagination={false}
-                manualSorting={false}
-                pageSize={pagination.pageSize}
-              />
-            ) : (
-              <p className="text-gray-500">No construction tasks available</p>
-            )}
-          </BorderBox>
-
-          {/* Added Products Section */}
-          {!quotationSigned && !quotationConfirmed && (
-            <BorderBox>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Added Products</h2>
-                {totalProductsPrice > 0 && (
-                  <span className="text-primary font-semibold">
-                    Total: {formatCurrency(totalProductsPrice)}
-                  </span>
-                )}
-              </div>
-
-              {isQuotationDetailLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {[1, 2, 3].map((item) => (
-                    <Skeleton key={item} variant="rectangular" height={140} />
-                  ))}
+          {/* Tab Navigation */}
+          <TabGroup>
+            <TabList className="flex space-x-1 p-1">
+              <Tab
+                className={({ selected }) =>
+                  `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+                  ${
+                    selected
+                      ? "bg-white dark:bg-gray-900 text-primary shadow-lg"
+                      : "hover:bg-white/[0.12] hover:text-primary"
+                  }`
+                }
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <TbLayoutList size={18} />
+                  <FootTypo
+                    footlabel="Quotation Details"
+                    className="!m-0 dark:text-white"
+                  />
                 </div>
-              ) : quotationProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {quotationProducts.map((product) => (
-                    <BorderBox key={product.id} className="border">
-                      <div className="flex items-start gap-4">
-                        {/* Product Image */}
-                        <div className="h-16 w-16 flex-shrink-0">
-                          {product.image ? (
-                            <img
-                              className="h-16 w-16 rounded-md object-cover"
-                              src={product.image}
-                              alt={product.productName}
-                            />
-                          ) : (
-                            <div className="h-16 w-16 rounded-md bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                              <span className="text-gray-500 dark:text-gray-400 text-xs">
-                                No img
-                              </span>
-                            </div>
-                          )}
-                        </div>
+              </Tab>
+              <Tab
+                className={({ selected }) =>
+                  `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+                  ${
+                    selected
+                      ? "bg-white dark:bg-gray-900 text-primary shadow-lg"
+                      : "hover:bg-white/[0.12] hover:text-primary"
+                  }`
+                }
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <TbFileText size={18} />
+                  <FootTypo
+                    footlabel="PDF Document"
+                    className="!m-0 dark:text-white"
+                  />
+                </div>
+              </Tab>
+            </TabList>
 
-                        {/* Product Details */}
-                        <div className="flex-1 flex flex-col">
-                          <div className="flex justify-between">
-                            <h3 className="text-base font-medium text-gray-900 dark:text-white">
-                              {product.productName}
-                            </h3>
-                            <span className="text-primary font-medium text-right">
-                              {formatCurrency(product.totalPrice)}
-                            </span>
-                          </div>
-
-                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Quantity: {product.quantity}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Remove Button */}
-                      <div className="mt-4">
-                        <Button
-                          icon={<IoIosRemove size={20} />}
-                          label="Remove"
-                          className="bg-red text-white w-full justify-center"
-                          onClick={() => {
-                            productRemoveModal.onOpen(
-                              product.productId,
-                              product.productName
-                            );
-                          }}
-                          disabled={isRemovingProduct}
+            <TabPanels className="mt-2 relative overflow-hidden">
+              <TabPanel className=" p-3 animate-tab-fade-in">
+                {/* Quotation Details Panel */}
+                <div className="space-y-3 p-4">
+                  <div className="grid grid-cols-2 grid-rows-1 gap-4 font-semibold">
+                    <BorderBox className="section-left">
+                      <div className="flex flex-row gap-2 items-center">
+                        <FootTypo
+                          footlabel="Quotation Code"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={quotationDetail?.quotationCode}
+                          className="!m-0 text-lg bg-primary text-white rounded-md px-2 py-1"
                         />
                       </div>
-                    </BorderBox>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 rounded-md">
-                  <FootTypo
-                    footlabel="No products added to this quotation"
-                    className="text-gray-500 dark:text-gray-400 mb-3"
-                  />
-                  <FootTypo
-                    footlabel="Browse our recommended products below"
-                    className="text-gray-400 dark:text-gray-500 max-w-md mx-auto"
-                  />
-                </div>
-              )}
-            </BorderBox>
-          )}
 
-          {/* Confirmed Products Section - Shown when quotation is signed or status is 1 */}
-          {(quotationSigned || quotationDetail?.status === 1) &&
-            quotationProducts.length > 0 && (
-              <BorderBox>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Add-on Funitures</h2>
-                  {totalProductsPrice > 0 && (
-                    <span className="text-primary font-semibold">
-                      Total: {formatCurrency(totalProductsPrice)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5 font-semibold">
-                  {quotationProducts.map((product) => (
-                    <BorderBox key={product.id} className="border">
-                      <div className="flex items-start gap-4">
-                        {/* Product Image */}
-                        <div className="h-16 w-16 flex-shrink-0">
-                          {product.image ? (
-                            <img
-                              className="h-16 w-16 rounded-md object-cover"
-                              src={product.image}
-                              alt={product.productName}
+                      <div className="flex flex-row gap-2 items-center mt-3">
+                        <FootTypo
+                          footlabel="Created Date"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={formatDate(quotationDetail?.createdAt)}
+                          className="!m-0 text-lg"
+                        />
+                      </div>
+                      <div className="flex flex-row gap-2 items-center mt-3">
+                        <FootTypo footlabel="Status" className="!m-0 text-sm" />
+                        <StatusChip
+                          status={quotationDetail?.status}
+                          isQuotation={true}
+                        />
+                      </div>
+                      {quotationDetail?.status === 1 &&
+                        !quotationDetail?.isContractExisted && (
+                          <div className="flex flex-row gap-2 items-center mt-3">
+                            <PiSealWarning size={20} />
+                            <FootTypo
+                              footlabel="The provider is preparing the contract"
+                              className="!m-0 text-sm"
                             />
-                          ) : (
-                            <div className="h-16 w-16 rounded-md bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                              <span className="text-gray-500 dark:text-gray-400 text-xs">
-                                No img
-                              </span>
-                            </div>
+                          </div>
+                        )}
+                      {quotationDetail?.isContractExisted &&
+                        !quotationDetail?.isSigned && (
+                          <div className="flex flex-row gap-2 items-center mt-3">
+                            <TbSignature size={20} color="blue" />
+                            <FootTypo
+                              footlabel="Your contract is ready to sign"
+                              className="!m-0 text-sm"
+                            />
+                          </div>
+                        )}
+                      {quotationDetail?.isSigned && (
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <BsCheckCircleFill size={20} color="green" />
+                          <FootTypo
+                            footlabel="Contract signed"
+                            className="!m-0 text-sm"
+                          />
+                        </div>
+                      )}
+                    </BorderBox>
+                    <BorderBox className="section-right">
+                      <div className="flex flex-row gap-2 items-center">
+                        <FootTypo
+                          footlabel="Material Cost"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={formatCurrency(
+                            quotationDetail?.materialCost
+                          )}
+                          className="!m-0 text-lg underline"
+                        />
+                      </div>
+                      <div className="flex flex-row gap-2 items-center mt-3">
+                        <FootTypo
+                          footlabel="Labour Cost"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={formatCurrency(
+                            quotationDetail?.constructionCost
+                          )}
+                          className="!m-0 text-lg underline"
+                        />
+                      </div>
+                      <div className="flex flex-row gap-2 items-center mt-3">
+                        <FootTypo
+                          footlabel="Commit Deposit"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={`- ${formatCurrency(500000)}`}
+                          className="!m-0 text-lg underline"
+                        />
+                        <FootTypo
+                          footlabel="(Total cost is included your commitment deposit)"
+                          className="text-xs"
+                        />
+                      </div>
+                      
+                      {quotationProducts.length > 0 && (
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <FootTypo
+                            footlabel="Product Total"
+                            className="!m-0 text-sm"
+                          />
+                          <FootTypo
+                            footlabel={formatCurrency(totalProductsPrice)}
+                            className="!m-0 text-lg underline text-green-600"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex flex-row gap-2 items-center mt-3">
+                        <FootTypo
+                          footlabel="Total Cost"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={formatCurrency(quotationDetail?.totalCost)}
+                          className="!m-0 text-lg font-bold text-primary underline"
+                        />
+                        <FootTypo
+                          footlabel={`(Deposit: ${
+                            quotationDetail?.depositPercentage || 0
+                          }%)`}
+                          className="!m-0 text-lg"
+                        />
+                      </div>
+                      {quotationDetail?.status === 0 && (
+                        <div className="flex flex-row gap-5 items-center mt-3">
+                          <Button
+                            label="Accept Quotation"
+                            className="bg-action text-lg font-bold text-white"
+                            icon={<FaCheck size={20} />}
+                            onClick={handleAcceptQuotation}
+                          />
+                          <Divider orientation="vertical" flexItem />
+                          <Button
+                            label="Request Changes"
+                            className="text-lg font-bold bg-red text-white"
+                            icon={<IoIosRemove size={20} />}
+                            onClick={handleOpenChangeRequest}
+                          />
+                        </div>
+                      )}
+                    </BorderBox>
+                  </div>
+
+                  {/* Materials Section */}
+                  <BorderBox>
+                    <h2 className="text-xl font-semibold mb-4">Materials </h2>
+                    {processedMaterials.length > 0 ? (
+                      <DataTable
+                        data={processedMaterials}
+                        columns={materialColumns}
+                        showPagination={false}
+                        manualSorting={false}
+                        pageSize={pagination.pageSize}
+                      />
+                    ) : (
+                      <p className="text-gray-500">No materials available</p>
+                    )}
+                  </BorderBox>
+
+                  {/* Labour Tasks Section */}
+                  <BorderBox>
+                    <h2 className="text-xl font-semibold mb-4">Labour Tasks</h2>
+                    {processedTasks.length > 0 ? (
+                      <DataTable
+                        data={processedTasks}
+                        columns={constructionColumns}
+                        showPagination={false}
+                        manualSorting={false}
+                        pageSize={pagination.pageSize}
+                      />
+                    ) : (
+                      <p className="text-gray-500">
+                        No construction tasks available
+                      </p>
+                    )}
+                  </BorderBox>
+
+                  {/* Added Products Section */}
+                  {!quotationSigned && !quotationConfirmed && (
+                    <BorderBox>
+                      <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-semibold">
+                          Added Products
+                        </h2>
+                        {totalProductsPrice > 0 && (
+                          <span className="text-primary font-semibold">
+                            Total: {formatCurrency(totalProductsPrice)}
+                          </span>
+                        )}
+                      </div>
+
+                      {isQuotationDetailLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                          {[1, 2, 3].map((item) => (
+                            <Skeleton
+                              key={item}
+                              variant="rectangular"
+                              height={140}
+                            />
+                          ))}
+                        </div>
+                      ) : quotationProducts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                          {quotationProducts.map((product) => (
+                            <BorderBox key={product.id} className="border">
+                              <div className="flex items-start gap-4">
+                                {/* Product Image */}
+                                <div className="h-16 w-16 flex-shrink-0">
+                                  {product.image ? (
+                                    <img
+                                      className="h-16 w-16 rounded-md object-cover"
+                                      src={product.image}
+                                      alt={product.productName}
+                                    />
+                                  ) : (
+                                    <div className="h-16 w-16 rounded-md bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                      <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                        No img
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Product Details */}
+                                <div className="flex-1 flex flex-col">
+                                  <div className="flex justify-between items-center">
+                                    <h3 className="text-base font-medium max-w-[200px] line-clamp-1">
+                                      {product.productName}
+                                    </h3>
+                                    <span className="text-primary font-medium text-right">
+                                      {formatCurrency(product.totalPrice)}
+                                    </span>
+                                  </div>
+
+                                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    Quantity: {product.quantity}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Remove Button */}
+                              <div className="mt-4">
+                                <Button
+                                  icon={<IoIosRemove size={20} />}
+                                  label="Remove"
+                                  className="bg-red text-white w-full justify-center"
+                                  onClick={() => {
+                                    productRemoveModal.onOpen(
+                                      product.productId,
+                                      product.productName
+                                    );
+                                  }}
+                                  disabled={isRemovingProduct}
+                                />
+                              </div>
+                            </BorderBox>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center text-center py-12 rounded-md">
+                          <FootTypo
+                            footlabel="No products added to this quotation"
+                            className="text-gray-500 dark:text-gray-400 mb-3"
+                          />
+                          <FootTypo
+                            footlabel={
+                              quotationDetail?.status === 4
+                                ? ""
+                                : "Browse our recommended products below"
+                            }
+                            className="text-gray-400 dark:text-gray-500 max-w-md mx-auto"
+                          />
+                        </div>
+                      )}
+                    </BorderBox>
+                  )}
+
+                  {/* Confirmed Products Section - Shown when quotation is signed or status is 1 */}
+                  {(quotationSigned || quotationDetail?.status === 1) &&
+                    quotationProducts.length > 0 && (
+                      <BorderBox>
+                        <div className="flex justify-between items-center mb-6">
+                          <h2 className="text-xl font-semibold">
+                            Add-on Products
+                          </h2>
+                          {totalProductsPrice > 0 && (
+                            <span className="text-primary font-semibold">
+                              Total: {formatCurrency(totalProductsPrice)}
+                            </span>
                           )}
                         </div>
 
-                        {/* Product Details */}
-                        <div className="flex-1 flex flex-col">
-                          <div className="flex justify-between">
-                            <FootTypo
-                              footlabel={product.productName}
-                              className="!m-0 text-lg"
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5 font-semibold">
+                          {quotationProducts.map((product) => (
+                            <BorderBox key={product.id} className="border">
+                              <div className="flex items-start gap-4">
+                                {/* Product Image */}
+                                <div className="h-16 w-16 flex-shrink-0">
+                                  {product.image ? (
+                                    <img
+                                      className="h-16 w-16 rounded-md object-cover"
+                                      src={product.image}
+                                      alt={product.productName}
+                                    />
+                                  ) : (
+                                    <div className="h-16 w-16 rounded-md bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                      <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                        No img
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
 
+                                {/* Product Details */}
+                                <div className="flex-1 flex flex-col">
+                                  <div className="flex justify-between">
+                                    <FootTypo
+                                      footlabel={product.productName}
+                                      className="!m-0 text-lg"
+                                    />
+
+                                    <FootTypo
+                                      footlabel={formatCurrency(
+                                        product.totalPrice
+                                      )}
+                                      className="!m-0"
+                                    />
+                                  </div>
+
+                                  <FootTypo
+                                    footlabel={`Quantity: ${product.quantity}`}
+                                    className="!m-0"
+                                  />
+
+                                  <FootTypo
+                                    footlabel={` Price: ${formatCurrency(
+                                      product.unitPrice
+                                    )}`}
+                                    className="!m-0"
+                                  ></FootTypo>
+                                </div>
+                              </div>
+                            </BorderBox>
+                          ))}
+                        </div>
+                      </BorderBox>
+                    )}
+
+                  {/* Related Products Section - Only shown when quotation is not signed */}
+                  {!quotationSigned &&
+                    !quotationConfirmed &&
+                    quotationDetail?.status !== 4 && (
+                      <>
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "360px",
+                            position: "relative",
+                          }}
+                        >
+                          <FootTypo
+                            footlabel={`Make your ${quotationDetail?.decorCategoryName} more beautiful with our funitures`}
+                            className="max-w-[20vw] break-after-all !m-0 text-base absolute top-1/2 -translate-y-1/2 bg-transparent  font-bold"
+                          />
+                          <Threads
+                            amplitude={1.1}
+                            distance={0}
+                            enableMouseInteraction={false}
+                            color={[0, 0, 255]}
+                          />
+                        </div>
+                        <ScrollAnimationWrapper>
+                          {/* Category Filters */}
+                          {!isRelatedProductLoading &&
+                            categories.length > 1 && (
+                              <BorderBox className="mb-6">
+                                <div className="flex items-center mb-3">
+                                  <HiOutlineFilter
+                                    className="text-primary mr-2"
+                                    size={20}
+                                  />
+                                  <h3 className="text-lg font-semibold">
+                                    Filter by Category
+                                  </h3>
+                                </div>
+                                <div className="flex flex-wrap">
+                                  {categories.map((category) => (
+                                    <CategoryChip
+                                      key={category}
+                                      category={category}
+                                      isSelected={selectedCategory === category}
+                                      onClick={() =>
+                                        setSelectedCategory(category)
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                              </BorderBox>
+                            )}
+
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">
+                              {selectedCategory === "all"
+                                ? "All Products"
+                                : `Filter by ${selectedCategory}`}
+                            </h3>
                             <FootTypo
-                              footlabel={formatCurrency(product.totalPrice)}
-                              className="!m-0"
+                              footlabel={`${filteredProducts.length} products found`}
+                              className="!m-0 text-sm"
                             />
                           </div>
 
-                          <FootTypo
-                            footlabel={`Quantity: ${product.quantity}`}
-                            className="!m-0"
-                          />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6">
+                            {isRelatedProductLoading ? (
+                              <ProductsSkeleton />
+                            ) : (
+                              <DataMapper
+                                data={filteredProducts}
+                                Component={ProductCard}
+                                emptyStateComponent={
+                                  <EmptyState
+                                    title={
+                                      selectedCategory === "all"
+                                        ? "No products found"
+                                        : `No ${selectedCategory} products found`
+                                    }
+                                    description={
+                                      selectedCategory !== "all" &&
+                                      "Try selecting a different category"
+                                    }
+                                  />
+                                }
+                                loading={false}
+                                getKey={(item) => item.id}
+                                componentProps={(product) => ({
+                                  image:
+                                    product.imageUrls &&
+                                    product.imageUrls.length > 0
+                                      ? product.imageUrls
+                                      : [
+                                          "https://unsplash.com/photos/a-close-up-of-a-white-wall-with-a-gray-floor-a0TrfQPOMzU",
+                                        ],
+                                  productName: product.productName,
+                                  rate: product.rate,
+                                  price: product.productPrice,
+                                  totalQuantity: product.quantity,
+                                  totalSold: product.totalSold || 0,
+                                  id: product.id,
+                                  category: product.category,
+                                  href: `/products/${generateSlug(
+                                    product.productName
+                                  )}`,
+                                  isAdditionalProduct: true,
+                                  onAddProduct: handleAddProductToQuotation,
+                                })}
+                              />
+                            )}
+                          </div>
 
-                          <FootTypo
-                            footlabel={` Price: ${formatCurrency(
-                              product.unitPrice
-                            )}`}
-                            className="!m-0"
-                          ></FootTypo>
-                        </div>
-                      </div>
-                    </BorderBox>
-                  ))}
+                          {totalProductCount > 0 && (
+                            <div className="flex justify-center mt-6 gap-4">
+                              <button
+                                onClick={() =>
+                                  pagination.pageIndex > 1 &&
+                                  handlePaginationChange(
+                                    pagination.pageIndex - 1
+                                  )
+                                }
+                                disabled={pagination.pageIndex <= 1}
+                                className="p-1 border rounded-full disabled:opacity-50"
+                              >
+                                <IoIosArrowBack size={20} />
+                              </button>
+                              <span className="flex items-center">
+                                Page {pagination.pageIndex} of {totalPages}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  pagination.pageIndex < totalPages &&
+                                  handlePaginationChange(
+                                    pagination.pageIndex + 1
+                                  )
+                                }
+                                disabled={pagination.pageIndex >= totalPages}
+                                className="p-1 border rounded-full disabled:opacity-50"
+                              >
+                                <IoIosArrowForward size={20} />
+                              </button>
+                            </div>
+                          )}
+                        </ScrollAnimationWrapper>
+                      </>
+                    )}
                 </div>
-              </BorderBox>
-            )}
-
-          {/* Related Products Section - Only shown when quotation is not signed */}
-          {!quotationSigned && !quotationConfirmed && (
-            <>
-              <div
-                style={{ width: "100%", height: "360px", position: "relative" }}
-              >
-                <FootTypo
-                  footlabel="Make your space more beautiful with our funitures"
-                  className="max-w-[20vw] break-after-all !m-0 text-base absolute top-1/2 -translate-y-1/2 bg-transparent  font-bold"
-                />
-                <Threads
-                  amplitude={1.1}
-                  distance={0}
-                  enableMouseInteraction={false}
-                  color={[0, 0, 255]}
-                />
-              </div>
-              <ScrollAnimationWrapper>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6">
-                  {isRelatedProductLoading ? (
-                    <ProductsSkeleton />
+              </TabPanel>
+              <TabPanel className="rounded-xl bg-white dark:bg-gray-900 p-3 animate-tab-slide-right">
+                {/* PDF Document Panel */}
+                <div className="h-[800px] flex flex-col">
+                  {isQuotationDetailLoading ? (
+                    <PDFSkeleton />
+                  ) : quotationDetail?.quotationFilePath ? (
+                    <div className="h-full">
+                      <Viewer
+                        fileUrl={quotationDetail?.quotationFilePath}
+                        defaultScale={1.5}
+                      />
+                    </div>
                   ) : (
-                    <DataMapper
-                      data={products}
-                      Component={ProductCard}
-                      emptyStateComponent={
-                        <EmptyState title="No products found" />
-                      }
-                      loading={false}
-                      getKey={(item) => item.id}
-                      componentProps={(product) => ({
-                        image:
-                          product.imageUrls && product.imageUrls.length > 0
-                            ? product.imageUrls
-                            : ["/placeholder-image.jpg"],
-                        productName: product.productName,
-                        rate: product.rate,
-                        price: product.productPrice,
-                        quantity: product.quantity,
-                        totalSold: product.totalSold || 0,
-                        id: product.id,
-                        href: `/products/${generateSlug(product.productName)}`,
-                        isAdditionalProduct: true,
-                        onAddProduct: handleAddProductToQuotation,
-                      })}
-                    />
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <TbFileText
+                          size={60}
+                          className="mx-auto text-gray-400 mb-4"
+                        />
+                        <h3 className="text-xl font-medium mb-2">
+                          No PDF Document Available
+                        </h3>
+                        <p className="text-gray-500">
+                          The quotation document has not been uploaded yet.
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </ScrollAnimationWrapper>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="h-[800px] flex flex-col">
-          {isQuotationDetailLoading ? (
-            <PDFSkeleton />
-          ) : quotationDetail?.quotationFilePath ? (
-            <div className="h-full">
-              <Viewer
-                fileUrl={quotationDetail?.quotationFilePath}
-                defaultScale={1.5}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <TbFileText size={60} className="mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-medium mb-2">
-                  No PDF Document Available
-                </h3>
-                <p className="text-gray-500">
-                  The quotation document has not been uploaded yet.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+              </TabPanel>
+            </TabPanels>
+          </TabGroup>
+        </>
       )}
     </Container>
   );

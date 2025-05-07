@@ -26,7 +26,9 @@ export function useCreateQuotation() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["get_list_quotation_for_customer"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get_list_quotation_for_customer"],
+      });
     },
   });
 }
@@ -105,7 +107,7 @@ export function useAddProductToQuotation() {
       try {
         nProgress.start();
         const { quotationCode, productId, quantity } = data;
-        
+
         // Format the URL to match API expectations:
         // /api/Quotation/addProductToQuotation/{quotationCode}?productId=1&quantity=1
         return await BaseRequest.Post(
@@ -124,7 +126,7 @@ export function useRemoveProductFromQuotation() {
       try {
         nProgress.start();
         const { quotationCode, productId } = data;
-        
+
         // Format the URL to match API expectations, similar to addProductToQuotation
         return await BaseRequest.Delete(
           `/${SUB_URL}/removeProductFromQuotation/${quotationCode}?productId=${productId}`
@@ -135,3 +137,115 @@ export function useRemoveProductFromQuotation() {
     },
   });
 }
+
+export function useRequestToChangeQuotation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      try {
+        nProgress.start();
+        const { quotationCode, changeReason } = data;
+        return await BaseRequest.Put(
+          `/${SUB_URL}/requestToChangeQuotation/${quotationCode}?changeReason=${changeReason}`,
+          data
+        );
+      } finally {
+        nProgress.done();
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_list_quotation_for_customer"],
+      });
+    },
+  });
+}
+
+export function useApproveToChangeQuotation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (quotationCode) => {
+      try {
+        nProgress.start();
+        return await BaseRequest.Put(
+          `/${SUB_URL}/approveToChangeQuotation/${quotationCode}`
+        );
+      } finally {
+        nProgress.done();
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_list_quotation_for_provider"],
+      });
+    },
+  });
+}
+
+export function useRequestToCancelQuotation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      try {
+        nProgress.start();
+        const { quotationCode, cancelReason, cancelTypeId } = data;
+        return await BaseRequest.Put(
+          `/${SUB_URL}/requestCancelQuotation/${quotationCode}?quotationCancelId=${cancelTypeId}&cancelReason=${cancelReason}`,
+          data
+        );
+      } finally {
+        nProgress.done();
+      }
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["get_list_quotation_for_provider"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["quotation"] }),
+      ]);
+    },
+  });
+}
+export function useApproveCancelQuotation() {
+  return useMutation({
+    mutationFn: async (quotationCode) => {
+      try {
+        nProgress.start();
+        return await BaseRequest.Put(
+          `/${SUB_URL}/approveCancelQuotation/${quotationCode}`
+        );
+      } finally {
+        nProgress.done();
+      }
+    },
+  });
+}
+
+export function useGetRequestQuotaionChangeDetail(quotationCode, options = {}) {
+  return useQuery({
+    queryKey: ["quotation_to_change", quotationCode],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getRequestQuotationChangeDetail/${quotationCode}`, false
+      );
+      return res.data;
+    },
+    ...options
+  });
+}
+
+export function useGetRequestQuotaionCancelDetail(quotationCode, options = {}) {
+  return useQuery({
+    queryKey: ["quotation_to_cancel", quotationCode],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getQuotationCancelDetail/${quotationCode}`, false
+      );
+      return res.data;
+    },
+    ...options
+  });
+}
+
+

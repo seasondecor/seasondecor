@@ -6,7 +6,8 @@ import { MdOutlineEdit } from "react-icons/md";
 import Image from "next/image";
 import { Textarea } from "@headlessui/react";
 import { MdOutlinePlaylistRemove } from "react-icons/md";
-import { formatDate } from "@/app/helpers";
+import { formatDateTime } from "@/app/helpers";
+import { LuCalendarClock } from "react-icons/lu";
 
 const TrackingCard = ({ note, task, imageUrls, createdAt, editClick, removeClick }) => {
   return (
@@ -28,9 +29,21 @@ const TrackingCard = ({ note, task, imageUrls, createdAt, editClick, removeClick
         </button>
       </div>
 
-      <span className="flex items-center gap-3 absolute top-[-27] left-5 bg-action-contrast dark:bg-transparent ">
-        {formatDate(createdAt)}
-      </span>
+      <div className="flex items-center gap-2 absolute top-[-27] left-5 bg-action-contrast dark:bg-transparent px-2 py-1 rounded-t-md">
+        <LuCalendarClock className="text-primary" size={16} />
+        {createdAt ? 
+          (() => {
+            const { date, time } = formatDateTime(createdAt);
+            return (
+              <span className="text-sm">
+                <span className="font-medium">{date}</span>
+                <span className="mx-1">•</span>
+                <span className="text-gray-600 dark:text-gray-300">{time}</span>
+              </span>
+            );
+          })() 
+        : <span className="text-sm text-gray-500">No date available</span>}
+      </div>
 
       {/* Task Section */}
       <div className="flex flex-col mb-6 rounded-lg mt-12">
@@ -83,7 +96,7 @@ const TrackingCard = ({ note, task, imageUrls, createdAt, editClick, removeClick
                     className="aspect-auto rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
                   >
                     <Image
-                      src={image.imageUrl}
+                      src={typeof image === 'string' ? image : (image.imageUrl || image.imageURL || image.url || '')}
                       alt={`Progress image ${index + 1}`}
                       width={200}
                       height={200}

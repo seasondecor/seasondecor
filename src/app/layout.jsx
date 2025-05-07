@@ -35,6 +35,10 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body className="antialiased overflow-auto">
+        {/* Zoom Meeting DOM elements - keep these outside the main app structure */}
+        <div id="zmmtg-root"></div>
+        <div id="aria-notify-area"></div>
+
         <AppProviders>
           <ClientOnly>
             <HeaderWrapper />

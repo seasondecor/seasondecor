@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import Input from "@/app/components/ui/inputs/Input";
+import Input from "@/app/components/ui/Inputs/Input";
 import { useForm } from "react-hook-form";
-import { Label } from "@/app/components/ui/inputs/Label";
+import { Label } from "@/app/components/ui/Inputs/Label";
 import DropdownSelect from "@/app/components/ui/Select/DropdownSelect";
 import Button2 from "@/app/components/ui/Buttons/Button2";
 import BasicDatePicker from "@/app/components/ui/Select/DatePicker";

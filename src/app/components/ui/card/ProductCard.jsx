@@ -19,7 +19,6 @@ import { IoClose } from "react-icons/io5";
 import ImageSlider from "../slider/ImageSlider";
 import Button from "../Buttons/Button";
 
-
 const ProductCard = ({
   image,
   productName,
@@ -29,7 +28,8 @@ const ProductCard = ({
   href,
   isAdditionalProduct = false,
   id,
-  onAddProduct
+  onAddProduct,
+  totalQuantity,
 }) => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -125,13 +125,25 @@ const ProductCard = ({
               </div>
             )}
           </CardItem>
-          <div className="flex flex-col items-start mt-5 flex-grow gap-3">
+          <div className="flex flex-col items-start mt-5 flex-grow gap-1">
             <CardItem
               translateZ="50"
-              className="text-xl font-bold text-neutral-600 dark:text-white flex-grow break-words w-full"
+              className="text-xl font-bold text-neutral-600 dark:text-white flex-grow break-words w-full line-clamp-2"
             >
               {productName}
             </CardItem>
+            <CardItem
+              translateZ="50"
+              className="text-sm font-bold text-neutral-600 dark:text-white flex-grow break-words w-full"
+            >
+              <Rating
+                value={rate || 4.8}
+                precision={0.1}
+                readOnly
+                size="small"
+              />
+            </CardItem>
+
             <CardItem
               translateZ="50"
               className="flex flex-row items-center justify-between text-xl font-primary text-neutral-600 dark:text-white w-full"
@@ -285,6 +297,11 @@ const ProductCard = ({
                     className="text-sm"
                   />
                 </div>
+
+                <FootTypo
+                  footlabel={`${totalQuantity} pieces available`}
+                  className="text-sm"
+                />
               </div>
             </div>
 

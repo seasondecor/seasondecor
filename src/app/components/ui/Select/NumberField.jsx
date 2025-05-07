@@ -1,17 +1,32 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NumberField } from "@base-ui-components/react/number-field";
 import { FaMinus } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
 
 export default function ExampleNumberField({ value, onChange }) {
   const id = React.useId();
+  const [internalValue, setInternalValue] = React.useState(value || 1);
+
+  // Update internal value when external value changes
+  useEffect(() => {
+    if (value !== undefined && value !== internalValue) {
+      setInternalValue(value);
+    }
+  }, [value]);
+
+  // Handle value changes and propagate to parent
+  const handleValueChange = (newValue) => {
+    setInternalValue(newValue);
+    if (onChange) {
+      onChange(newValue);
+    }
+  };
 
   return (
     <NumberField.Root
       id={id}
-      value={value}
-      onValueChange={onChange}
-      defaultValue={1}
+      value={internalValue}
+      onValueChange={handleValueChange}
       min={1}
       max={9999}
     >

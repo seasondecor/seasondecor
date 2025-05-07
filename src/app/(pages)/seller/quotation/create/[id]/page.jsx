@@ -43,13 +43,14 @@ const QuotationPage = () => {
     customerEmail: email || "john.doe@example.com",
     customerAddress: address || "123 Main St, Anytown, USA",
     terms:
-      "Payment due within 30 days. Cancelation policy: 50% refund if canceled 30 days before the event.",
+      "A deposit of 500,000 VND is required prior to the issuance of a formal quotation. This deposit confirms the customer’s commitment to proceed with the service and is deductible from the final invoice upon successful booking.\n\nIn the event the customer cancels the service after the deposit is made but before confirmation of the final quotation, a cancellation fee of 500,000 VND will apply. This means the deposit is non-refundable, as it covers consultation, reservation, and administrative efforts undertaken during the pre-booking process.",
     materials: [
       {
         materialName: "",
         quantity: 1,
         cost: 0,
         category: "",
+        detailNote: "",
       },
     ],
     constructionTasks: [
@@ -58,17 +59,12 @@ const QuotationPage = () => {
         cost: 0,
         unit: "",
         area: 0,
+        detailNote: "",
       },
     ],
   });
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    getValues,
-    control,
-  } = useForm({
+  const { register, handleSubmit, setValue, getValues, control } = useForm({
     defaultValues: {},
   });
 
@@ -145,6 +141,7 @@ const QuotationPage = () => {
       quantity: 1,
       cost: 0,
       category: "",
+      note: "",
     };
 
     const newIndex = quotationData.materials.length;
@@ -217,6 +214,7 @@ const QuotationPage = () => {
       cost: 0,
       unit: "",
       area: 0,
+      note: "",
     };
 
     const newIndex = quotationData.constructionTasks.length;
@@ -291,9 +289,6 @@ const QuotationPage = () => {
   const calculateConstructionTotal = () => {
     return quotationData.constructionTasks.reduce((sum, item) => {
       const cost = parseFormattedNumber(item.cost);
-      console.log(
-        `Calculating task: ${item.taskName}, raw cost=${item.cost}, parsed cost=${cost}`
-      );
       return sum + cost;
     }, 0);
   };
@@ -305,9 +300,24 @@ const QuotationPage = () => {
   // Helper function to check if an item is valid
   const isItemValid = (item, type) => {
     if (type === "material") {
-      return item.materialName && item.materialName.trim() !== "";
-    } else if (type === "construction") {
-      return item.taskName && item.taskName.trim() !== "";
+      return (
+        item.materialName &&
+        item.materialName.trim() !== "" &&
+        item.quantity > 0 &&
+        item.cost &&
+        parseFloat(item.cost) > 0
+      );
+    }
+    if (type === "construction") {
+      return (
+        item.taskName &&
+        item.taskName.trim() !== "" &&
+        item.unit &&
+        item.unit.trim() !== "" &&
+        item.area > 0 &&
+        item.cost &&
+        parseFloat(item.cost) > 0
+      );
     }
     return false;
   };
@@ -315,21 +325,39 @@ const QuotationPage = () => {
   // Helper function to check if an item is empty
   const isItemEmpty = (item, type) => {
     if (type === "material") {
-      return !item.materialName || item.materialName.trim() === "";
-    } else if (type === "construction") {
-      return !item.taskName || item.taskName.trim() === "";
+      // Material is empty if any required field is empty
+      return (
+        !item.materialName ||
+        item.materialName.trim() === "" ||
+        !item.quantity ||
+        item.quantity <= 0 ||
+        !item.cost ||
+        parseFloat(item.cost) <= 0
+      );
+    }
+    if (type === "construction") {
+      // Construction task is empty if any required field is empty
+      return (
+        !item.taskName ||
+        item.taskName.trim() === "" ||
+        !item.unit ||
+        item.unit.trim() === "" ||
+        !item.area ||
+        item.area <= 0 ||
+        !item.cost ||
+        parseFloat(item.cost) <= 0
+      );
     }
     return true;
   };
 
   // Check if quotation data is valid for submission
   const isQuotationValid = () => {
-    // Check if there's at least one valid material
+    // Check if there are any valid materials and construction tasks
     const hasValidMaterials = quotationData.materials.some((item) =>
       isItemValid(item, "material")
     );
 
-    // Check if there's at least one valid construction task
     const hasValidTasks = quotationData.constructionTasks.some((item) =>
       isItemValid(item, "construction")
     );
@@ -366,18 +394,18 @@ const QuotationPage = () => {
 
       // Use the current state data for API submission
       const quotationPayload = {
-        bookingCode: id, 
+        bookingCode: id,
         materials: currentState.materials,
         constructionTasks: currentState.constructionTasks,
         depositPercentage: depositPercentage,
       };
 
-     // console.log("Submitting payload:", quotationPayload);
+      // console.log("Submitting payload:", quotationPayload);
 
       // First API call: Create quotation
       createQuotation(quotationPayload, {
-        onSuccess: (response) => {
-          console.log("Quotation created successfully:", response);
+        onSuccess: () => {
+          //console.log("Quotation created successfully:", response);
 
           // Generate PDF blob for upload using the current state
           generatePdfBlob()
@@ -392,9 +420,9 @@ const QuotationPage = () => {
                 onSuccess: (uploadResponse) => {
                   console.log("PDF uploaded successfully:", uploadResponse);
                   setIsProcessing(false);
-                  toast.success("Quotation submitted and PDF uploaded successfully!");
+                  //toast.success("Quotation submitted and PDF uploaded successfully!");
                   // Navigate back to seller requests page
-                  router.push('/seller/request');
+                  router.push("/seller/request");
                 },
                 onError: (error) => {
                   console.error("Error uploading PDF:", error);
@@ -414,9 +442,6 @@ const QuotationPage = () => {
         onError: (error) => {
           console.error("Error creating quotation:", error);
           setIsProcessing(false);
-          toast.error(
-            "Failed to create quotation. Please check your data and try again."
-          );
         },
       });
     } catch (error) {
@@ -500,7 +525,7 @@ const QuotationPage = () => {
               <Button
                 label={isProcessing ? "Processing..." : "Submit Quotation"}
                 icon={<AiOutlineUpload size={20} />}
-                className={isQuotationValid() ? "bg-yellow" : ""}
+                className={isQuotationValid() ? "bg-yellow w-fit" : "w-fit"}
                 onClick={handleSubmit(onSubmit)}
                 disabled={
                   isProcessing ||
@@ -511,14 +536,13 @@ const QuotationPage = () => {
                 isLoading={isProcessing}
               />
 
-              {!isQuotationValid() &&
-                quotationData.materials.some((item) =>
-                  isItemEmpty(item, "material")
-                ) && (
-                  <span className="text-red text-xs mt-1">
-                    Please fill in all material names
-                  </span>
-                )}
+              {!isQuotationValid() && (
+                <div className="text-red text-xs mt-1">
+                  {quotationData.materials.some((item) =>
+                    isItemEmpty(item, "material")
+                  ) && <p>Please fill in all required material fields</p>}
+                </div>
+              )}
             </div>
 
             {!showEditor && isPdfReady && (
@@ -599,25 +623,34 @@ const QuotationPage = () => {
 
                 <TabPanels className="mt-4 relative overflow-hidden font-semibold">
                   {/* Information Panel */}
-                  <TabPanel className="rounded-xl bg-white dark:bg-gray-900 p-3 animate-tab-fade-in">
+                  <TabPanel className="animate-tab-fade-in">
                     <div className="space-y-4">
                       <div className="flex flex-row gap-3 items-center">
                         <FootTypo footlabel="Name" className="!m-0 text-sm" />
-                        <FootTypo footlabel={fullName} className="!m-0 text-lg" />
+                        <FootTypo
+                          footlabel={fullName}
+                          className="!m-0 text-lg"
+                        />
                       </div>
                       <div className="flex flex-row gap-3 items-center">
                         <FootTypo footlabel="Email" className="!m-0 text-sm" />
                         <FootTypo footlabel={email} className="!m-0 text-lg" />
                       </div>
                       <div className="flex flex-row gap-3 items-center">
-                        <FootTypo footlabel="Address" className="!m-0 text-sm" />
-                        <FootTypo footlabel={address} className="!m-0 text-lg" />
+                        <FootTypo
+                          footlabel="Address"
+                          className="!m-0 text-sm"
+                        />
+                        <FootTypo
+                          footlabel={address}
+                          className="!m-0 text-lg"
+                        />
                       </div>
                     </div>
                   </TabPanel>
 
                   {/* Materials Panel */}
-                  <TabPanel className="rounded-xl bg-white dark:bg-gray-900 p-3 animate-tab-slide-right">
+                  <TabPanel className="animate-tab-slide-right">
                     <MaterialTab
                       materials={quotationData.materials}
                       onMaterialChange={handleMaterialChange}
@@ -630,7 +663,7 @@ const QuotationPage = () => {
                   </TabPanel>
 
                   {/* Labour Panel */}
-                  <TabPanel className="rounded-xl bg-white dark:bg-gray-900 p-3 animate-tab-slide-left">
+                  <TabPanel className="animate-tab-slide-left">
                     <LabourTab
                       constructionTasks={quotationData.constructionTasks}
                       onTaskChange={handleTaskChange}
@@ -643,7 +676,7 @@ const QuotationPage = () => {
                   </TabPanel>
 
                   {/* Terms Panel */}
-                  <TabPanel className="rounded-xl bg-white dark:bg-gray-900 p-3 animate-tab-slide-right">
+                  <TabPanel className="animate-tab-slide-right">
                     <TermTab
                       register={register}
                       value={quotationData.terms}
@@ -654,7 +687,7 @@ const QuotationPage = () => {
                   </TabPanel>
 
                   {/* Summary Panel */}
-                  <TabPanel className="rounded-xl bg-white dark:bg-gray-900 p-3 animate-tab-fade-in">
+                  <TabPanel className="animate-tab-fade-in">
                     <div className="space-y-4">
                       <div className="border-b pb-4">
                         <h3 className="text-lg font-bold mb-4">

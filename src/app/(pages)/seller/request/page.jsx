@@ -10,6 +10,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Box,
+  Paper,
 } from "@mui/material";
 import StatusChip from "@/app/components/ui/statusChip/StatusChip";
 import { FaCheck } from "react-icons/fa6";
@@ -31,6 +33,93 @@ import { FaTruck } from "react-icons/fa";
 import { IoBuild } from "react-icons/io5";
 import { MdOutlineFileUpload } from "react-icons/md";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
+
+// Skeleton loader for the request table
+const RequestTableSkeleton = () => {
+  return (
+    <Paper
+      elevation={0}
+      className="w-full overflow-hidden border dark:bg-gray-800 dark:border-gray-700"
+    >
+      <Box
+        p={2}
+        mb={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Skeleton variant="text" width={150} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="text" width={100} height={30} />
+          <Skeleton variant="text" width={80} height={30} />
+        </Box>
+      </Box>
+
+      <Box px={2}>
+        <Box
+          mb={2}
+          display="flex"
+          width="100%"
+          sx={{ borderBottom: "1px solid #eee" }}
+        >
+          {[8, 12, 15, 15, 25, 15, 10].map((width, index) => (
+            <Box key={index} width={`${width}%`} p={1.5}>
+              <Skeleton variant="text" width="80%" height={24} />
+            </Box>
+          ))}
+        </Box>
+
+        {[...Array(5)].map((_, rowIndex) => (
+          <Box
+            key={rowIndex}
+            display="flex"
+            width="100%"
+            sx={{ borderBottom: "1px solid #f5f5f5" }}
+          >
+            {[8, 12, 15, 15, 25, 15, 10].map((width, colIndex) => (
+              <Box key={colIndex} width={`${width}%`} p={2}>
+                {colIndex === 3 ? (
+                  <Skeleton variant="rounded" width={90} height={30} />
+                ) : colIndex === 4 ? (
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Skeleton variant="circular" width={40} height={40} />
+                    <Skeleton variant="text" width="70%" height={24} />
+                  </Box>
+                ) : colIndex === 5 ? (
+                  <Box display="flex" gap={1}>
+                    <Skeleton variant="rounded" width={90} height={36} />
+                    <Skeleton variant="rounded" width={90} height={36} />
+                  </Box>
+                ) : colIndex === 6 ? (
+                  <Skeleton variant="text" width={60} height={24} />
+                ) : (
+                  <Skeleton
+                    variant="text"
+                    width={colIndex === 0 ? "40%" : "80%"}
+                    height={24}
+                  />
+                )}
+              </Box>
+            ))}
+          </Box>
+        ))}
+      </Box>
+
+      <Box
+        p={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Skeleton variant="text" width={100} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="rounded" width={120} height={36} />
+          <Skeleton variant="rounded" width={120} height={36} />
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
 
 const SellerOrderManage = () => {
   const router = useRouter();
@@ -67,8 +156,11 @@ const SellerOrderManage = () => {
     }));
   };
 
-  const { data: bookingsData, isLoading, refetch } =
-    useGetPaginatedBookingsForProvider(pagination);
+  const {
+    data: bookingsData,
+    isLoading,
+    refetch,
+  } = useGetPaginatedBookingsForProvider(pagination);
 
   const bookings = bookingsData?.data || [];
   const totalCount = bookingsData?.totalCount || 0;
@@ -97,14 +189,23 @@ const SellerOrderManage = () => {
   // Create a dedicated component for action buttons with clear status-based logic
   const ActionButtons = ({ booking }) => {
     const status = booking.status;
-    const { bookingCode, customer, isQuoteExisted, isTracked, address } = booking;
+    const {
+      bookingCode,
+      customer,
+      isQuoteExisted,
+      isTracked,
+      address,
+      isCommitDepositPaid,
+    } = booking;
 
     // Helper function for routing to quotation creation
     const navigateToQuotation = () => {
       router.push(
         `/seller/quotation/create/${bookingCode}?fullName=${encodeURIComponent(
           customer.fullName || customer.businessName
-        )}&email=${encodeURIComponent(customer.email)}&address=${encodeURIComponent(address)}`
+        )}&email=${encodeURIComponent(
+          customer.email
+        )}&address=${encodeURIComponent(address)}`
       );
     };
     if (status === 11) {
@@ -149,7 +250,7 @@ const SellerOrderManage = () => {
     }
 
     // Planning status - Create quotation
-    if (status === 1) {
+    if (status === 1 && isCommitDepositPaid) {
       return (
         <Button
           label="Create Quotation"
@@ -163,8 +264,11 @@ const SellerOrderManage = () => {
           isLoading={isChangingStatus}
         />
       );
+    } else if (status === 1 && !isCommitDepositPaid) {
+      return (
+        <FootTypo footlabel="Waiting for deposit" className="font-medium" />
+      );
     }
-
     // Quoting status - Edit quotation
     if (status === 2 && !isQuoteExisted) {
       return (
@@ -234,7 +338,7 @@ const SellerOrderManage = () => {
       return (
         <FootTypo
           footlabel="Waiting for final payment"
-          className="text-yellow font-medium"
+          className="font-medium"
         />
       );
     }
@@ -272,10 +376,9 @@ const SellerOrderManage = () => {
         />
       );
     }
-    
 
     // Cancelled status
-    if (status === 12) {
+    if (status === 13) {
       return (
         <FootTypo footlabel="Cancelled" className="!m-0 text-red font-medium" />
       );
@@ -284,10 +387,7 @@ const SellerOrderManage = () => {
     // Quote exists but not yet confirmed
     if (isQuoteExisted) {
       return (
-        <FootTypo
-          footlabel="Confirmation pending"
-          className="!m-0 text-yellow font-medium"
-        />
+        <FootTypo footlabel="Confirmation pending" className="font-medium" />
       );
     }
 
@@ -352,7 +452,7 @@ const SellerOrderManage = () => {
     {
       header: "Detail",
       cell: ({ row }) => (
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative">
           <button
             onClick={() =>
               router.push(`/seller/request/${row.original.bookingCode}`)
@@ -365,12 +465,30 @@ const SellerOrderManage = () => {
         </div>
       ),
     },
+    {
+      header: "Commit Deposit",
+      cell: ({ row }) => {
+        const isCommitted = row.original.isCommitDepositPaid;
+        return (
+          <div className={`flex items-center gap-2 py-1 px-2 rounded-full w-fit ${
+            isCommitted 
+            ? "bg-green text-white" 
+            : "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+          }`}>
+            {isCommitted ? (
+              <FaCheck size={16} className="text-white" />
+            ) : (
+              <FaCheck size={16} className="text-amber-600 dark:text-amber-400" />
+            )}
+            <FootTypo
+              footlabel={isCommitted ? "Committed" : "Not Committed"}
+              className="!m-0 text-xs font-medium"
+            />
+          </div>
+        );
+      },
+    },
   ];
-
-  const handleCancelOrder = useCallback((orderId) => {
-    // Implement cancel order functionality here
-    console.log("Cancel order:", orderId);
-  }, []);
 
   const handlePaginationChange = useCallback((newPagination) => {
     setPagination((prev) => ({
@@ -433,8 +551,8 @@ const SellerOrderManage = () => {
     <SellerWrapper>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Request Management</h1>
-        <RefreshButton 
-          onRefresh={refetch} 
+        <RefreshButton
+          onRefresh={refetch}
           isLoading={isLoading}
           tooltip="Refresh request list"
         />
@@ -443,11 +561,7 @@ const SellerOrderManage = () => {
       <FilterSelectors />
 
       {isLoading && bookings.length === 0 ? (
-        <>
-          <Skeleton animation="wave" width="100%" />
-          <Skeleton animation="wave" variant="text" width="100%" />
-          <Skeleton animation="wave" variant="text" width="100%" />
-        </>
+        <RequestTableSkeleton />
       ) : bookings.length === 0 && !isLoading ? (
         <div className="">
           <h2 className="text-xl font-semibold mb-4">No Orders Found</h2>

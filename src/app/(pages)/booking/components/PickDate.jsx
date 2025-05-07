@@ -51,9 +51,8 @@ export const customCalendarStyles = `
   }
 `;
 
-const PickDate = ({ availableDates = [], onDateSelect }) => {
+const PickDate = ({ onDateSelect, title, description, footerLabel }) => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [dateConfirmed, setDateConfirmed] = useState(false);
 
   // Function to determine if a date is available
   const isDateAvailable = (date) => {
@@ -101,11 +100,11 @@ const PickDate = ({ availableDates = [], onDateSelect }) => {
     <BorderBox className="shadow-xl p-4">
       <div className="flex flex-col gap-2">
         <FootTypo
-          footlabel="Pick your desired date to survey"
+          footlabel={title}
           className="!m-0 font-bold text-lg"
         />
         <FootTypo
-          footlabel="This schedule is the latest updated from the provider"
+          footlabel={description}
           className="!m-0 font-normal text-sm"
         />
 
@@ -138,7 +137,7 @@ const PickDate = ({ availableDates = [], onDateSelect }) => {
             />
           ) : (
             <FootTypo
-              footlabel="Please select a date for your survey"
+              footlabel={footerLabel}
               className="!m-0 font-semibold text-md mb-3 text-gray-500"
             />
           )}

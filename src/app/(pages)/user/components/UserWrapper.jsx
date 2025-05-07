@@ -37,7 +37,7 @@ export const UserWrapper = ({ children }) => {
                   </Link>
                 </div>
               </div>
-              <div className="flex border-t-[2px] pt-10">
+              <div className="flex  pt-10">
                 <Sidebar
                   selectedPath={pathname}
                   //userId={currentUser.ID}

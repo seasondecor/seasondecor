@@ -34,30 +34,153 @@ import useChat from "@/app/hooks/useChat";
 import useChatBox from "@/app/hooks/useChatBox";
 import { toast } from "sonner";
 import { generateSlug } from "@/app/helpers";
-import {
-  useAddFavoriteDecorProduct,
-  useRemoveFavoriteDecorProduct,
-} from "@/app/queries/favorite/favorit.query";
+import { useAddFavoriteDecorProduct } from "@/app/queries/favorite/favorit.query";
 import { useGetListFavoriteProduct } from "@/app/queries/list/favorite.list.query";
 import { useGetListReviewByProduct } from "@/app/queries/list/review.list.query";
-import { Box, Skeleton } from "@mui/material";
+import { Box, Skeleton, Stack, Divider } from "@mui/material";
 import OverallRating from "@/app/components/ui/review/OverallRating";
 import ReviewCard from "@/app/components/ui/card/ReviewCard";
 import DataMapper from "@/app/components/DataMapper";
 import EmptyState from "@/app/components/EmptyState";
 
+const ProductDetailSkeleton = () => {
+  return (
+    <>
+      <Box mb={2}>
+        <Skeleton variant="text" width={300} height={30} />
+      </Box>
+      <BorderBox>
+        <div className="flex flex-col lg:flex-row gap-20">
+          <div className="flex flex-col w-full gap-6 h-fit items-center pt-10">
+            <Skeleton variant="rectangular" height={400} width="100%" />
+            <Skeleton variant="text" width={150} height={24} />
+          </div>
+          <div className="flex-flex-col w-full p-10">
+            <div className="flex flex-col justify-start">
+              <Skeleton variant="text" width="80%" height={50} />
+              <Box my={2}>
+                <Skeleton variant="text" width="60%" height={30} />
+              </Box>
+              <Skeleton
+                variant="rectangular"
+                height={70}
+                width="100%"
+                sx={{ my: 2 }}
+              />
+              <Stack spacing={2} my={3}>
+                <Box display="flex" alignItems="center">
+                  <Skeleton variant="text" width={140} height={30} />
+                  <Skeleton
+                    variant="text"
+                    width={200}
+                    height={30}
+                    sx={{ ml: 2 }}
+                  />
+                </Box>
+                <Box display="flex" alignItems="center">
+                  <Skeleton variant="text" width={140} height={30} />
+                  <Skeleton
+                    variant="text"
+                    width={200}
+                    height={30}
+                    sx={{ ml: 2 }}
+                  />
+                </Box>
+                <Box display="flex" alignItems="center">
+                  <Skeleton variant="text" width={140} height={30} />
+                  <Skeleton
+                    variant="text"
+                    width={200}
+                    height={30}
+                    sx={{ ml: 2 }}
+                  />
+                </Box>
+                <Box display="flex" alignItems="center" my={4}>
+                  <Skeleton variant="text" width={140} height={30} />
+                  <Skeleton
+                    variant="rectangular"
+                    width={120}
+                    height={40}
+                    sx={{ ml: 2 }}
+                  />
+                  <Skeleton
+                    variant="text"
+                    width={150}
+                    height={30}
+                    sx={{ ml: 2 }}
+                  />
+                </Box>
+              </Stack>
+              <Box display="flex" gap={2}>
+                <Skeleton variant="rectangular" width={140} height={45} />
+                <Skeleton variant="rectangular" width={140} height={45} />
+              </Box>
+            </div>
+          </div>
+        </div>
+      </BorderBox>
+
+      <BorderBox className="my-5">
+        <Box p={3}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", md: "row" }}
+            gap={4}
+          >
+            <Box display="flex" alignItems="center" gap={2}>
+              <Skeleton variant="circular" width={96} height={96} />
+              <Box>
+                <Skeleton variant="text" width={180} height={30} />
+                <Box mt={2} display="flex" gap={2}>
+                  <Skeleton variant="rectangular" width={110} height={40} />
+                  <Skeleton variant="rectangular" width={110} height={40} />
+                </Box>
+              </Box>
+            </Box>
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ display: { xs: "none", md: "block" } }}
+            />
+            <Box flexGrow={1} pl={{ xs: 0, md: 3 }}>
+              <Box display="grid" gridTemplateColumns="repeat(3,1fr)" gap={2}>
+                {[...Array(6)].map((_, i) => (
+                  <Box key={i} display="flex" justifyContent="space-between">
+                    <Skeleton variant="text" width={70} />
+                    <Skeleton variant="text" width={40} />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </BorderBox>
+
+      <BorderBox className="my-5">
+        <Box p={3}>
+          <Skeleton variant="text" width={180} height={30} />
+          <Skeleton
+            variant="rectangular"
+            height={250}
+            width="100%"
+            sx={{ mt: 2 }}
+          />
+        </Box>
+      </BorderBox>
+    </>
+  );
+};
+
 const ProductDetail = () => {
   const { slug } = useParams();
   const { user } = useUser();
-  const { setSelectedProvider } = useChat();
+  const { setSelectedReceiver } = useChat();
   const { onOpen } = useChatBox();
   const router = useRouter();
   const addContactMutation = useAddContact();
   const queryClient = useQueryClient();
   const { data: favorites } = useGetListFavoriteProduct();
   const { mutate: addFavoriteDecorProduct } = useAddFavoriteDecorProduct();
-  const { mutate: removeFavoriteDecorProduct } =
-    useRemoveFavoriteDecorProduct();
 
   const { data: productsData } = useGetListProduct();
   const [productId, setProductId] = useState(null);
@@ -73,12 +196,17 @@ const ProductDetail = () => {
     return favorites.some((fav) => fav.productDetail.id === productId);
   }, [favorites, productId]);
 
-  const { data: reviewData, isLoading: isReviewsLoading } = useGetListReviewByProduct(productId, {
-    pageIndex: 1,
-    pageSize: 10,
-  }, {
-    enabled: !!productId
-  });
+  const { data: reviewData, isLoading: isReviewsLoading } =
+    useGetListReviewByProduct(
+      productId,
+      {
+        pageIndex: 1,
+        pageSize: 10,
+      },
+      {
+        enabled: !!productId,
+      }
+    );
 
   const reviews = reviewData?.data || [];
 
@@ -93,6 +221,14 @@ const ProductDetail = () => {
     }
   }, [productsData, slug]);
 
+  if (isLoading || !productId) {
+    return (
+      <Container>
+        <ProductDetailSkeleton />
+      </Container>
+    );
+  }
+
   if (!productDetail) {
     return (
       <p className="text-center mt-20">
@@ -101,10 +237,9 @@ const ProductDetail = () => {
     );
   }
 
-
   const handleAddToCart = () => {
     if (!user?.id) {
-      toast.error("Please login first");
+      toast.info("Please login first");
       router.push("/authen/login");
       return;
     }
@@ -117,7 +252,7 @@ const ProductDetail = () => {
       },
       {
         onSuccess: () => {
-          console.log("Product added to cart!");
+          //console.log("Product added to cart!");
         },
         onError: (error) => {
           console.error("Failed to add to cart:", error);
@@ -130,9 +265,15 @@ const ProductDetail = () => {
   const handleAddToFavorites = () => {
     if (isInFavorites) return;
 
+    if (!user?.id) {
+      toast.info("Please login first");
+      router.push("/authen/login");
+      return;
+    }
+
     addFavoriteDecorProduct(productId, {
       onSuccess: () => {
-        console.log("Added to favorite");
+        // console.log("Added to favorite");
         queryClient.invalidateQueries({
           queryKey: ["get_list_favorite_product"],
         });
@@ -152,15 +293,15 @@ const ProductDetail = () => {
     });
   };
 
-  const handleChatClick = (provider) => {
-    const providerData = {
-      contactId: productDetail.provider.id,
-      contactName: productDetail.provider.businessName,
-      avatar: productDetail.provider.avatar,
+  const handleChatClick = (receiver) => {
+    const receiverData = {
+      contactId: receiver.id,
+      contactName: receiver.businessName,
+      avatar: receiver.avatar,
     };
-    addContactMutation.mutate(provider.id, {
+    addContactMutation.mutate(receiver.id, {
       onSuccess: () => {
-        setSelectedProvider(providerData);
+        setSelectedReceiver(receiverData);
         onOpen();
         queryClient.invalidateQueries(["get_list_contact"]);
       },
@@ -189,7 +330,8 @@ const ProductDetail = () => {
                 loading={isLoading}
               />
               <span className="inline-flex items-center gap-2">
-                <MdFavoriteBorder /> People liked (...)
+                <MdFavoriteBorder /> People liked (
+                {productDetail.favoriteCount || "..."})
               </span>
             </div>
             {/* INFO */}
@@ -205,16 +347,16 @@ const ProductDetail = () => {
                   <div className="inline-flex">
                     <div className="flex gap-2 items-center border-l-[1px] px-5">
                       <button className="underline" onClick={handleRatingClick}>
-                        {productDetail.totalCount === 0
+                        {productDetail?.totalCount === 0
                           ? "No Rating Yet"
-                          : `${reviewData.totalCount} Ratings`}
+                          : `${reviewData?.totalCount} Ratings`}
                       </button>
                     </div>
                     <div className="flex gap-2 items-center border-l-[1px] px-5">
                       <span className="underline">
-                        {productDetail.totalSold === 0
-                          ? "No product sold"
-                          : `${productDetail.totalSold} Solds`}
+                        {productDetail?.totalSold
+                          ? `${productDetail?.totalSold} Solds`
+                          : "No product sold"}
                       </span>
                     </div>
                   </div>
@@ -389,7 +531,7 @@ const ProductDetail = () => {
           </div>
         </BorderBox>
         <DescrriptionSection description={productDetail.description} />
-        
+
         {/* Ratings and Reviews Section */}
         <section className="mt-16 border-t pt-8 relative">
           <FootTypo
@@ -400,17 +542,21 @@ const ProductDetail = () => {
           {/* Ratings Overview */}
           {isReviewsLoading ? (
             <Box className="w-full my-6 pb-6 text-sm border-b border-gray-200 dark:border-gray-700">
-              <Skeleton variant="rectangular" height={180} className="rounded-lg" />
+              <Skeleton
+                variant="rectangular"
+                height={180}
+                className="rounded-lg"
+              />
             </Box>
           ) : (
-            <OverallRating 
-              overallRating={reviewData?.averageRate || 0} 
-              rateCount={{ 
-                5: reviewData?.rateCount?.[5] || 0, 
-                4: reviewData?.rateCount?.[4] || 0, 
-                3: reviewData?.rateCount?.[3] || 0, 
-                2: reviewData?.rateCount?.[2] || 0, 
-                1: reviewData?.rateCount?.[1] || 0 
+            <OverallRating
+              overallRating={reviewData?.averageRate || 0}
+              rateCount={{
+                5: reviewData?.rateCount?.[5] || 0,
+                4: reviewData?.rateCount?.[4] || 0,
+                3: reviewData?.rateCount?.[3] || 0,
+                2: reviewData?.rateCount?.[2] || 0,
+                1: reviewData?.rateCount?.[1] || 0,
               }}
               totalReviews={reviewData?.totalCount || 0}
             />
@@ -419,12 +565,22 @@ const ProductDetail = () => {
 
         {/* Overview ReviewSection */}
         <div className="mt-10">
-          <ReviewSection
-            averageRating={reviewData?.averageRate || 0}
-            totalReviews={reviewData?.totalCount || 0}
-          />
+          {isReviewsLoading ? (
+            <Box mb={4}>
+              <Skeleton
+                variant="rectangular"
+                height={120}
+                className="rounded-lg"
+              />
+            </Box>
+          ) : (
+            <ReviewSection
+              averageRating={reviewData?.averageRate || 0}
+              totalReviews={reviewData?.totalCount || 0}
+            />
+          )}
         </div>
-        
+
         {/* Individual Reviews */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-8">
           {isReviewsLoading ? (
@@ -439,7 +595,11 @@ const ProductDetail = () => {
                     </Box>
                   </Box>
                   <Skeleton variant="text" width={100} className="mb-2" />
-                  <Skeleton variant="rectangular" height={80} className="rounded-lg" />
+                  <Skeleton
+                    variant="rectangular"
+                    height={80}
+                    className="rounded-lg"
+                  />
                 </Box>
               ))}
             </>

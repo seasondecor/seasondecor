@@ -139,9 +139,9 @@ export default function InfiniteScroll({
 
   return (
     <div
-      className="relative flex items-center justify-center w-full overflow-hidden overscroll-none border-t-dotted border-b-dotted border-transparent"
+      className="relative flex items-center justify-center w-full overflow-hidden h-full overscroll-none border-t-dotted border-b-dotted border-transparent"
       ref={wrapperRef}
-      //style={{ maxHeight }}
+      style={{ maxHeight }}
     >
       {/* Gradient Overlays */}
       <div className="absolute top-0 left-0 w-full h-1/4 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"></div>

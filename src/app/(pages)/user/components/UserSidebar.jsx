@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { FaRegUser } from "react-icons/fa";
 import { IoWalletOutline } from "react-icons/io5";
-import { IoNotificationsOutline } from "react-icons/io5";
-import { GoPackage } from "react-icons/go";
 import { PiShoppingBag } from "react-icons/pi";
 import { GiShadowFollower } from "react-icons/gi";
 import { RiUserFollowLine } from "react-icons/ri";
@@ -61,19 +59,6 @@ const Sidebar = ({ selectedPath}) => {
         </li>
         <li>
           <Link
-            href={`/user/notifications`}
-            className={`${
-              isPathActive(`/user/notifications`)
-                ? "text-red font-semibold inline-flex gap-2 items-center"
-                : "inline-flex gap-2 items-center"
-            }`}
-          >
-            <IoNotificationsOutline size={20} />
-            Notifications
-          </Link>
-        </li>
-        <li>
-          <Link
             href={`/user/orders`}
             className={`${
               isPathActive(`/user/orders`)
@@ -82,18 +67,6 @@ const Sidebar = ({ selectedPath}) => {
             }`}
           >
             <PiShoppingBag size={20} /> Orders
-          </Link>
-        </li>
-        <li>
-          <Link
-            href={`/user/membership`}
-            className={`${
-              isPathActive(`/user/membership`)
-                ? "text-red font-semibold inline-flex gap-2 items-center"
-                : "inline-flex gap-2 items-center"
-            }`}
-          >
-            <GoPackage size={20} /> Membership
           </Link>
         </li>
         <li>
