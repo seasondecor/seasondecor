@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import { toast } from "sonner";
 import { getSession, signOut } from "next-auth/react";
 
-export const BASE_URL = "http://localhost:5297";
+export const BASE_URL = "https://seasondecor.azurewebsites.net";
 
 let cachedToken = null;
 let tokenExpiryTime = null;
