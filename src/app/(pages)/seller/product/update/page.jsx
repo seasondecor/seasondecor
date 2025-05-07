@@ -5,7 +5,7 @@ import SellerWrapper from "../../components/SellerWrapper";
 import Stepper, { Step } from "@/app/components/ui/animated/Stepper";
 import { FootTypo } from "@/app/components/ui/Typography";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
-import Input from "@/app/components/ui/inputs/Input";
+import Input from "@/app/components/ui/Inputs/Input";
 import { TbCurrencyDong } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import { Field, Textarea } from "@headlessui/react";
