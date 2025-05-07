@@ -13,9 +13,9 @@ export const HeadTypo = ({label}) => {
 
 export const BodyTypo = ({ bodylabel }) => {
     return (
-      <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl text-zinc-500 dark:text-zinc-300">
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl text-zinc-500 dark:text-zinc-300">
         {bodylabel}
-      </h2>
+      </h1>
     );
   };
 

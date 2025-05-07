@@ -11,7 +11,7 @@ import { IoWarningOutline } from "react-icons/io5";
 import { useDeleteAddress } from "@/app/queries/user/address.query";
 import { useCancelOrder } from "@/app/queries/order/order.query";
 import { useQueryClient } from "@tanstack/react-query";
-import { Label } from "@/app/components/ui/inputs/Label";
+import { Label } from "@/app/components/ui/Inputs/Label";
 import { Field, Textarea } from "@headlessui/react";
 import { useGetCancelType } from "@/app/queries/type/cancel.type.query";
 import { useCancelBookingRequest } from "@/app/queries/book/book.query";
@@ -35,7 +35,7 @@ const DeleteConfirmModal = () => {
   const shouldFetchCancelTypes =
     deleteConfirmModal.isOpen && deleteConfirmModal.type === "request";
 
-  const { data: cancelType, isLoading: cancelTypeLoading } = useGetCancelType(
+  const { data: cancelType } = useGetCancelType(
     shouldFetchCancelTypes
   );
 

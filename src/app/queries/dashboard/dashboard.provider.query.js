@@ -8,7 +8,7 @@ const SUB_URL = `api/Dashboard`;
 const defaultPagination = {
   pageIndex: 1,
   pageSize: 10,
-  paymentType: "",
+  transactionType: "",
   sortBy: "",
   descending: false,
 };
@@ -63,6 +63,8 @@ export function useGetPaginatedProviderTransactions(paginationParams = {}) {
         url += `&PageSize=${params.pageSize}`;
 
         if (params.paymentType) url += `&PaymentType=${params.paymentType}`;
+
+        if (params.TransactionType) url += `&TransactionType=${params.TransactionType}`;
 
         if (params.sortBy) url += `&SortBy=${params.sortBy}`;
 

@@ -363,8 +363,9 @@ const PurchaseDetailPage = () => {
                   unitPrice={item.unitPrice}
                   orderId={item.orderId}
                   productId={item.productId}
+                  isReviewed={item.isReviewed}
                   href={`/products/${generateSlug(item.productName)}`}
-                  isReview={true}
+                  allowReview={true}
                   handleOpenReviewDialog={() =>
                     handleOpenReviewDialog({
                       ...item,
@@ -555,7 +556,7 @@ const PurchaseDetailPage = () => {
                     </div>
                     <button
                       onClick={() => handleRemoveImage(index)}
-                      className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                      className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red flex items-center justify-center text-white hover:bg-red-600 transition-colors"
                       aria-label="Remove image"
                     >
                       ×

@@ -112,14 +112,63 @@ export function useGetProviderBySlug(slug) {
       if (!slug) return null;
       nProgress.start();
       try {
-        const res = await BaseRequest.Get(
-          `/${SUB_URL}/profile/${slug}`,
-          false
-        );
+        const res = await BaseRequest.Get(`/${SUB_URL}/profile/${slug}`, false);
         return res.data;
       } finally {
         nProgress.done();
       }
+    },
+  });
+}
+
+export function useGetProviderOptions() {
+  return useQuery({
+    queryKey: ["provider_options"],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getProviderOptions`,
+        false
+      );
+      return res.data;
+    },
+  });
+}
+
+export function useGetPendingApplicationList() {
+  return useQuery({
+    queryKey: ["pending_application_list"],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getPendingApplicationList`,
+        false
+      );
+      return res.data;
+    },
+  });
+}
+
+export function useApproveApplication() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["approve_application"],
+    mutationFn: async (accountId) => {
+      return await BaseRequest.Put(`/${SUB_URL}/approveApplication/${accountId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending_application_list"] });
+    },
+  });
+}
+
+export function useRejectApplication() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["reject_application"],
+    mutationFn: async ({ accountId, reason }) => {
+      return await BaseRequest.Put(`/${SUB_URL}/rejectApplication/${accountId}?reason=${encodeURIComponent(reason)}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending_application_list"] });
     },
   });
 }

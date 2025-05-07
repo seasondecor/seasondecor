@@ -10,6 +10,7 @@ import {
   IconBrandTabler,
   IconChartBarPopular,
   IconSettings,
+  IconFileInfo
 } from "@tabler/icons-react";
 import { cn } from "@/app/utils/Utils";
 import ScrollToTop from "@/app/components/ScrollToTop";
@@ -41,6 +42,11 @@ export default function AdminWrapper({ children }) {
       label: "User Management",
       href: "/admin/manage/account",
       icon: <IconReceipt className=" h-5 w-5 flex-shrink-0" />,
+    },
+    {
+      label: "Application Management",
+      href: "/admin/manage/application",
+      icon: <IconFileInfo className=" h-5 w-5 flex-shrink-0" />,
     },
     {
       label: "Transaction Management",

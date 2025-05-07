@@ -8,6 +8,7 @@ import { AiOutlineLoading } from "react-icons/ai";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PiSealWarning } from "react-icons/pi";
+import { toast } from "sonner";
 
 const SignPage = () => {
   const {
@@ -20,21 +21,18 @@ const SignPage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  console.log("State", isPending, isSuccess, isError);
 
   useEffect(() => {
     // Extract token from URL
     const token = searchParams.get("token");
-    console.log('i fire once')
-
     // Only call the API once
     if (token) {
       verifySignature(token, {
-        onSuccess: (data) => {
-          console.log("Contract signed successfully:", data);
+        onSuccess: () => {
+          //console.log("Contract signed successfully:", data);
         },
-        onError: (error) => {
-          console.error("Error signing contract:", error);
+        onError: () => {
+          toast.error("Error signing contract, please try again later");
         },
       });
     } else {
@@ -85,7 +83,7 @@ const SignPage = () => {
               href="/quotation"
               className="text-primary underline text-center"
             >
-              Back to my requests
+              Back to my quotation
             </Link>
           )}
         </div>

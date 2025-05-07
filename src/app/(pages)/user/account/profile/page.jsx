@@ -3,7 +3,7 @@
 import React, { useCallback, useState } from "react";
 import { UserWrapper } from "../../components/UserWrapper";
 import { FootTypo } from "@/app/components/ui/Typography";
-import Input from "@/app/components/ui/inputs/Input";
+import Input from "@/app/components/ui/Inputs/Input";
 import DropdownSelect from "@/app/components/ui/Select/DropdownSelect";
 import { useForm } from "react-hook-form";
 import BasicDatePicker from "@/app/components/ui/Select/DatePicker";
@@ -70,7 +70,7 @@ const UserProfile = () => {
     <UserWrapper>
       <div className="flex-grow ml-6 relative ">
         <div className="flex flex-col relative ">
-          <div className="pb-5 border-b-[1px]">
+          <div className="pb-9 border-b-[1px]">
             <FootTypo
               footlabel="My Profile"
               className="!m-0 text-lg font-semibold"

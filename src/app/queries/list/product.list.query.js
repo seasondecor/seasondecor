@@ -13,6 +13,7 @@ const defaultPagination = {
   maxPrice: "",
   sortBy: "",
   descending: false,
+  status: "",
 };
 
 export function useGetListProduct(paginationParams = {}) {
@@ -35,6 +36,7 @@ export function useGetListProduct(paginationParams = {}) {
         if (params.productName) queryParams.push(`ProductName=${params.productName}`);
         if (params.minPrice) queryParams.push(`MinPrice=${params.minPrice}`);
         if (params.maxPrice) queryParams.push(`MaxPrice=${params.maxPrice}`);
+        if (params.status) queryParams.push(`Status=${encodeURIComponent(params.status)}`);
         if (params.sortBy) queryParams.push(`SortBy=${params.sortBy}`);
         if (params.descending !== undefined) queryParams.push(`Descending=${params.descending}`);
 
@@ -87,6 +89,7 @@ export function useGetProductByCategoryId(categoryId, paginationParams = {}) {
           url += `&ProductName=${encodeURIComponent(params.productName)}`;
         if (params.minPrice) url += `&MinPrice=${params.minPrice}`;
         if (params.maxPrice) url += `&MaxPrice=${params.maxPrice}`;
+        if (params.status) url += `&Status=${encodeURIComponent(params.status)}`;
         if (params.sortBy)
           url += `&SortBy=${encodeURIComponent(params.sortBy)}`;
         if (params.descending !== undefined)
@@ -140,6 +143,7 @@ export function useGetProductByProvider(slug, paginationParams = {}) {
           url += `&ProductName=${encodeURIComponent(params.productName)}`;
         if (params.minPrice) url += `&MinPrice=${params.minPrice}`;
         if (params.maxPrice) url += `&MaxPrice=${params.maxPrice}`;
+        if (params.status) url += `&Status=${encodeURIComponent(params.status)}`;
         if (params.sortBy)
           url += `&SortBy=${encodeURIComponent(params.sortBy)}`;
         if (params.descending !== undefined)

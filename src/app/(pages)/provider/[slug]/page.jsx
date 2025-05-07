@@ -17,25 +17,20 @@ import { MdMiscellaneousServices } from "react-icons/md";
 import HomeTab from "../tabs/HomeTab";
 import ProductsTab from "../tabs/ProductTab";
 import ServicesTab from "../tabs/ServiceTab";
-import VoucherTab from "../tabs/VoucherTab";
-import { TbGiftCardFilled } from "react-icons/tb";
 import { useGetProviderBySlug } from "@/app/queries/user/provider.query";
 import { ClipLoader } from "react-spinners";
 import { useParams } from "next/navigation";
 import MuiBreadcrumbs from "@/app/components/ui/breadcrums/Breadcrums";
 import { useFollow, useUnfollow } from "@/app/queries/user/user.query";
 import { useGetFollowing } from "@/app/queries/list/follow.list.query";
-import { formatDateVN } from "@/app/helpers";
 import { useAddContact } from "@/app/queries/contact/contact.query";
 import useChatBox from "@/app/hooks/useChatBox";
 import useChat from "@/app/hooks/useChat";
-
 
 const tabs = [
   { icon: IoMdHome, name: "Home", component: HomeTab },
   { icon: GoPackage, name: "Products", component: ProductsTab },
   { icon: MdMiscellaneousServices, name: "Services", component: ServicesTab },
-  { icon: TbGiftCardFilled, name: "Vouchers", component: VoucherTab },
 ];
 
 const ProviderDetailPage = () => {
@@ -48,7 +43,6 @@ const ProviderDetailPage = () => {
   const { onOpen } = useChatBox();
   const { setSelectedReceiver } = useChat();
   const addContactMutation = useAddContact();
-
 
   if (isLoading) {
     return (
@@ -104,14 +98,16 @@ const ProviderDetailPage = () => {
   };
 
   const isProviderFollowed = (receiverId) => {
-    return followingData?.some((following) => following.accountId === receiverId);
+    return followingData?.some(
+      (following) => following.accountId === receiverId
+    );
   };
 
   const handleChatClick = (receiver) => {
     const receiverData = {
       contactId: receiver.id,
       contactName: receiver.businessName,
-      avatar: receiver.avatar
+      avatar: receiver.avatar,
     };
     addContactMutation.mutate(receiver.id, {
       onSuccess: () => {
@@ -148,7 +144,11 @@ const ProviderDetailPage = () => {
             onFollowClick={() => handleFollowToggle(provider.id)}
             onChatClick={() => handleChatClick(provider)}
             isFollowed={isProviderFollowed(provider.id)}
-            isLoading={followMutation.isLoading || unfollowMutation.isLoading || followingLoading}
+            isLoading={
+              followMutation.isLoading ||
+              unfollowMutation.isLoading ||
+              followingLoading
+            }
           />
           <section className="pl-7 w-full">
             <div className="grid grid-cols-[repeat(2,auto)] gap-9">
@@ -172,7 +172,7 @@ const ProviderDetailPage = () => {
               <StatItem
                 icon={<LuUsers />}
                 label="Joined"
-                value={formatDateVN(provider.joinedDate)}
+                value={provider.joinedDate}
               />
             </div>
           </section>
@@ -200,8 +200,8 @@ const ProviderDetailPage = () => {
             {tabs.map(({ name, component: Component }) => (
               <TabPanel key={name} className="rounded-xl bg-white/5 p-3">
                 {name === "Home" ? (
-                  <Component 
-                    phone={provider.phone} 
+                  <Component
+                    phone={provider.phone}
                     address={provider.address}
                     bio={provider.bio}
                   />

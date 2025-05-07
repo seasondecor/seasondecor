@@ -46,7 +46,7 @@ export default function OrdersLayout({ children }) {
           selectedIndex={selectedIndex}
           onChange={handleTabChange}
         >
-          <TabList className="flex gap-base border-b-[1px] pb-6 justify-center sticky top-0 z-10">
+          <TabList className="flex gap-base border-b-[1px] pb-9 justify-center sticky top-0 z-10">
             {tabs.map(({ name }, index) => (
               <Tab
                 key={name}

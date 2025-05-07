@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BaseRequest from "@/app/lib/api/config/Axios-config";
 import nProgress from "nprogress";
 import "nprogress/nprogress.css";
@@ -59,6 +59,18 @@ export function useUpdateProduct() {
       } finally {
         nProgress.done();
       }
+    },
+  });
+}
+
+export function useRemoveProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      return await BaseRequest.Delete(`/${SUB_URL}/deleteProduct/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product_list_by_provider"] });
     },
   });
 }

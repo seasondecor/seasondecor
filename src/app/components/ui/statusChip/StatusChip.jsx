@@ -66,6 +66,14 @@ const StatusChip = ({
         statusClass = "bg-yellow";
         label = "Quoting";
         icon = <BiSolidQuoteLeft size={14} />;
+      } else if (isService) {
+        statusClass = "bg-yellow";
+        label = "Pending";
+        icon = <FaClock size={14} />;
+      } else if (isQuotation) {
+        statusClass = "bg-yellow";
+        label = "Pending Change";
+        icon = <FaClock size={14} />;
       } else {
         statusClass = "bg-red text-white";
         label = "Cancelled";
@@ -77,6 +85,10 @@ const StatusChip = ({
         statusClass = "bg-gray-300 text-gray-800";
         label = "Contracting";
         icon = <FaFile size={14} />;
+      } else if (isQuotation) {
+        statusClass = "bg-yellow";
+        label = "Pending Cancel";
+        icon = <FaClock size={14} />;
       } else {
         statusClass = "bg-yellow";
         label = "Quotation";
@@ -89,6 +101,10 @@ const StatusChip = ({
         statusClass = "bg-green text-white";
         label = "Confirmed";
         icon = <IoCheckmarkDoneSharp size={14} />;
+      } else if (isQuotation) {
+        statusClass = "bg-red text-white";
+        label = "Closed";
+        icon = <MdCancel size={14} />;
       } else {
         statusClass = "bg-green text-white";
         label = "Paid";
@@ -108,7 +124,7 @@ const StatusChip = ({
       break;
     case 6:
       if (isBooking) {
-        statusClass = "bg-primary text-white";
+        statusClass = "bg-primary";
         label = "Preparing";
         icon = <FaTools size={14} />;
       } else {

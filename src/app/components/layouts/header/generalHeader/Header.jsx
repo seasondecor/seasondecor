@@ -29,6 +29,8 @@ export default function Header() {
   const [isDrawerOpen, setDrawerOpen] = React.useState(false);
   const router = useRouter();
 
+  //console.log(session)
+
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
   };
@@ -48,29 +50,49 @@ export default function Header() {
     };
   }, []);
 
-
   // Initialize notification service connection
   React.useEffect(() => {
     if (user?.id) {
+      // Track connection attempts to prevent excessive retries
+      let retryCount = 0;
+      const maxRetries = 3;
+
       const connectNotificationService = async () => {
         try {
           if (!notificationService.isConnected()) {
+           // console.log("Attempting to connect to notification service...");
             await notificationService.startConnection(user.id);
+           // console.log("Successfully connected to notification service");
+            retryCount = 0; // Reset retry count on success
           }
         } catch (error) {
-          // Add a retry mechanism with increasing delay
-          setTimeout(() => {
-            if (user?.id && !notificationService.isConnected()) {
-              connectNotificationService();
-            }
-          }, 3000); // Wait 3 seconds before retrying
+          console.error("Failed to connect to notification service:", error);
+
+          // Only retry if we haven't exceeded max retries
+          if (retryCount < maxRetries) {
+            retryCount++;
+            const delay = 2000 * retryCount; // Increase delay with each retry
+
+            //console.log(
+            //  `Retry attempt ${retryCount}/${maxRetries} in ${delay}ms`
+            //);
+            setTimeout(() => {
+              if (user?.id && !notificationService.isConnected()) {
+                connectNotificationService();
+              }
+            }, delay);
+          } else {
+            console.error(
+              `Max retries (${maxRetries}) reached. Giving up on notification connection.`
+            );
+          }
         }
       };
 
       // Initialize connection with a small delay to ensure all dependencies are properly loaded
       const initTimeout = setTimeout(() => {
         connectNotificationService();
-      }, 500);
+      }, 1000);
 
       return () => {
         clearTimeout(initTimeout);
@@ -82,15 +104,27 @@ export default function Header() {
   React.useEffect(() => {
     if (!user?.id) return;
 
+    // Use a Set to track notifications we've already shown toasts for
+    // to prevent duplicate toast notifications
+    const shownNotifications = new Set();
+
     // Listen for new notifications and show toast
     const handleNewNotification = (notification) => {
+      // Skip notifications we've already shown
+      if (shownNotifications.has(notification.id)) {
+        return;
+      }
+
+      // Add this notification ID to our shown set
+      shownNotifications.add(notification.id);
+
       // Show toast notification only if the drawer is not open
       if (!isDrawerOpen) {
         toast.info(
           <div className="flex items-start cursor-pointer">
             <div>
               <div className="font-semibold">{notification.title}</div>
-              <div 
+              <div
                 className="text-sm text-gray-600"
                 dangerouslySetInnerHTML={createMarkup(
                   notification.message || notification.content || ""
@@ -114,7 +148,7 @@ export default function Header() {
         );
       }
     };
-    
+
     // Register listener
     notificationService.onNotificationReceived(handleNewNotification);
 
@@ -207,6 +241,12 @@ export default function Header() {
                 className="text-sm font-semibold text-white/70 hover:text-primary"
               >
                 SHOP
+              </Link>
+              <Link
+                href="/support"
+                className="text-sm font-semibold text-white/70 hover:text-primary "
+              >
+                SUPPORT
               </Link>
             </div>
 

@@ -62,7 +62,7 @@ const OverallRating = ({
           />
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {totalRatings} {totalRatings === 1 ? "review" : "reviews"}
+            {totalRatings} {totalRatings === 1 ? "review" : "reviews" }
           </p>
         </div>
 

@@ -15,6 +15,7 @@ import { useUser } from "@/app/providers/userprovider";
 import { useChangeStatus } from "@/app/queries/user/provider.query";
 import { MdFavorite } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
+import { IoVideocamOutline } from "react-icons/io5";
 
 export const UserMenu = () => {
   const { user } = useUser();
@@ -112,6 +113,12 @@ export const UserMenu = () => {
                     closeMenu={closeMenu}
                     label="My favorite"
                     icon={<MdFavorite />}
+                  />
+                   <MenuItem
+                    onClick={() => router.push("/meeting")}
+                    closeMenu={closeMenu}
+                    label="My meeting"
+                    icon={<IoVideocamOutline />}
                   />
                   <MenuItem
                     onClick={() => signOut({ callbackUrl: "/authen/login" })}

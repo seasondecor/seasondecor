@@ -5,7 +5,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import Modal from "../Modal";
 import Heading from "./components/Heading";
-import Input from "../inputs/Input";
+import Input from "../Inputs/Input";
 import useAddressModal from "@/app/hooks/useAddressModal";
 import ProvinceDistrictWardSelect from "@/app/(pages)/user/components/ProvinceDropdown";
 import { RadioGroup } from "../Select/RadioGroup";
@@ -13,7 +13,7 @@ import {
   useCreateAddress,
   useUpdateAddress,
 } from "@/app/queries/user/address.query";
-import { Label } from "../inputs/Label";
+import { Label } from "../Inputs/Label";
 import CustomCheckBox from "../Select/Checkbox";
 
 const AdressModal = () => {

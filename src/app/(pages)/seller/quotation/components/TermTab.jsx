@@ -1,7 +1,7 @@
 "use client";
-import { Label } from "@/app/components/ui/inputs/Label";
+import { Label } from "@/app/components/ui/Inputs/Label";
 import { Field, Textarea } from "@headlessui/react";
-import Input from "@/app/components/ui/inputs/Input";
+import Input from "@/app/components/ui/Inputs/Input";
 import { FaPercent } from "react-icons/fa6";
 import { IoWarning } from "react-icons/io5";
 

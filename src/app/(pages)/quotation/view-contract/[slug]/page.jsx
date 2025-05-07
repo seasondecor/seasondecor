@@ -242,12 +242,26 @@ const ViewContractPage = () => {
                           />
                         </div>
                         <div className="flex justify-start items-center">
-                          {contractFile?.data.isSigned &&
-                          !contractFile?.data.isDeposited ? (
+                          {contractFile?.data.isFinalPaid ? (
+                            <div className="flex items-center gap-3">
+                              <span className="flex items-center gap-3 bg-green text-white px-5 py-2 rounded-full shadow-md">
+                                <BsCheckCircleFill size={20} />
+                                <FootTypo
+                                  footlabel="Your contract is paid successfully"
+                                  className="font-medium "
+                                />
+                              </span>
+                              <button className="flex items-center gap-2 bg-action text-white px-5 py-2 hover:translate-x-2 rounded-full transition-all">
+                                Go to your booking
+                                <IoIosArrowForward size={20} />
+                              </button>
+                            </div>
+                          ) : contractFile?.data.isSigned &&
+                            !contractFile?.data.isDeposited ? (
                             <Button
                               icon={<IoIosArrowForward />}
                               label="Proceed to Deposit Payment"
-                              className="bg-primary text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition-all shadow-md"
+                              className="bg-action text-white"
                               onClick={() =>
                                 router.push(
                                   `/payment/${contractFile?.data.contractCode}?type=deposit&bookingCode=${contractFile?.data.bookingCode}`

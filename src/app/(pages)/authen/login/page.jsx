@@ -5,7 +5,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 
 import Link from "next/link";
-import Input from "@/app/components/ui/inputs/Input";
+import Input from "@/app/components/ui/Inputs/Input";
 import { useForm } from "react-hook-form";
 import { IoMailOutline } from "react-icons/io5";
 import { TbLockPassword } from "react-icons/tb";

@@ -8,9 +8,7 @@ import {
 import {
   IconReceipt,
   IconBrandTabler,
-  IconBuildingStore,
   IconChartBarPopular,
-  IconDatabase,
   IconWorldDollar,
   IconPackage,
   IconPackageExport
@@ -72,16 +70,6 @@ export default function SellerWrapper({ children }) {
       href: "/seller/service",
       icon: <RiFolderSettingsLine className=" h-5 w-5 flex-shrink-0" />,
     },
-    {
-      label: "Data Management",
-      href: "/seller/data",
-      icon: <IconDatabase className=" h-5 w-5 flex-shrink-0" />,
-    },
-    {
-      label: "Shop Management",
-      href: "/seller/shop/",
-      icon: <IconBuildingStore className=" h-5 w-5 flex-shrink-0" />,
-    },
   ];
   const [open, setOpen] = useState(false);
   return (
@@ -110,7 +98,7 @@ export default function SellerWrapper({ children }) {
 // Dummy dashboard component with content
 const Dashboard = ({ props }) => {
   return (
-    <div className="flex flex-1 overflow-hidden">
+    <div className="flex flex-1">
       <div className="flex h-full w-full flex-col gap-2 rounded-tl-2xl border border-neutral-200 p-2 md:p-10">
         <div className="flex flex-grow flex-col items-start justify-start ">
           {props}

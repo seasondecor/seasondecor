@@ -6,7 +6,20 @@ import Button from "@/app/components/ui/Buttons/Button";
 import { useRouter } from "next/navigation";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { useGetDecorServiceListByProvider } from "@/app/queries/list/service.list.query";
-import { Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import {
+  Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Paper,
+} from "@mui/material";
 import Image from "next/image";
 import DataTable from "@/app/components/ui/table/DataTable";
 import { formatDate } from "@/app/helpers";
@@ -21,6 +34,86 @@ import { FootTypo } from "@/app/components/ui/Typography";
 import { IoFilterOutline, IoSearch } from "react-icons/io5";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
 
+// Skeleton loader for the service table
+const ServiceTableSkeleton = () => {
+  return (
+    <Paper
+      elevation={0}
+      className="w-full overflow-hidden border dark:bg-gray-800 dark:border-gray-700"
+    >
+      <Box
+        p={2}
+        mb={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Skeleton variant="text" width={150} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="text" width={100} height={30} />
+          <Skeleton variant="text" width={80} height={30} />
+        </Box>
+      </Box>
+
+      <Box px={2}>
+        <Box
+          mb={2}
+          display="flex"
+          width="100%"
+          sx={{ borderBottom: "1px solid #eee" }}
+        >
+          {[20, 15, 15, 15, 10, 15, 10].map((width, index) => (
+            <Box key={index} width={`${width}%`} p={1.5}>
+              <Skeleton variant="text" width="80%" height={24} />
+            </Box>
+          ))}
+        </Box>
+
+        {[...Array(4)].map((_, rowIndex) => (
+          <Box
+            key={rowIndex}
+            display="flex"
+            width="100%"
+            sx={{ borderBottom: "1px solid #f5f5f5" }}
+          >
+            {[20, 15, 15, 15, 10, 15, 10].map((width, colIndex) => (
+              <Box key={colIndex} width={`${width}%`} p={2}>
+                {colIndex === 0 ? (
+                  <Skeleton
+                    variant="rectangular"
+                    width="90%"
+                    height={80}
+                    sx={{ borderRadius: "8px" }}
+                  />
+                ) : colIndex === 5 ? (
+                  <Skeleton variant="rounded" width={80} height={30} />
+                ) : colIndex === 6 ? (
+                  <Skeleton variant="rounded" width={100} height={40} />
+                ) : (
+                  <Skeleton variant="text" width="80%" height={24} />
+                )}
+              </Box>
+            ))}
+          </Box>
+        ))}
+      </Box>
+
+      <Box
+        p={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Skeleton variant="text" width={100} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="rounded" width={120} height={36} />
+          <Skeleton variant="rounded" width={120} height={36} />
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
+
 const SellerServiceManage = () => {
   const router = useRouter();
   const searchInputRef = useRef(null);
@@ -28,7 +121,7 @@ const SellerServiceManage = () => {
     status: "",
     style: "",
   });
-  
+
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
@@ -38,7 +131,7 @@ const SellerServiceManage = () => {
     maxPrice: "",
     descending: true,
   });
-  
+
   // Update pagination when filters change
   useEffect(() => {
     setPagination((prev) => ({
@@ -67,12 +160,12 @@ const SellerServiceManage = () => {
     { id: "1", name: "Unavailable" },
     { id: "2", name: "Incoming" },
   ];
-  
+
   // Dialog and calendar states
   const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedServiceId, setSelectedServiceId] = useState(null);
-  
+
   // Use the reopen service mutation
   const { mutate: reopenService, isPending: isReopening } = useReopenService();
 
@@ -82,28 +175,31 @@ const SellerServiceManage = () => {
   const services = data?.data || [];
   const totalCount = data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / pagination.pageSize) || 1;
-  
+
   // Function to handle reopening a service
   const handleReopenService = () => {
     if (!selectedServiceId) return;
-    
+
     // Set the time to noon to avoid timezone issues
     const adjustedDate = new Date(selectedDate);
     adjustedDate.setHours(12, 0, 0, 0);
     const formattedDate = adjustedDate.toISOString();
-    
-    reopenService({ decorServiceId: selectedServiceId, startDate: formattedDate }, {
-      onSuccess: () => {
-        toast.success("Service reopened successfully");
-        setReopenDialogOpen(false);
-        refetch();
-      },
-      onError: (error) => {
-        toast.error(error.message || "Failed to reopen service");
+
+    reopenService(
+      { decorServiceId: selectedServiceId, startDate: formattedDate },
+      {
+        onSuccess: () => {
+          toast.success("Service reopened successfully");
+          setReopenDialogOpen(false);
+          refetch();
+        },
+        onError: (error) => {
+          toast.error(error.message || "Failed to reopen service");
+        },
       }
-    });
+    );
   };
-  
+
   // Function to open the reopen dialog
   const handleOpenReopenDialog = (serviceId) => {
     setSelectedServiceId(serviceId);
@@ -111,6 +207,10 @@ const SellerServiceManage = () => {
   };
 
   const columns = [
+    {
+      header: "ID",
+      accessorKey: "id",
+    },
     {
       header: "Image",
       accessorKey: "imageUrls",
@@ -135,6 +235,9 @@ const SellerServiceManage = () => {
     {
       header: "Service Name",
       accessorKey: "style",
+      cell: ({ row }) => (
+        <span className="font-bold">{row.original.style}</span>
+      ),
     },
     {
       header: "Created At",
@@ -161,21 +264,34 @@ const SellerServiceManage = () => {
       header: "Actions",
       cell: ({ row }) => (
         <>
-          {row.original.status === 1 && (
-            row.original.isBooked ? (
-              <FootTypo footlabel="On-going Service" className="text-primary font-medium" />
-            ) : (
-              <Button
-                label="Reopen"
-                onClick={() => handleOpenReopenDialog(row.original.id)}
-                className="p-2 bg-action text-white"
-                icon={<VscIssueReopened size={20} />}
+          {row.original.status === 1 &&
+            (row.original.isBooked ? (
+              <FootTypo
+                footlabel="On-going Service"
+                className="text-primary font-medium"
               />
-            )
-          )}
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  label="Reopen"
+                  onClick={() => handleOpenReopenDialog(row.original.id)}
+                  className="p-2 bg-action text-white"
+                  icon={<VscIssueReopened size={20} />}
+                />
+                <Button
+                  label="Modify"
+                  onClick={() => handleOpenModifyDialog(row.original.id)}
+                  className="p-2 bg-action text-white"
+                  icon={<VscIssueReopened size={20} />}
+                />
+              </div>
+            ))}
 
           {row.original.status === 2 && (
-            <FootTypo footlabel="Incoming service" className="text-yellow font-medium" />
+            <FootTypo
+              footlabel="Incoming service"
+              className="text-yellow font-medium"
+            />
           )}
         </>
       ),
@@ -277,45 +393,25 @@ const SellerServiceManage = () => {
       <>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Service Management</h1>
-          <RefreshButton 
-            onRefresh={refetch} 
-            isLoading={isLoading}
-            tooltip="Refresh service list"
-          />
+          <div className="flex gap-3 px-5">
+            <Button
+              onClick={() => router.push("/seller/service/create")}
+              label="Create service"
+              className="bg-primary"
+              icon={<MdOutlineFileUpload size={20} />}
+            />
+            <RefreshButton
+              onRefresh={refetch}
+              isLoading={isLoading}
+              tooltip="Refresh product list"
+            />
+          </div>
         </div>
-        
-        <div className="section-1 flex flex-row gap-3 items-center mb-6">
-          <Button
-            onClick={() => router.push("/seller/service/create")}
-            label="Create new service"
-            className="bg-primary"
-            icon={<MdOutlineFileUpload size={20} />}
-          />
-        </div>
-        
+
         <FilterSelectors />
-        
+
         {isLoading && services.length === 0 ? (
-          <>
-            <Skeleton
-              animation="wave"
-              variant="text"
-              width="100%"
-              height={20}
-            />
-            <Skeleton
-              animation="wave"
-              variant="text"
-              width="100%"
-              height={20}
-            />
-            <Skeleton
-              animation="wave"
-              variant="text"
-              width="100%"
-              height={20}
-            />
-          </>
+          <ServiceTableSkeleton />
         ) : error ? (
           <div className="bg-red-100 text-red-700 p-4 rounded">
             Error loading services: {error.message}
@@ -344,15 +440,13 @@ const SellerServiceManage = () => {
             totalCount={totalCount}
           />
         )}
-        
+
         {/* Reopen Dialog with Calendar */}
-        <Dialog 
-          open={reopenDialogOpen} 
-          maxWidth="sm"
-          fullWidth
-        >
+        <Dialog open={reopenDialogOpen} maxWidth="sm" fullWidth>
           <DialogTitle>
-            <Typography variant="h4" component="div">Reopen Service</Typography>
+            <Typography variant="h4" component="div">
+              Reopen Service
+            </Typography>
           </DialogTitle>
           <DialogContent>
             <Typography variant="body1" className="mb-4">
@@ -361,19 +455,16 @@ const SellerServiceManage = () => {
             <div className="w-full">
               <Calendar
                 date={selectedDate}
-                onChange={date => setSelectedDate(date)}
+                onChange={(date) => setSelectedDate(date)}
                 minDate={new Date()}
                 className="w-full"
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
               />
             </div>
           </DialogContent>
           <DialogActions>
-            <Button 
-              label="Cancel" 
-              onClick={() => setReopenDialogOpen(false)}
-            />
-            <Button 
+            <Button label="Cancel" onClick={() => setReopenDialogOpen(false)} />
+            <Button
               label={isReopening ? "Reopening..." : "Confirm Reopen"}
               onClick={handleReopenService}
               isLoading={isReopening}

@@ -13,7 +13,7 @@ const defaultPagination = {
   minPrice: "",
   maxPrice: "",
   sortBy: "",
-  descending: false,
+  descending: true,
   seasonId: "",
 };
 

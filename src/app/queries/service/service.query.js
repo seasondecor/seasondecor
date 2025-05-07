@@ -13,7 +13,7 @@ export function useCreateDecorService() {
       nProgress.start();
 
       try {
-        return await BaseRequest.Post(`/${SUB_URL}/add`, data);
+        return await BaseRequest.Post(`/${SUB_URL}/add`, formData);
       } finally {
         nProgress.done();
       }

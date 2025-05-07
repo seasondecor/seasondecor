@@ -13,13 +13,13 @@ class NotificationService {
     try {
       if (this.connection) {
         if (this.connection.state === signalR.HubConnectionState.Connected) {
-          console.log("Already connected to NotificationHub with connectionId:", this.connection);
+          //console.log("Already connected to NotificationHub with connectionId:", this.connection);
           return;
         }
         
         if (this.connection.state === signalR.HubConnectionState.Connecting ||
             this.connection.state === signalR.HubConnectionState.Reconnecting) {
-          console.log("Connection is already in the process of connecting");
+          //console.log("Connection is already in the process of connecting");
           return;
         }
         
@@ -33,7 +33,7 @@ class NotificationService {
       const token = session?.accessToken;
 
       if (!token) {
-        console.error("No authentication token available for notification hub");
+        //console.error("No authentication token available for notification hub");
         return;
       }
 
@@ -49,11 +49,11 @@ class NotificationService {
 
       // Add connection status logging
       this.connection.onreconnecting((error) => {
-        console.log("Notification hub reconnecting due to error:", error);
+        //console.log("Notification hub reconnecting due to error:", error);
       });
 
       this.connection.onreconnected((connectionId) => {
-        console.log("Notification hub reconnected with ID:", connectionId);
+        //console.log("Notification hub reconnected with ID:", connectionId);
       });
 
       // Set up notification receiving handler - this matches the backend method ReceiveNotification
@@ -88,7 +88,7 @@ class NotificationService {
       });
 
       this.connection.onclose((error) => {
-        console.log("Notification hub connection closed:", error);
+        //console.log("Notification hub connection closed:", error);
         this.connection = null;
         if (error) {
           // Only attempt to reconnect if there was an error
@@ -97,9 +97,9 @@ class NotificationService {
       });
 
       try {
-        console.log("Starting NotificationHub connection...");
+        //console.log("Starting NotificationHub connection...");
         await this.connection.start();
-        console.log("NotificationHub Connected successfully");
+        //console.log("NotificationHub Connected successfully");
 
         // Wait a small amount of time to ensure connection is fully established
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -109,12 +109,12 @@ class NotificationService {
           throw new Error("NotificationHub connection failed to reach Connected state");
         }
       } catch (err) {
-        console.error("Error starting NotificationHub connection:", err);
+        //console.error("Error starting NotificationHub connection:", err);
         this.connection = null;
         throw err;
       }
     } catch (error) {
-      console.error("NotificationHub Connection Error:", error);
+      //console.error("NotificationHub Connection Error:", error);
       this.connection = null;
       throw error;
     }
@@ -124,9 +124,9 @@ class NotificationService {
     if (this.connection) {
       try {
         await this.connection.stop();
-        console.log("NotificationHub Disconnected");
+        //console.log("NotificationHub Disconnected");
       } catch (error) {
-        console.error("NotificationHub Disconnection Error:", error);
+        //console.error("NotificationHub Disconnection Error:", error);
       }
       this.connection = null;
       this.currentUserId = null;
@@ -143,7 +143,7 @@ class NotificationService {
       await this.connection.invoke("MarkAsRead", notificationId);
       return true;
     } catch (error) {
-      console.error("Error marking notification as read via SignalR:", error);
+      //console.error("Error marking notification as read via SignalR:", error);
       // Fallback to REST API if SignalR fails
       return this.markNotificationAsRead(notificationId);
     }

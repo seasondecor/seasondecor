@@ -1,7 +1,7 @@
 "use client";
 
 import { FootTypo } from "@/app/components/ui/Typography";
-import { MdEmail, MdPhone, MdLocationOn, MdStore, MdDescription } from "react-icons/md";
+import { MdPhone, MdLocationOn, MdDescription } from "react-icons/md";
 
 const HomeTab = ({ phone, address, bio }) => {
   return (
@@ -28,13 +28,15 @@ const HomeTab = ({ phone, address, bio }) => {
           <MdDescription size={20} />
           <FootTypo
             footlabel="Bio"
-            className="!m-0 text-lg font-semibold"
+            className=" text-lg font-semibold"
           />
         </div>
         <div className="whitespace-pre-line">
-          <FootTypo
-            footlabel={bio || "No bio provided."}
-            className="!m-0 whitespace-pre-line"
+          <div
+            dangerouslySetInnerHTML={{
+              __html: bio || "No bio provided.",
+            }}
+            className="whitespace-pre-line"
           />
         </div>
       </div>

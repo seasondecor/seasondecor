@@ -11,17 +11,66 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Box,
+  Paper,
+  Chip,
 } from "@mui/material";
 import Button from "@/app/components/ui/Buttons/Button";
 import { FaMoneyBillWave } from "react-icons/fa";
-import StatusChip from "@/app/components/ui/statusChip/StatusChip";
-import { IoIosArrowForward } from "react-icons/io";
 import { IoFilterOutline } from "react-icons/io5";
-import { IoSearch } from "react-icons/io5";
 import { formatCurrency, formatDateTime } from "@/app/helpers";
 import { FootTypo } from "@/app/components/ui/Typography";
-import Chip from "@mui/material/Chip";
 import { BsClock } from "react-icons/bs";
+import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
+
+// Skeleton loader for the transaction table
+const TransactionTableSkeleton = () => {
+  return (
+    <Paper elevation={0} className="w-full overflow-hidden border dark:bg-gray-800 dark:border-gray-700">
+      <Box p={2} mb={2} display="flex" justifyContent="space-between" alignItems="center">
+        <Skeleton variant="text" width={150} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="text" width={100} height={30} />
+          <Skeleton variant="text" width={80} height={30} />
+        </Box>
+      </Box>
+      
+      <Box px={2}>
+        <Box mb={2} display="flex" width="100%" sx={{ borderBottom: '1px solid #eee' }}>
+          {[10, 15, 20, 15, 20, 10].map((width, index) => (
+            <Box key={index} width={`${width}%`} p={1.5}>
+              <Skeleton variant="text" width="80%" height={24} />
+            </Box>
+          ))}
+        </Box>
+        
+        {[...Array(5)].map((_, rowIndex) => (
+          <Box key={rowIndex} display="flex" width="100%" sx={{ borderBottom: '1px solid #f5f5f5' }}>
+            {[10, 15, 20, 15, 20, 10].map((width, colIndex) => (
+              <Box key={colIndex} width={`${width}%`} p={2}>
+                {colIndex === 2 ? (
+                  <Skeleton variant="text" width="70%" height={24} sx={{ color: 'green' }} />
+                ) : colIndex === 5 ? (
+                  <Skeleton variant="rounded" width={80} height={30} />
+                ) : (
+                  <Skeleton variant="text" width={colIndex === 0 ? "40%" : "80%"} height={24} />
+                )}
+              </Box>
+            ))}
+          </Box>
+        ))}
+      </Box>
+      
+      <Box p={2} display="flex" justifyContent="space-between" alignItems="center">
+        <Skeleton variant="text" width={100} height={30} />
+        <Box display="flex" gap={2}>
+          <Skeleton variant="rounded" width={120} height={36} />
+          <Skeleton variant="rounded" width={120} height={36} />
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
 
 const TransactionPage = () => {
   const router = useRouter();
@@ -30,6 +79,7 @@ const TransactionPage = () => {
     status: "",
     transactionCode: "",
     type: "",
+    transactionType: "",
   });
 
   const [pagination, setPagination] = useState({
@@ -37,7 +87,7 @@ const TransactionPage = () => {
     pageSize: 10,
     status: "",
     transactionCode: "",
-    type: "",
+    transactionType: "",
     descending: true,
   });
 
@@ -47,7 +97,7 @@ const TransactionPage = () => {
       ...prev,
       status: filters.status,
       transactionCode: filters.transactionCode,
-      type: filters.type,
+      transactionType: filters.type,
     }));
   }, [filters]);
 
@@ -58,33 +108,38 @@ const TransactionPage = () => {
     }));
   };
 
-  const handleSearch = () => {
-    const searchValue = searchInputRef.current?.value || "";
-    handleFilterChange("transactionCode", searchValue);
-  };
-
-  // Status options for the filter
-  const statusOptions = [
-    { id: "", name: "All Status" },
-    { id: "0", name: "Pending" },
-    { id: "1", name: "Completed" },
-    { id: "2", name: "Failed" },
-    { id: "3", name: "Refunded" },
-  ];
 
   // Transaction type options
   const typeOptions = [
     { id: "", name: "All Types" },
-    { id: "2", name: "Deposite Money" },
+    { id: "2", name: "Deposite Payment" },
     { id: "4", name: "Final Payment" },
     { id: "6", name: "Order Payment" },
   ];
+
+  // Transaction type map for display
+  const transactionTypeMap = {
+    "2": { name: "Deposite Payment", color: "success" },
+    "4": { name: "Final Payment", color: "primary" },
+    "6": { name: "Order Payment", color: "warning" },
+  };
 
   const {
     data: transactionsData,
     isLoading,
     error,
-  } = useGetPaginatedProviderTransactions(pagination);
+    refetch,
+  } = useGetPaginatedProviderTransactions({
+    ...pagination,
+    TransactionType: pagination.transactionType || undefined,
+  });
+
+  // Add a debugging effect to check what's being sent in the API call
+  useEffect(() => {
+    if (pagination.transactionType) {
+      console.log('Filtering by transaction type:', pagination.transactionType);
+    }
+  }, [pagination.transactionType]);
 
   const transactions = transactionsData?.data || [];
   const totalCount = transactionsData?.totalCount || 0;
@@ -130,18 +185,28 @@ const TransactionPage = () => {
       header: "Type",
       accessorKey: "type",
       cell: ({ row }) => {
-        const type = row.original.transactionType;
-        const typeColors = [
-          "text-green-600",
-          "text-red-600",
-          "text-orange-500",
-        ];
-
+        const typeId = row.original.transactionType?.toString();
+        const typeInfo = transactionTypeMap[typeId] || { 
+          name: "Unknown", 
+          color: "default" 
+        };
+        
         return (
-          <div className={`flex items-center gap-2 ${typeColors[type] || ""}`}>
-            <FaMoneyBillWave size={16} />
-            <span>{[type] || "Unknown"}</span>
-          </div>
+          <Chip
+            icon={<FaMoneyBillWave size={14} />}
+            label={typeInfo.name}
+            color={typeInfo.color}
+            size="small"
+            variant="filled"
+            sx={{ 
+              fontWeight: 500,
+              minWidth: '130px',
+              '& .MuiChip-icon': { 
+                marginLeft: '8px',
+                color: 'inherit' 
+              }
+            }}
+          />
         );
       },
     },
@@ -149,19 +214,7 @@ const TransactionPage = () => {
       header: "From",
       accessorKey: "senderEmail",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.original.senderEmail}</div>
-      ),
-    },
-    {
-      header: "Action",
-      cell: ({ row }) => (
-        <button
-          onClick={() => router.push(`/seller/transaction/${row.original.id}`)}
-          className="flex items-center gap-2 py-2 rounded-md hover:translate-x-2 transition-all duration-300"
-        >
-          <IoIosArrowForward size={20} />
-          Details
-        </button>
+        <div className="max-w-xs truncate font-bold">{row.original.senderEmail}</div>
       ),
     },
   ];
@@ -185,45 +238,19 @@ const TransactionPage = () => {
       <FormControl
         variant="outlined"
         size="small"
-        className="w-full max-w-[150px] dark:text-white"
+        className="w-full max-w-[200px] dark:text-white"
       >
-        <InputLabel id="status-label" className="dark:text-white">
-          Status
+        <InputLabel id="transaction-type-label" className="dark:text-white">
+          Transaction Type
         </InputLabel>
         <Select
           MenuProps={{
             disableScrollLock: true,
           }}
-          labelId="status-label"
-          value={filters.status}
-          onChange={(e) => handleFilterChange("status", e.target.value)}
-          label="Status"
-          className="bg-white dark:bg-gray-700 dark:text-white"
-        >
-          {statusOptions.map((option) => (
-            <MenuItem key={option.id} value={option.id}>
-              {option.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <FormControl
-        variant="outlined"
-        size="small"
-        className="w-full max-w-[150px] dark:text-white"
-      >
-        <InputLabel id="type-label" className="dark:text-white">
-          Type
-        </InputLabel>
-        <Select
-          MenuProps={{
-            disableScrollLock: true,
-          }}
-          labelId="type-label"
+          labelId="transaction-type-label"
           value={filters.type}
           onChange={(e) => handleFilterChange("type", e.target.value)}
-          label="Type"
+          label="Transaction Type"
           className="bg-white dark:bg-gray-700 dark:text-white"
         >
           {typeOptions.map((option) => (
@@ -241,6 +268,7 @@ const TransactionPage = () => {
             status: "",
             transactionCode: "",
             type: "",
+            transactionType: "",
           });
           if (searchInputRef.current) {
             searchInputRef.current.value = "";
@@ -253,16 +281,19 @@ const TransactionPage = () => {
 
   return (
     <SellerWrapper>
-      <h1 className="text-2xl font-bold mb-6">Transaction History</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Transaction History</h1>
+        <RefreshButton 
+          onRefresh={refetch} 
+          isLoading={isLoading}
+          tooltip="Refresh transaction list"
+        />
+      </div>
 
       <FilterSelectors />
 
       {isLoading && transactions.length === 0 ? (
-        <>
-          <Skeleton animation="wave" variant="text" width="100%" height={20} />
-          <Skeleton animation="wave" variant="text" width="100%" height={20} />
-          <Skeleton animation="wave" variant="text" width="100%" height={20} />
-        </>
+        <TransactionTableSkeleton />
       ) : error ? (
         <div className="bg-red-100 text-red-700 p-4 rounded">
           Error loading transactions: {error.message}
@@ -278,21 +309,19 @@ const TransactionPage = () => {
           </p>
         </div>
       ) : (
-        <div className="mb-6 flex items-center gap-5 p-2 w-full">
-          <DataTable
-            data={transactions}
-            columns={columns}
-            isLoading={isLoading}
-            showPagination={true}
-            pageSize={pagination.pageSize}
-            initialPageIndex={tablePageIndex}
-            manualPagination={true}
-            manualSorting={false}
-            pageCount={totalPages}
-            onPaginationChange={handlePaginationChange}
-            totalCount={totalCount}
-          />
-        </div>
+        <DataTable
+          data={transactions}
+          columns={columns}
+          isLoading={isLoading}
+          showPagination={true}
+          pageSize={pagination.pageSize}
+          initialPageIndex={tablePageIndex}
+          manualPagination={true}
+          manualSorting={false}
+          pageCount={totalPages}
+          onPaginationChange={handlePaginationChange}
+          totalCount={totalCount}
+        />
       )}
     </SellerWrapper>
   );
