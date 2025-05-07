@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Avatar from "@/app/components/ui/avatar/Avatar";
+import Avatar from "../Avatar/Avatar";
 import { FootTypo } from "@/app/components/ui/Typography";
 import { Rating } from "@mui/material";
 import { formatDate } from "@/app/helpers";
