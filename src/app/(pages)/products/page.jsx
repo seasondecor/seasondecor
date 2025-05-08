@@ -345,7 +345,7 @@ const ListProductPage = () => {
                       quantity: product.quantity,
                       totalSold: product.totalSold,
                       id: product.id,
-                      href: `/products/${generateSlug(product.productName)}`,
+                      href: `/products/${product.id}-${generateSlug(product.productName)}`,
                       isAdditionalProduct: false,
                     })}
                   />

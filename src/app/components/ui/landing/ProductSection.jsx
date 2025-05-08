@@ -63,7 +63,7 @@ const ProductSection = () => {
             price: product.productPrice,
             totalSold: product.totalSold,
             id: product.id,
-            href: `/products/${generateSlug(product.productName)}`,
+            href: `/products/${product.id}-${generateSlug(product.productName)}`,
           })}
         />
         <div className="absolute inset-x-0 bottom-0 z-30 h-80 bg-gradient-to-t from-white to-transparent dark:from-black opacity-90 rounded-2xl"></div>

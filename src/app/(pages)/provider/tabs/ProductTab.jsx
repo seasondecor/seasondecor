@@ -52,7 +52,7 @@ const ProductsTab = () => {
             productName: product.productName,
             rate: product.rate,
             price: product.productPrice,
-            href: `/products/${generateSlug(product.productName)}`,
+            href: `/products/${product.id}-${generateSlug(product.productName)}`,
           })}
         />
       </div>

@@ -104,7 +104,7 @@ const FavoritePage = () => {
                   removeFavoriteProduct(item.productDetail.id),
                 onClick: () =>
                   router.push(
-                    `/products/${generateSlug(item.productDetail.productName)}`
+                    `/products/${item.productDetail.id}-${generateSlug(item.productDetail.productName)}`
                   ),
               })}
             />

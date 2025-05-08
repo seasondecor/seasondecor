@@ -364,7 +364,7 @@ const PurchaseDetailPage = () => {
                   orderId={item.orderId}
                   productId={item.productId}
                   isReviewed={item.isReviewed}
-                  href={`/products/${generateSlug(item.productName)}`}
+                  href={`/products/${item.productId}-${generateSlug(item.productName)}`}
                   allowReview={true}
                   handleOpenReviewDialog={() =>
                     handleOpenReviewDialog({

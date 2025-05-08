@@ -211,12 +211,20 @@ const ProductDetail = () => {
   const reviews = reviewData?.data || [];
 
   useEffect(() => {
-    if (productsData && productsData.data && Array.isArray(productsData.data)) {
-      const matchedProduct = productsData.data.find(
-        (p) => generateSlug(p.productName) === slug
-      );
-      if (matchedProduct) {
-        setProductId(matchedProduct.id);
+    if (slug) {
+      // Extract product ID from the beginning of the slug (before the first dash)
+      const idMatch = slug.match(/^([^-]+)/);
+      if (idMatch && idMatch[1]) {
+        // Set the product ID directly from the URL
+        setProductId(idMatch[1]);
+      } else if (productsData && productsData.data && Array.isArray(productsData.data)) {
+        // Fallback to old method (looking up by name slug) for backward compatibility
+        const matchedProduct = productsData.data.find(
+          (p) => generateSlug(p.productName) === slug
+        );
+        if (matchedProduct) {
+          setProductId(matchedProduct.id);
+        }
       }
     }
   }, [productsData, slug]);
