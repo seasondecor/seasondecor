@@ -201,7 +201,7 @@ const ProductDetail = () => {
       productId,
       {
         pageIndex: 1,
-        pageSize: 10,
+        pageSize: 12,
       },
       {
         enabled: !!productId,

@@ -114,6 +114,7 @@ const TransactionPage = () => {
     { id: "", name: "All Types" },
     { id: "2", name: "Deposite Payment" },
     { id: "4", name: "Final Payment" },
+    { id: "5", name: "Revenue" },
     { id: "6", name: "Order Payment" },
   ];
 
@@ -121,6 +122,7 @@ const TransactionPage = () => {
   const transactionTypeMap = {
     "2": { name: "Deposite Payment", color: "success" },
     "4": { name: "Final Payment", color: "primary" },
+    "5": { name: "Revenue", color: "info" },
     "6": { name: "Order Payment", color: "warning" },
   };
 

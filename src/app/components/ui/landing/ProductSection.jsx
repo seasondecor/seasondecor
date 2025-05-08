@@ -19,7 +19,7 @@ const ProductSection = () => {
 
   const [pagination, setPagination] = React.useState({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 12,
     sortBy: "",
     descending: false,
     productName: "",

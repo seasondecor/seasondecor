@@ -233,12 +233,6 @@ const Cart = () => {
                         />
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <HeadTypo label="Discount" />
-                      <div className="inline-flex">
-                        <HeadTypo label={`- ${formatCurrency(0)}`} />
-                      </div>
-                    </div>
                     <div className="flex items-center justify-between gap-4 border-t border-gray-200 pt-4 dark:border-gray-700">
                       <HeadTypo label="Total" />
                       <div className="inline-flex">

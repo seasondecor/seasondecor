@@ -46,13 +46,13 @@ const ListProductPage = () => {
 
   const [pagination, setPagination] = useState({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 12,
     status: "",
   });
 
   const [filterParams, setFilterParams] = useState({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 12,
     minPrice: null,
     maxPrice: null,
     sortBy: "productPrice",
