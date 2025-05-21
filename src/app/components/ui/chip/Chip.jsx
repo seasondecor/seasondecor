@@ -21,7 +21,6 @@ const seasonIcons = {
   Fall: <FaCanadianMapleLeaf />,
   Autumn: <FaCanadianMapleLeaf />,
   Christmas: <FaSnowflake />,
-  "New Year": <GiPartyPopper />,
   Valentine: <MdCelebration />,
   Halloween: <MdCelebration />,
   Thanksgiving: <MdCelebration />,
@@ -91,7 +90,8 @@ const MultiSelectChip = ({
             onClick={() => handleToggle(option.id)}
             color={selectedItems.includes(option.id) ? "primary" : "default"}
             variant={selectedItems.includes(option.id) ? "filled" : "outlined"}
-            sx={{ margin: "4px", padding: "4px", color: "#5fc1f1"  }}
+            sx={{ margin: "4px", padding: "4px" }}
+            className="dark:text-white"
           />
         ))}
       </Stack>

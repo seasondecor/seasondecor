@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import { BorderBox } from "@/app/components/ui/BorderBox";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
 import { Divider } from "@mui/material";
@@ -13,10 +13,7 @@ import { motion } from "framer-motion";
 const HostSection = ({ href = "", avatar, name, joinDate, followers }) => {
   return (
     <div className="border-t py-10 flex flex-col">
-      <FootTypo
-        footlabel="Meet Provider"
-        className="!m-0 text-xl font-semibold pb-5"
-      />
+      <BodyTypo bodylabel="Meet Provider" fontWeight="bold" className="pb-6" />
       <div className="w-full flex flex-col md:flex-row gap-6 items-start">
         <BorderBox className="w-full md:w-2/5 shadow-xl">
           <Link
@@ -36,16 +33,15 @@ const HostSection = ({ href = "", avatar, name, joinDate, followers }) => {
               </div>
               <FootTypo
                 footlabel={name}
-                className="!m-0 text-xl font-bold mt-2"
               />
             </div>
             <div className="flex flex-col items-center gap-2 w-1/3">
               <div className="flex flex-col self-start">
                 <FootTypo
                   footlabel={joinDate}
-                  className="!m-0 text-lg font-semibold"
+                  
                 />
-                <FootTypo footlabel="Join date" className="!m-0 text-sm" />
+                <FootTypo footlabel="Join date"/>
               </div>
               <Divider
                 variant="fullWidth"
@@ -55,9 +51,8 @@ const HostSection = ({ href = "", avatar, name, joinDate, followers }) => {
               <div className="flex flex-col self-start">
                 <FootTypo
                   footlabel={followers}
-                  className="!m-0 text-lg font-semibold"
                 />
-                <FootTypo footlabel="Followers" className="!m-0 text-sm" />
+                <FootTypo footlabel="Followers" />
               </div>
             </div>
           </Link>
@@ -67,7 +62,7 @@ const HostSection = ({ href = "", avatar, name, joinDate, followers }) => {
           <BorderBox>
             <FootTypo
               footlabel="Platform Integration Features"
-              className="!m-0 text-base font-semibold mb-3"
+              fontWeight="bold"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <motion.div

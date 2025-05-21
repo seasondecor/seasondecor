@@ -318,7 +318,7 @@ const SellerDashboard = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <MdDashboard size={20} />
-                <FootTypo footlabel="Overview" className="!m-0" />
+                <FootTypo footlabel="Overview"/>
               </div>
             </Tab>
             <Tab
@@ -333,7 +333,7 @@ const SellerDashboard = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <MdOutlineInventory2 size={20} />
-                <FootTypo footlabel="Analytics" className="!m-0" />
+                <FootTypo footlabel="Analytics"/>
               </div>
             </Tab>
             <Tab
@@ -348,7 +348,7 @@ const SellerDashboard = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <MdOutlineAnalytics size={20} />
-                <FootTypo footlabel="Reports" className="!m-0" />
+                <FootTypo footlabel="Reports"/>
               </div>
             </Tab>
           </TabList>
@@ -359,7 +359,6 @@ const SellerDashboard = () => {
                   <div className="flex items-center justify-between">
                     <FootTypo
                       footlabel="Total Revenue"
-                      className="!m-0 text-sm tracking-tight"
                     />
                     <GrMoney size={16} />
                   </div>
@@ -371,7 +370,6 @@ const SellerDashboard = () => {
                         footlabel={`+ ${formatCurrency(
                           providerDashboard?.totalRevenue
                         )}`}
-                        className="!m-0 text-sm tracking-tight"
                       />
                     )}
                     <GrowthIndicator value={revenueGrowth} />
@@ -387,7 +385,6 @@ const SellerDashboard = () => {
                   <div className="flex items-center justify-between ">
                     <FootTypo
                       footlabel="Subscriptions"
-                      className="!m-0 text-sm tracking-tight"
                     />
                     <HiOutlineUsers size={16} />
                   </div>
@@ -397,7 +394,6 @@ const SellerDashboard = () => {
                     <div className="flex items-center justify-between">
                       <CountUp
                         to={providerDashboard?.totalFollowers}
-                        className="!m-0 text-sm tracking-tight"
                         direction="up"
                         duration={0.5}
                       />
@@ -408,7 +404,6 @@ const SellerDashboard = () => {
                   <div className="flex items-center justify-between">
                     <FootTypo
                       footlabel="Booking"
-                      className="!m-0 text-sm tracking-tight"
                     />
                     <FaRegCalendarCheck size={16} />
                   </div>
@@ -418,7 +413,6 @@ const SellerDashboard = () => {
                     ) : (
                       <CountUp
                         to={providerDashboard?.totalBookings}
-                        className="!m-0 text-sm tracking-tight"
                         direction="up"
                         duration={0.5}
                       />
@@ -434,7 +428,6 @@ const SellerDashboard = () => {
                   <div className="flex items-center justify-between">
                     <FootTypo
                       footlabel="Orders"
-                      className="!m-0 text-sm tracking-tight"
                     />
                     <FaRegCreditCard size={16} />
                   </div>
@@ -444,7 +437,6 @@ const SellerDashboard = () => {
                     ) : (
                       <CountUp
                         to={providerDashboard?.totalOrders}
-                        className="!m-0 text-sm tracking-tight"
                         direction="up"
                         duration={0.5}
                       />
@@ -468,7 +460,6 @@ const SellerDashboard = () => {
                 <BorderBox className="col-span-3">
                   <FootTypo
                     footlabel="Top Contribution Users"
-                    className="!m-0 text-lg tracking-tight"
                   />
                   <div className="flex flex-col gap-2">
                     {topCustomerSpending?.map((item, index) => (
@@ -482,11 +473,9 @@ const SellerDashboard = () => {
                             <span className="flex flex-col">
                               <FootTypo
                                 footlabel={item.fullName}
-                                className="!m-0 text-lg tracking-tight"
                               />
                               <FootTypo
                                 footlabel={item.email}
-                                className="!m-0 text-xs tracking-tight"
                               />
                             </span>
                           </div>
@@ -494,7 +483,6 @@ const SellerDashboard = () => {
                             footlabel={`+ ${formatCurrency(
                               item.totalSpending
                             )}`}
-                            className="!m-0 text-lg tracking-tight"
                           />
                         </div>
                       </div>
@@ -548,8 +536,7 @@ const SellerDashboard = () => {
                 <BorderBox className="col-span-2 p-4">
                   <div className="flex flex-col gap-4">
                     <FootTypo
-                      footlabel="Detail Analytics"
-                      className="!m-0 text-lg"
+                      footlabel="Detail Analytics" fontWeight="bold"
                     />
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-row items-center justify-between border-b pb-3">
@@ -557,12 +544,10 @@ const SellerDashboard = () => {
                           <GoPackage size={20} className="text-primary" />
                           <FootTypo
                             footlabel="Total Services"
-                            className="!m-0 text-sm tracking-tight"
                           />
                         </div>
                         <CountUp
                           to={providerDashboard?.totalServices || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
                           direction="up"
                           duration={0.5}
                         />
@@ -572,12 +557,10 @@ const SellerDashboard = () => {
                           <CiClock1 size={20} className="text-yellow" />
                           <FootTypo
                             footlabel="On Going Services"
-                            className="!m-0 text-sm tracking-tight"
                           />
                         </div>
                         <CountUp
                           to={providerDashboard?.processingBookings || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
                           direction="up"
                           duration={0.5}
                         />
@@ -590,12 +573,10 @@ const SellerDashboard = () => {
                           />
                           <FootTypo
                             footlabel="Services Available"
-                            className="!m-0 text-sm tracking-tight"
                           />
                         </div>
                         <CountUp
                           to={providerDashboard?.completedBookings || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
                           direction="up"
                           duration={0.5}
                         />
@@ -605,12 +586,11 @@ const SellerDashboard = () => {
                           <LuLamp size={20} />
                           <FootTypo
                             footlabel="Total Products"
-                            className="!m-0 text-sm tracking-tight"
                           />
                         </div>
                         <CountUp
                           to={providerDashboard?.totalProducts || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
+                          
                           direction="up"
                           duration={0.5}
                         />
@@ -620,10 +600,9 @@ const SellerDashboard = () => {
                 </BorderBox>
 
                 <BorderBox className="col-span-3 p-4">
-                  <div className="flex flex-col h-full">
+                  <div className="flex flex-col gap-2 h-full">
                     <FootTypo
-                      footlabel="Top Services"
-                      className="!m-0 pb-4 text-lg"
+                      footlabel="Top Services" fontWeight="bold"
                     />
                     <div className="flex flex-col gap-3">
                       {providerDashboard?.topServices?.map((item, index) => (
@@ -635,7 +614,6 @@ const SellerDashboard = () => {
                             <div className="flex items-center gap-3">
                               <FootTypo
                                 footlabel={item.style}
-                                className="!m-0 text-md tracking-tight"
                               />
                             </div>
                           </div>
@@ -650,10 +628,9 @@ const SellerDashboard = () => {
                   </div>
                 </BorderBox>
                 <BorderBox className="col-span-3 p-4">
-                  <div className="flex flex-col h-full">
+                  <div className="flex flex-col gap-2 h-full">
                     <FootTypo
-                      footlabel="Best Selling Products"
-                      className="!m-0 pb-4 text-lg"
+                      footlabel="Best Selling Products" fontWeight="bold"
                     />
                     <div className="flex flex-col gap-3">
                       {providerDashboard?.topProducts?.map((item, index) => (
@@ -665,12 +642,10 @@ const SellerDashboard = () => {
                             <div className="flex items-center gap-3">
                               <FootTypo
                                 footlabel={item.productName}
-                                className="!m-0 text-md tracking-tight"
                               />
                             </div>
                             <FootTypo
                               footlabel={`${item.soldQuantity} sold`}
-                              className="!m-0 text-md tracking-tight"
                             />
                           </div>
                         </div>
@@ -687,14 +662,12 @@ const SellerDashboard = () => {
                 <BorderBox className="col-span-3 p-4">
                   <div className="flex flex-col gap-4">
                     <FootTypo
-                      footlabel="Booking Analytics"
-                      className="!m-0 text-lg"
+                      footlabel="Booking Analytics" fontWeight="bold"
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
                         <FootTypo
                           footlabel="Completed"
-                          className="!m-0 text-sm tracking-tight mb-2"
                         />
                         <div className="text-2xl font-bold text-success">
                           <CountUp
@@ -707,7 +680,6 @@ const SellerDashboard = () => {
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
                         <FootTypo
                           footlabel="Pending"
-                          className="!m-0 text-sm tracking-tight mb-2"
                         />
                         <div className="text-2xl font-bold text-yellow">
                           <CountUp
@@ -720,7 +692,6 @@ const SellerDashboard = () => {
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
                         <FootTypo
                           footlabel="Cancelled"
-                          className="!m-0 text-sm tracking-tight mb-2"
                         />
                         <div className="text-2xl font-bold text-error">
                           <CountUp
@@ -733,7 +704,6 @@ const SellerDashboard = () => {
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
                         <FootTypo
                           footlabel="Total"
-                          className="!m-0 text-sm tracking-tight mb-2"
                         />
                         <div className="text-2xl font-bold text-primary">
                           <CountUp
@@ -750,15 +720,13 @@ const SellerDashboard = () => {
                 <BorderBox className="col-span-5 p-4">
                   <div className="flex flex-col h-full">
                     <FootTypo
-                      footlabel="Revenue Breakdown"
-                      className="!m-0 mb-4"
+                      footlabel="Revenue Breakdown" fontWeight="bold"
                     />
                     <div className="flex flex-col gap-4 h-full">
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                         <div className="flex justify-between items-center mb-2">
                           <FootTypo
                             footlabel="This Week"
-                            className="!m-0 text-sm tracking-tight"
                           />
                           <div className="text-lg font-bold">
                             {formatCurrency(
@@ -785,7 +753,6 @@ const SellerDashboard = () => {
                         <div className="flex justify-between items-center mb-2">
                           <FootTypo
                             footlabel="Last Week"
-                            className="!m-0 text-sm tracking-tight"
                           />
                           <div className="text-lg font-bold">
                             {formatCurrency(
@@ -811,7 +778,6 @@ const SellerDashboard = () => {
                       <div className="mt-auto flex items-center justify-between">
                         <FootTypo
                           footlabel="Growth Rate"
-                          className="!m-0 text-md tracking-tight"
                         />
                         <div
                           className={`text-lg font-bold ${
@@ -840,8 +806,7 @@ const SellerDashboard = () => {
 
                 <BorderBox className="col-span-8 p-4 mt-4">
                   <FootTypo
-                    footlabel="Growth Rate Analysis"
-                    className="!m-0 text-lg mb-4"
+                    footlabel="Growth Rate Analysis" fontWeight="bold"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Revenue Growth Chart */}
@@ -972,19 +937,19 @@ const SellerDashboard = () => {
                               label: "Booking Growth",
                               data: [
                                 Math.max(
-                                  1,
+                                  0,
                                   providerDashboard?.lastWeekBookings * 0.3
-                                ) || 1,
+                                ) || 0,
                                 Math.max(
-                                  2,
+                                  0,
                                   providerDashboard?.lastWeekBookings * 0.5
-                                ) || 2,
+                                ) || 0,
                                 Math.max(
-                                  3,
+                                  0,
                                   providerDashboard?.lastWeekBookings * 0.8
-                                ) || 3,
-                                providerDashboard?.lastWeekBookings || 4,
-                                providerDashboard?.thisWeekBookings || 5,
+                                ) || 0,
+                                providerDashboard?.lastWeekBookings || 0,
+                                providerDashboard?.thisWeekBookings || 0,
                               ],
                               borderColor: "rgb(75, 192, 192)",
                               backgroundColor: "rgba(75, 192, 192, 0.1)",
@@ -1074,7 +1039,6 @@ const SellerDashboard = () => {
                 <div className="flex flex-col gap-4">
                   <FootTypo
                     footlabel="All Tickets"
-                    className="!m-0 text-lg font-semibold"
                   />
                   <DataMapper
                     data={supportTickets?.data || []}
@@ -1106,11 +1070,9 @@ const SellerDashboard = () => {
                         <div className="flex flex-col">
                           <FootTypo
                             footlabel={`Ticket #${selectedTicket.id}`}
-                            className="!m-0 text-lg font-semibold"
                           />
                           <FootTypo
                             footlabel={selectedTicket.subject || "No subject"}
-                            className="!m-0 text-sm text-gray-600 dark:text-gray-400"
                           />
                         </div>
                         <div className="flex items-center gap-3">
@@ -1128,7 +1090,6 @@ const SellerDashboard = () => {
                           <div>
                             <FootTypo
                               footlabel="Description"
-                              className="!m-0 font-medium mb-1"
                             />
                             <div className="border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800">
                               <FootTypo
@@ -1136,7 +1097,6 @@ const SellerDashboard = () => {
                                   selectedTicket.description ||
                                   "No description provided"
                                 }
-                                className="!m-0 whitespace-pre-wrap"
                               />
                             </div>
                           </div>
@@ -1157,7 +1117,6 @@ const SellerDashboard = () => {
                               <div>
                                 <FootTypo
                                   footlabel="Attachments"
-                                  className="!m-0 font-medium mb-2"
                                 />
                                 <div className="flex flex-wrap gap-2">
                                   {selectedTicket.attachmentUrls.map(
@@ -1176,7 +1135,6 @@ const SellerDashboard = () => {
                               <div>
                                 <FootTypo
                                   footlabel="Your Replies"
-                                  className="!m-0 font-medium mb-2"
                                 />
                                 <div className="space-y-3">
                                   {selectedTicket.replies.map(
@@ -1194,12 +1152,10 @@ const SellerDashboard = () => {
                                               formatDateTime(reply.createAt)
                                                 .time
                                             }
-                                            className="!m-0 text-xs text-gray-500"
                                           />
                                         </div>
                                         <FootTypo
                                           footlabel={reply.description}
-                                          className="!m-0 whitespace-pre-wrap mb-2"
                                         />
 
                                         {/* Render attachments if they exist */}
@@ -1228,7 +1184,6 @@ const SellerDashboard = () => {
                                             <div className="mt-3">
                                               <FootTypo
                                                 footlabel="Attachments:"
-                                                className="!m-0 text-xs font-medium mb-2"
                                               />
                                               <div className="flex flex-wrap gap-2">
                                                 {reply.attachmentUrlIs.map(
@@ -1287,7 +1242,6 @@ const SellerDashboard = () => {
                               <div className="mb-3">
                                 <FootTypo
                                   footlabel="Attachments (optional)"
-                                  className="!m-0 font-medium mb-2 text-sm"
                                 />
                                 <ImageUpload
                                   onImageChange={handleImageChange}
@@ -1324,7 +1278,6 @@ const SellerDashboard = () => {
                               ) : (
                                 <FootTypo
                                   footlabel="Ticket is closed"
-                                  className="!m-0 text-sm text-gray-500"
                                 />
                               )}
                             </>
@@ -1337,11 +1290,9 @@ const SellerDashboard = () => {
                       <FaInfoCircle size={30} />
                       <FootTypo
                         footlabel="Select a ticket to view details"
-                        className="!m-0 text-lg font-medium mb-2"
                       />
                       <FootTypo
                         footlabel="Click on any ticket from the list to see its details and reply to the customer."
-                        className="!m-0 text-sm max-w-md"
                       />
                     </div>
                   )}

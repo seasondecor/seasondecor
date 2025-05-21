@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Header from "./generalHeader/Header";
 import SellerHeader from "./sellerHeader/SellerHeader";
 import MinimalHeader from "./minimalHeader/MinimalHeader";
+import AdminHeader from "./adminHeader/AdminHeader";
 
 const HeaderWrapper = () => {
   const pathname = usePathname();
@@ -14,7 +15,7 @@ const HeaderWrapper = () => {
   }
 
   if (pathname.startsWith("/admin/")) {
-    return <SellerHeader />;
+    return <AdminHeader />;
   }
 
   if (pathname.startsWith("/seller/")) {

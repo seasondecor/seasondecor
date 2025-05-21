@@ -20,7 +20,7 @@ const ServiceCardSkeleton = () => {
       <div className="order-last md:order-first flex flex-col gap-2 space-y-4 p-4">
         <Skeleton variant="text" width="70%" height={28} />
         <Skeleton variant="rounded" width="40%" height={36} />
-        
+
         <div className="flex flex-col gap-2">
           <Skeleton variant="text" width="50%" height={20} />
           <div className="flex flex-wrap gap-2">
@@ -29,12 +29,12 @@ const ServiceCardSkeleton = () => {
             <Skeleton variant="rounded" width={80} height={28} />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Skeleton variant="circular" width={20} height={20} />
           <Skeleton variant="text" width="40%" height={20} />
         </div>
-        
+
         <Skeleton variant="rounded" width={120} height={40} />
       </div>
 
@@ -43,7 +43,12 @@ const ServiceCardSkeleton = () => {
           key={index}
           className="relative aspect-[4/3] w-full overflow-hidden rounded-lg"
         >
-          <Skeleton variant="rectangular" width="100%" height="100%" animation="wave" />
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height="100%"
+            animation="wave"
+          />
         </div>
       ))}
     </div>
@@ -57,7 +62,6 @@ const BookingPage = () => {
   const {
     data: listDecorService,
     isLoading: isInitialLoading,
-    refetch: refetchInitialList,
   } = useGetListDecorService({
     pageIndex: currentPage,
     pageSize: pageSize,
@@ -93,10 +97,6 @@ const BookingPage = () => {
       setHasSearched(false);
       setSearchResults(null);
       setCurrentPage(1); // Reset to page 1
-      // Explicitly set page size again when returning to default listing
-      refetchInitialList().then(() => {
-        //console.log("Refetched with page size:", pageSize);
-      });
       return;
     }
     setSearchResults(results);
@@ -145,7 +145,7 @@ const BookingPage = () => {
               <div
                 className={`flex items-center justify-center w-full max-w-[1000px] mx-auto pb-5 transition-all duration-300 ease-in-out ${
                   isSticky
-                    ? "fixed top-1 left-0 right-0 z-[50] max-w-[850px]"
+                    ? "fixed top-1 left-0 right-0 z-[50] max-w-[55vw] !p-0"
                     : ""
                 }`}
               >
@@ -161,7 +161,7 @@ const BookingPage = () => {
           </div>
         </div>
       </AuroraBg>
-      {isSticky && <div className="h-[120px]" />}
+
       <RollingGallery autoplay={true} pauseOnHover={false} />
       <div className="bg-[linear-gradient(to_right,transparent_1%,var(--gray-50)_10%,var(--gray-50)_90%,transparent_99%)] pb-20 dark:bg-[linear-gradient(to_right,transparent_0%,var(--neutral-900)_10%,var(--neutral-900)_90%,transparent_100%)]">
         <Container>
@@ -202,6 +202,7 @@ const BookingPage = () => {
                         category: service.categoryName,
                         province: service.sublocation,
                         href: `/booking/${generateSlug(service.style)}`,
+                        designStyle: service.designs,
                       })}
                       pageSize={pageSize}
                       currentPage={currentPage}
@@ -215,8 +216,7 @@ const BookingPage = () => {
             <div className="flex justify-center gap-4 mt-8">
               <button
                 onClick={() =>
-                  currentPage > 1 &&
-                  handlePaginationChange(currentPage - 1)
+                  currentPage > 1 && handlePaginationChange(currentPage - 1)
                 }
                 disabled={currentPage <= 1}
                 className="p-1 border rounded-full disabled:opacity-50"

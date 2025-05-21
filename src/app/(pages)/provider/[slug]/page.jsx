@@ -204,6 +204,10 @@ const ProviderDetailPage = () => {
                     phone={provider.phone}
                     address={provider.address}
                     bio={provider.bio}
+                    skill={provider.skillName}
+                    pastWorkPlaces={provider.pastWorkPlaces}
+                    pastProjects={provider.pastProjects}
+                    certificateImageUrls={provider.certificateImageUrls}
                   />
                 ) : (
                   <Component providerId={provider.id} />
@@ -226,7 +230,7 @@ const StatItem = ({ icon, label, value }) => (
     </span>
     <FootTypo
       footlabel={value ?? "N/A"}
-      className="text-sm !mx-0 text-red font-semibold"
+      className="text-red font-semibold"
     />
   </div>
 );

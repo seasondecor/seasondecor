@@ -226,7 +226,7 @@ const SellerServiceManage = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+              <FootTypo footlabel="No image" fontSize="12px" />
             </div>
           )}
         </div>
@@ -236,18 +236,22 @@ const SellerServiceManage = () => {
       header: "Service Name",
       accessorKey: "style",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.style}</span>
+        <FootTypo footlabel={row.original.style} fontWeight="bold" />
       ),
     },
     {
       header: "Created At",
       accessorKey: "createAt",
-      cell: ({ row }) => formatDate(row.original.createAt),
+      cell: ({ row }) => (
+        <FootTypo footlabel={formatDate(row.original.createAt)} />
+      ),
     },
     {
       header: "Start Date",
       accessorKey: "startDate",
-      cell: ({ row }) => formatDate(row.original.startDate),
+      cell: ({ row }) => (
+        <FootTypo footlabel={formatDate(row.original.startDate)} />
+      ),
     },
     {
       header: "Favorite Count",
@@ -266,10 +270,7 @@ const SellerServiceManage = () => {
         <>
           {row.original.status === 1 &&
             (row.original.isBooked ? (
-              <FootTypo
-                footlabel="On-going Service"
-                className="text-primary font-medium"
-              />
+              <FootTypo footlabel="On-going Service" />
             ) : (
               <div className="flex gap-2">
                 <Button
@@ -288,10 +289,7 @@ const SellerServiceManage = () => {
             ))}
 
           {row.original.status === 2 && (
-            <FootTypo
-              footlabel="Incoming service"
-              className="text-yellow font-medium"
-            />
+            <FootTypo footlabel="Incoming service" />
           )}
         </>
       ),
@@ -417,8 +415,8 @@ const SellerServiceManage = () => {
             Error loading services: {error.message}
           </div>
         ) : services.length === 0 && !isLoading ? (
-          <div className="p-4 bg-white rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">No Services Found</h2>
+          <div className="p-4">
+            <FootTypo footlabel="No Services Found" fontWeight="bold"/>
             <p>
               {filters.status || filters.productName
                 ? "No services match your filter criteria. Try adjusting your filters."

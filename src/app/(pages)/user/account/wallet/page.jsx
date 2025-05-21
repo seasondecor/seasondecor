@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { UserWrapper } from "../../components/UserWrapper";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import Button from "@/app/components/ui/Buttons/Button";
 import { FaRegEye, FaWallet, FaHistory, FaPlus, FaMinus } from "react-icons/fa";
 import ShinyCard from "@/app/components/ui/animated/ShinyCard";
@@ -24,13 +24,14 @@ import { IoClose } from "react-icons/io5";
 const UserWallet = () => {
   const router = useRouter();
   const { data: walletData, isLoading: isLoadingWallet } = useGetWallet();
-  const { data: transactionData, isLoading: isLoadingTransaction } = useGetTransaction();
+  const { data: transactionData, isLoading: isLoadingTransaction } =
+    useGetTransaction();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Get the 3 latest transactions
   const latestTransactions = useMemo(() => {
     if (!transactionData || !Array.isArray(transactionData)) return [];
-    
+
     // Sort transactions by date (newest first)
     return [...transactionData]
       .sort((a, b) => {
@@ -44,14 +45,13 @@ const UserWallet = () => {
   // All transactions for the dialog
   const allTransactions = useMemo(() => {
     if (!transactionData || !Array.isArray(transactionData)) return [];
-    
+
     // Sort transactions by date (newest first)
-    return [...transactionData]
-      .sort((a, b) => {
-        const dateA = new Date(a.transactionDate || a.date || 0);
-        const dateB = new Date(b.transactionDate || b.date || 0);
-        return dateB - dateA;
-      });
+    return [...transactionData].sort((a, b) => {
+      const dateA = new Date(a.transactionDate || a.date || 0);
+      const dateB = new Date(b.transactionDate || b.date || 0);
+      return dateB - dateA;
+    });
   }, [transactionData]);
 
   const handleDialogOpen = () => {
@@ -80,35 +80,34 @@ const UserWallet = () => {
             <div className="flex flex-row justify-between items-center">
               <div className="flex items-center gap-3">
                 <FaWallet size={20} className="text-primary" />
-                <FootTypo
-                  footlabel="My Wallet"
-                  className="!m-0 text-lg font-semibold"
-                />
+                <BodyTypo bodylabel="My Wallet" />
               </div>
             </div>
           </div>
-          
+
           {/* Balance Card */}
           <ShinyCard
             className="max-w-full md:max-w-[600px] relative overflow-hidden"
             spotlightColor="rgba(120, 119, 198, 0.3)"
-          >        
+          >
             <div className="flex flex-col h-full justify-center space-y-4">
-              <FootTypo footlabel="Current Balance" className="!m-0 text-white text-opacity-80" />
-              
+              <FootTypo footlabel="Current Balance" className="text-white" />
+
               <div className="flex items-center gap-2 mb-6">
-                <span className="text-4xl font-bold text-white">
-                  {formatCurrency(walletData?.balance || 0)}  
-                </span>
+                <FootTypo
+                  footlabel={formatCurrency(walletData?.balance || 0)}
+                  className="text-white"
+                  fontSize="36px"
+                />
               </div>
-              
+
               <div className="flex flex-col space-y-2 mb-8">
                 <div className="flex justify-between text-white text-opacity-90">
-                  <span>Wallet ID</span>
+                  <FootTypo footlabel="Wallet ID" className="text-white" />
                   <span>#{encryptWalletId(walletData?.walletId)}</span>
                 </div>
               </div>
-              
+
               <div className="flex gap-4">
                 <Button
                   label="Top up"
@@ -119,31 +118,32 @@ const UserWallet = () => {
               </div>
             </div>
           </ShinyCard>
-          
+
           {/* Recent Transactions - Only showing 3 latest */}
           <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
-              <FootTypo
-                footlabel="Recent Transactions"
-                className="!m-0 text-lg font-semibold"
-              />
+              <FootTypo footlabel="Recent Transactions" fontWeight="bold" />
             </div>
-            
+
             <div className="overflow-hidden">
-              {(!latestTransactions || latestTransactions.length === 0) ? (
-                <div className="p-6 text-center text-gray-500">
-                  No transactions found
-                </div>
+              {!latestTransactions || latestTransactions.length === 0 ? (
+                <FootTypo footlabel="No transactions found" />
               ) : (
                 latestTransactions.map((transaction) => {
-                  const { date, time } = formatDateTime(transaction.transactionDate || transaction.date);
+                  const { date, time } = formatDateTime(
+                    transaction.transactionDate || transaction.date
+                  );
                   return (
-                    <div 
-                      key={transaction.id || transaction.transactionId} 
+                    <div
+                      key={transaction.id || transaction.transactionId}
                       className="flex justify-between items-center p-4 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${transaction.amount > 0 ? 'text-green' : 'text-red'}`}>
+                        <div
+                          className={`p-2 rounded-full ${
+                            transaction.amount > 0 ? "text-green" : "text-red"
+                          }`}
+                        >
                           {transaction.amount > 0 ? (
                             <FaPlus size={18} />
                           ) : (
@@ -151,24 +151,34 @@ const UserWallet = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="font-medium">{transaction.transactionType || 'Transaction'}</h3>
+                          <h3 className="font-medium">
+                            {transaction.transactionType || "Transaction"}
+                          </h3>
                           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                            <span>{date}</span>
+                            <FootTypo footlabel={date} />
                             <div className="flex items-center gap-1 ml-2">
                               <BsClock size={14} />
-                              <span>{time}</span>
+                              <FootTypo footlabel={time} />
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className={`font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                        {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount || 0)}
+                      <div
+                        className={`font-medium ${
+                          transaction.amount > 0 ? "text-green" : "text-red"
+                        }`}
+                      >
+                        <FootTypo
+                          footlabel={`${
+                            transaction.amount > 0 ? "+" : ""
+                          }${formatCurrency(transaction.amount || 0)}`}
+                        />
                       </div>
                     </div>
                   );
                 })
               )}
-              
+
               {latestTransactions && latestTransactions.length > 0 && (
                 <div className="p-3 text-center border-t dark:border-gray-700">
                   <Button
@@ -190,35 +200,36 @@ const UserWallet = () => {
         onClose={handleDialogClose}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          className: "dark:bg-gray-800"
-        }}
       >
         <DialogTitle className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <FaHistory size={20} />
-            <span>All Transactions</span>
+            <BodyTypo bodylabel="All Transactions" />
           </div>
           <IconButton onClick={handleDialogClose} aria-label="close">
             <IoClose />
           </IconButton>
         </DialogTitle>
-        
+
         <DialogContent dividers className="max-h-[70vh] overflow-y-auto">
-          {(!allTransactions || allTransactions.length === 0) ? (
-            <div className="p-6 text-center text-gray-500">
-              No transactions found
-            </div>
+          {!allTransactions || allTransactions.length === 0 ? (
+            <FootTypo footlabel="No transactions found" />
           ) : (
             allTransactions.map((transaction) => {
-              const { date, time } = formatDateTime(transaction.transactionDate || transaction.date);
+              const { date, time } = formatDateTime(
+                transaction.transactionDate || transaction.date
+              );
               return (
-                <div 
-                  key={transaction.id || transaction.transactionId} 
+                <div
+                  key={transaction.id || transaction.transactionId}
                   className="flex justify-between items-center p-4 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${transaction.amount > 0 ? 'text-green' : 'text-red'}`}>
+                    <div
+                      className={`p-2 rounded-full ${
+                        transaction.amount > 0 ? "text-green" : "text-red"
+                      }`}
+                    >
                       {transaction.amount > 0 ? (
                         <FaPlus size={18} />
                       ) : (
@@ -226,31 +237,38 @@ const UserWallet = () => {
                       )}
                     </div>
                     <div>
-                      <h3 className="font-medium">{transaction.transactionType || 'Transaction'}</h3>
+                      <FootTypo
+                        footlabel={transaction.transactionType || "Transaction"}
+                        fontWeight="bold"
+                      />
                       <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                        <span>{date}</span>
+                        <FootTypo footlabel={date} />
                         <div className="flex items-center gap-1 ml-2">
                           <BsClock size={14} />
-                          <span>{time}</span>
+                          <FootTypo footlabel={time} />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className={`font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount || 0)}
+                  <div
+                    className={`font-medium ${
+                      transaction.amount > 0 ? "text-green" : "text-red"
+                    }`}
+                  >
+                    <FootTypo
+                      footlabel={`${
+                        transaction.amount > 0 ? "+" : ""
+                      }${formatCurrency(transaction.amount || 0)}`}
+                    />
                   </div>
                 </div>
               );
             })
           )}
         </DialogContent>
-        
+
         <DialogActions>
-          <Button
-            label="Close"
-            onClick={handleDialogClose}
-            className="bg-gray-500"
-          />
+          <Button label="Close" onClick={handleDialogClose} />
         </DialogActions>
       </Dialog>
     </UserWrapper>

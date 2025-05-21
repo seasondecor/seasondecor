@@ -162,18 +162,26 @@ const BookingCard = ({
       {/* Deposit overlay when isCommitDepositPaid is false */}
       {isCommitDepositPaid === false && status === 1 && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 rounded-2xl">
-          <div className="bg-white py-3 px-6 rounded-lg shadow-lg flex flex-col items-center max-w-[80%]">
+          <div className="bg-white py-3 px-6 rounded-lg shadow-lg flex flex-col gap-2 items-center max-w-[80%]">
             <FaMoneyCheckDollar size={28} className="text-primary mb-2" />
             <FootTypo
               footlabel="You need to deposit first to continue"
-              className="font-semibold text-center"
+              fontWeight="bold"
             />
-            <Button
-              icon={<RiArrowDropRightLine size={20} />}
-              onClick={commitDepositClick}
-              label="Procced"
-              className="bg-action text-white"
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                icon={<RiArrowDropRightLine size={20} />}
+                onClick={commitDepositClick}
+                label="Procced"
+                className="bg-action text-white"
+              />
+              <Button
+                icon={<TbCancel size={20} />}
+                onClick={cancelClick}
+                label="Cancel"
+                className="bg-red text-white"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -188,42 +196,28 @@ const BookingCard = ({
           <div className="flex flex-col">
             <FootTypo
               footlabel={`Booking Request for [${serviceName}]`}
-              className="font-semibold text-lg transition-all duration-500"
+              fontSize="20px"
+              fontWeight="bold"
             />
             <div className="flex items-center gap-1 mt-1">
-              <MdCalendarToday
-                className="text-gray-500 transition-all duration-500"
-                size={14}
-              />
-              <FootTypo
-                footlabel={formatDateVN(createdDate)}
-                className="text-sm transition-all duration-500"
-              />
+              <MdCalendarToday size={18} />
+              <FootTypo footlabel={formatDateVN(createdDate)} />
             </div>
           </div>
 
-          <FootTypo
-            footlabel={address}
-            className="text-sm transition-all duration-500"
-          />
+          <FootTypo footlabel={address} />
 
           <div className="flex items-center gap-2">
-            <FootTypo
-              footlabel="Provider"
-              className="!m-0 text-sm transition-all duration-500"
+            <FootTypo footlabel="Provider" fontWeight="bold" />
+
+            <Avatar
+              userImg={providerAvatar}
+              alt="Provider Avatar"
+              w={32}
+              h={32}
             />
-            <div className="rounded-full overflow-hidden ring-2 ring-white/50 transition-all duration-500">
-              <Avatar
-                userImg={providerAvatar}
-                alt="Provider Avatar"
-                w={32}
-                h={32}
-              />
-            </div>
-            <FootTypo
-              footlabel={providerName}
-              className="!m-0 text-lg font-bold transition-all duration-500"
-            />
+
+            <FootTypo footlabel={providerName} fontWeight="bold" />
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -232,7 +226,13 @@ const BookingCard = ({
             >
               View Details
             </button>
-            {!isPending && !isInTransit && !isProgressing && !isAllDone && !isFinalPaid && !isCompleted  && !isCancelled ? (
+            {!isPending &&
+            !isInTransit &&
+            !isProgressing &&
+            !isAllDone &&
+            !isFinalPaid &&
+            !isCompleted &&
+            !isCancelled ? (
               <button
                 onClick={meetingClick}
                 className="flex bg-action text-white px-2 py-1 rounded-md hover:bg-primary items-center gap-1 text-sm font-medium self-start transition-all duration-500 z-[1]"
@@ -250,7 +250,8 @@ const BookingCard = ({
           <div className="flex items-center">
             <FootTypo
               footlabel={bookingCode}
-              className="text-sm bg-primary px-3 py-1 rounded-l-full font-medium transition-all duration-500"
+              className="bg-primary px-3 py-1 rounded-l-full font-medium transition-all duration-500"
+              fontSize="14px"
             />
             <button
               onClick={copyToClipboard}
@@ -299,28 +300,19 @@ const BookingCard = ({
 
           <div className="flex flex-col items-end gap-2 mt-2">
             <div className="flex items-center gap-2">
-              <FootTypo
-                footlabel="Total Price"
-                className="!m-0 text-sm transition-all duration-500"
-              />
+              <FootTypo footlabel="Total Price" />
               {totalPrice > 0 ? (
                 <FootTypo
                   footlabel={`${formatCurrency(totalPrice)}`}
-                  className="!m-0 text-sm font-medium transition-all duration-500"
+                  fontWeight="bold"
                 />
               ) : (
-                <FootTypo
-                  footlabel="Processing..."
-                  className="!m-0 text-sm italic transition-all duration-500"
-                />
+                <FootTypo footlabel="Processing..." fontStyle="italic" />
               )}
             </div>
 
             <div className="flex items-center gap-2">
-              <FootTypo
-                footlabel="Status"
-                className="!m-0 text-sm transition-all duration-500"
-              />
+              <FootTypo footlabel="Status" />
               <div className="transition-all duration-500">
                 <StatusChip status={status} isBooking={true} />
               </div>
@@ -334,10 +326,7 @@ const BookingCard = ({
                     className="transition-all duration-500"
                   />
                 ) : null}
-                <FootTypo
-                  footlabel={statusMessage}
-                  className="!m-0 text-sm transition-all duration-500"
-                />
+                <FootTypo footlabel={statusMessage} component="span" />
               </div>
             )}
           </div>

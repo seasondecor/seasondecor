@@ -23,6 +23,7 @@ export async function middleware(req) {
     }
     return NextResponse.redirect(new URL("/authen/login", req.url));
   }
+  
   if (
     token &&
     (pathname.startsWith("/authen/login") ||
@@ -33,13 +34,31 @@ export async function middleware(req) {
 
   const userRoleId = token.roleId; // Ensure roleId is stored in NextAuth session
 
+  // Redirect based on user role and current path
+  if (pathname === "/" || pathname === "") {
+    // Role ID 1 is admin
+    if (userRoleId === 1) {
+      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    } 
+    // Role ID 2 is seller
+    else if (userRoleId === 2) {
+      return NextResponse.redirect(new URL("/seller/dashboard", req.url));
+    }
+  }
+
+  // Redirect sellers away from admin area
+  if (userRoleId !== 1 && pathname.startsWith("/admin/dashboard")) {
+    return NextResponse.redirect(new URL("/authen/login", req.url));
+  }
+  
+  // Prevent non-providers from accessing seller dashboard
+  if (userRoleId !== 2 && pathname.startsWith("/seller/dashboard")) {
+    return NextResponse.redirect(new URL("/authen/login", req.url));
+  }
+
   const matchedRoute = protectedRoutes.find((route) =>
     pathname.startsWith(route.path)
   );
-
-  // if (pathname.startsWith("/seller") && !isProvider) {
-  //   return NextResponse.redirect(new URL("/unauthorized", req.url));
-  // }
 
   if (matchedRoute && !matchedRoute.allowedRoles.includes(userRoleId)) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -50,6 +69,7 @@ export async function middleware(req) {
 
 export const config = {
   matcher: [
+    "/",
     "/admin/:path*",
     "/seller/:path*",
     "/authen/:path*",

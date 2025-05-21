@@ -161,11 +161,11 @@ const SupportPage = () => {
           <div className="flex flex-col gap-6 justify-start">
             <BodyTypo
               bodylabel="Support Center"
-              className="text-2xl font-bold"
+              fontWeight="bold"
             />
             <FootTypo
               footlabel="We are here to help with any questions or issues you might have. Choose from the options below or contact us directly."
-              className="text-base max-w-md text-gray-600 dark:text-gray-300"
+              className="max-w-md"
             />
           </div>
 

@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import SellerWrapper from "../../../components/SellerWrapper";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import Button from "@/app/components/ui/Buttons/Button";
 import { MdModeEdit, MdPreview } from "react-icons/md";
 import { IoDownloadOutline } from "react-icons/io5";
-import { BorderBox } from "@/app/components/ui/BorderBox";
 import { useForm } from "react-hook-form";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import MaterialTab from "../../components/MaterialTab";
 import LabourTab from "../../components/LabourTab";
 import TermTab from "../../components/TermTab";
@@ -20,14 +19,37 @@ import { TbArrowLeft } from "react-icons/tb";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { useGetBookingDetailForProvider } from "@/app/queries/book/book.query";
+import Avatar from "@/app/components/ui/Avatar/Avatar";
+import { formatDateVN } from "@/app/helpers";
+
+// Import MUI components
+import {
+  Card,
+  CardContent,
+  Typography,
+  Divider,
+  Box,
+  Skeleton,
+} from "@mui/material";
+import {
+  MdEmail,
+  MdLocalPhone,
+  MdLocationOn,
+  MdCalendarToday,
+  MdColorLens,
+  MdHouse,
+  MdSquareFoot,
+  MdPerson,
+  MdBuild,
+  MdOutlineDesignServices,
+} from "react-icons/md";
 
 const QuotationPage = () => {
   const router = useRouter();
   const { id } = useParams();
-  const searchParams = useSearchParams();
-  const fullName = searchParams.get("fullName") || "";
-  const email = searchParams.get("email") || "";
-  const address = searchParams.get("address") || "";
+  const { data: bookingData, isPending: isBookingLoading } =
+    useGetBookingDetailForProvider(id);
 
   const { mutate: createQuotation, isLoading: isCreatingQuotation } =
     useCreateQuotation();
@@ -39,11 +61,11 @@ const QuotationPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [quotationData, setQuotationData] = useState({
     quotationCode: id,
-    customerName: fullName || "John Doe",
-    customerEmail: email || "john.doe@example.com",
-    customerAddress: address || "123 Main St, Anytown, USA",
+    customerName: bookingData?.fullName || "John Doe",
+    customerEmail: bookingData?.email || "john.doe@example.com",
+    customerAddress: bookingData?.address || "123 Main St, Anytown, USA",
     terms:
-      "A deposit of 500,000 VND is required prior to the issuance of a formal quotation. This deposit confirms the customer’s commitment to proceed with the service and is deductible from the final invoice upon successful booking.\n\nIn the event the customer cancels the service after the deposit is made but before confirmation of the final quotation, a cancellation fee of 500,000 VND will apply. This means the deposit is non-refundable, as it covers consultation, reservation, and administrative efforts undertaken during the pre-booking process.",
+      "A deposit of 500,000 VND is required prior to the issuance of a formal quotation. This deposit confirms the customer's commitment to proceed with the service and is deductible from the final invoice upon successful booking.\n\nIn the event the customer cancels the service after the deposit is made but before confirmation of the final quotation, a cancellation fee of 500,000 VND will apply. This means the deposit is non-refundable, as it covers consultation, reservation, and administrative efforts undertaken during the pre-booking process.",
     materials: [
       {
         materialName: "",
@@ -281,7 +303,6 @@ const QuotationPage = () => {
     return quotationData.materials.reduce((sum, item) => {
       const cost = parseFormattedNumber(item.cost);
       const quantity = parseFormattedNumber(item.quantity) || 1;
-      // console.log(`Calculating material: ${item.materialName}, raw cost=${item.cost}, parsed cost=${cost}, qty=${quantity}`);
       return sum + cost * quantity;
     }, 0);
   };
@@ -289,7 +310,8 @@ const QuotationPage = () => {
   const calculateConstructionTotal = () => {
     return quotationData.constructionTasks.reduce((sum, item) => {
       const cost = parseFormattedNumber(item.cost);
-      return sum + cost;
+      const area = parseFormattedNumber(item.area);
+      return sum + cost * area;
     }, 0);
   };
 
@@ -377,6 +399,48 @@ const QuotationPage = () => {
     );
   };
 
+  // Function to preview PDF
+  const previewPdf = () => {
+    // Reset PDF ready state first to force a complete refresh
+    setIsPdfReady(false);
+
+    // Prepare enhanced data for PDF with all customer information
+    const enhancedQuotationData = {
+      ...quotationData,
+      // Customer information
+      customerName:
+        bookingData?.customer?.fullName || quotationData.customerName,
+      customerEmail:
+        bookingData?.customer?.email || quotationData.customerEmail,
+      customerPhone: bookingData?.customer?.phone || "",
+      address: bookingData?.address || "",
+      surveyDate: bookingData?.surveyDate,
+      // Customer preferences - pass the raw data objects
+      designName: bookingData?.designName || "Not specified",
+      // Pass all theme colors as an array
+      themeColors: bookingData?.themeColors || [],
+      // Booking form data - extract specific properties
+      spaceType: bookingData?.bookingForm?.spaceStyle || "Not specified",
+      roomSize: bookingData?.bookingForm?.roomSize || "Not specified",
+      primaryUser: bookingData?.bookingForm?.primaryUser || "Not specified",
+      // Scope of work - pass the entire array
+      scopeOfWorks: bookingData?.bookingForm?.scopeOfWorks || [],
+    };
+
+    // Show the PDF viewer
+    setShowEditor(false);
+
+    // Update the state with the enhanced data
+    setQuotationData(enhancedQuotationData);
+
+    // Lazy load PDF preview components with slight delay to ensure state updates
+    setTimeout(() => {
+      import("../[id]/QuotationPdf").then(() => {
+        setIsPdfReady(true);
+      });
+    }, 50);
+  };
+
   // Function to submit quotation and upload PDF
   const onSubmit = async () => {
     try {
@@ -392,25 +456,43 @@ const QuotationPage = () => {
         currentState.depositPercentage ||
         20;
 
-      // Use the current state data for API submission
-      const quotationPayload = {
-        bookingCode: id,
-        materials: currentState.materials,
-        constructionTasks: currentState.constructionTasks,
+      // Prepare enhanced data for API submission with flattened properties
+      const enhancedQuotationData = {
+        ...currentState,
+        // Customer information
+        customerName:
+          bookingData?.customer?.fullName || currentState.customerName,
+        customerEmail:
+          bookingData?.customer?.email || currentState.customerEmail,
+        customerPhone: bookingData?.customer?.phone || "",
+        address: bookingData?.address || "",
+        surveyDate: bookingData?.surveyDate,
+        // Customer preferences - pass the raw data objects
+        designName: bookingData?.designName || "Not specified",
+        // Pass all theme colors as an array
+        themeColors: bookingData?.themeColors || [],
+        // Booking form data - extract specific properties
+        spaceType: bookingData?.bookingForm?.spaceStyle || "Not specified",
+        roomSize: bookingData?.bookingForm?.roomSize || "Not specified",
+        primaryUser: bookingData?.bookingForm?.primaryUser || "Not specified",    
+        // Scope of work - pass the entire array
+        scopeOfWorks: bookingData?.bookingForm?.scopeOfWorks || [],
         depositPercentage: depositPercentage,
       };
 
-      // console.log("Submitting payload:", quotationPayload);
+      // Create API payload
+      const quotationPayload = {
+        bookingCode: id,
+        materials: enhancedQuotationData.materials,
+        constructionTasks: enhancedQuotationData.constructionTasks,
+        depositPercentage: depositPercentage,
+      };
 
       // First API call: Create quotation
       createQuotation(quotationPayload, {
         onSuccess: () => {
-          //console.log("Quotation created successfully:", response);
-
-          // Generate PDF blob for upload using the current state
-          generatePdfBlob()
+          generatePdfBlob(enhancedQuotationData)
             .then((pdfBlob) => {
-              // Prepare form data for file upload
               const formData = new FormData();
               formData.append("file", pdfBlob, `quotation_${id}.pdf`);
               formData.append("bookingCode", id);
@@ -420,8 +502,6 @@ const QuotationPage = () => {
                 onSuccess: (uploadResponse) => {
                   console.log("PDF uploaded successfully:", uploadResponse);
                   setIsProcessing(false);
-                  //toast.success("Quotation submitted and PDF uploaded successfully!");
-                  // Navigate back to seller requests page
                   router.push("/seller/request");
                 },
                 onError: (error) => {
@@ -452,16 +532,13 @@ const QuotationPage = () => {
   };
 
   // Helper function to generate PDF blob
-  const generatePdfBlob = () => {
+  const generatePdfBlob = (enhancedData) => {
     return new Promise((resolve, reject) => {
-      // Use the current state directly to ensure deleted items stay deleted
-      const pdfData = { ...quotationData };
-
       import("../[id]/QuotationPdf")
         .then((module) => {
           if (module.generatePdfBlob) {
             module
-              .generatePdfBlob(pdfData)
+              .generatePdfBlob(enhancedData)
               .then((blob) => resolve(blob))
               .catch((err) => reject(err));
           } else {
@@ -473,40 +550,21 @@ const QuotationPage = () => {
     });
   };
 
-  // Function to preview PDF
-  const previewPdf = () => {
-    // Reset PDF ready state first to force a complete refresh
-    setIsPdfReady(false);
-
-    // Use the current state directly
-    // No need to update the state since we're using it directly
-
-    // Show the PDF viewer
-    setShowEditor(false);
-
-    // Lazy load PDF preview components with slight delay to ensure state updates
-    setTimeout(() => {
-      import("../[id]/QuotationPdf").then(() => {
-        setIsPdfReady(true);
-      });
-    }, 50);
-  };
-
   return (
     <SellerWrapper>
       <button
-        className="flex items-center gap-1 mb-5"
+        className="flex items-center gap-1 mb-5 w-fit"
         onClick={() => router.back()}
       >
         <TbArrowLeft size={20} />
-        <FootTypo footlabel="Go Back" className="!m-0" />
+        <FootTypo footlabel="Go Back" />
       </button>
       <div className="w-full">
         <div className="mb-6 flex justify-between items-center">
           <div className="flex flex-row gap-2 items-center">
-            <FootTypo footlabel="Quotation" />
-            <FootTypo
-              footlabel={`#${id}`}
+            <BodyTypo bodylabel="Creating Quotation" fontWeight="bold" />
+            <BodyTypo
+              bodylabel={`#${id}`}
               className="bg-primary text-white rounded-md p-2 font-semibold"
             />
           </div>
@@ -556,170 +614,562 @@ const QuotationPage = () => {
 
         <div className="w-full flex flex-col">
           {showEditor ? (
-            <BorderBox className="w-full shadow-xl">
-              <TabGroup>
-                <TabList className="flex space-x-1 rounded-xl bg-gray-100 dark:bg-gray-700 p-1">
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+            <TabGroup>
+              <TabList className="flex space-x-1 rounded-xl bg-gray-100 dark:bg-gray-700 p-1">
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
                       ${
                         selected
                           ? "bg-white dark:bg-gray-900 text-primary shadow"
                           : "hover:bg-white/[0.12] hover:text-primary"
                       }`
-                    }
-                  >
-                    <FootTypo footlabel="Information" className="!m-0" />
-                  </Tab>
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+                  }
+                >
+                  <FootTypo footlabel="Information" className="!m-0" />
+                </Tab>
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
                       ${
                         selected
                           ? "bg-white dark:bg-gray-900 text-primary shadow"
                           : "hover:bg-white/[0.12] hover:text-primary"
                       }`
-                    }
-                  >
-                    <FootTypo footlabel="Materials" className="!m-0" />
-                  </Tab>
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+                  }
+                >
+                  <FootTypo footlabel="Materials" className="!m-0" />
+                </Tab>
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
                       ${
                         selected
                           ? "bg-white dark:bg-gray-900 text-primary shadow"
                           : "hover:bg-white/[0.12] hover:text-primary"
                       }`
-                    }
-                  >
-                    <FootTypo footlabel="Labour Tasks" className="!m-0" />
-                  </Tab>
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+                  }
+                >
+                  <FootTypo footlabel="Labour Tasks" className="!m-0" />
+                </Tab>
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
                       ${
                         selected
                           ? "bg-white dark:bg-gray-900 text-primary shadow"
                           : "hover:bg-white/[0.12] hover:text-primary"
                       }`
-                    }
-                  >
-                    <FootTypo footlabel="Terms" className="!m-0" />
-                  </Tab>
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
+                  }
+                >
+                  <FootTypo footlabel="Terms" className="!m-0" />
+                </Tab>
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 ease-in-out
                       ${
                         selected
                           ? "bg-white dark:bg-gray-900 text-primary shadow"
                           : "hover:bg-white/[0.12] hover:text-primary"
                       }`
-                    }
-                  >
-                    <FootTypo footlabel="Summary" className="!m-0" />
-                  </Tab>
-                </TabList>
+                  }
+                >
+                  <FootTypo footlabel="Summary" className="!m-0" />
+                </Tab>
+              </TabList>
 
-                <TabPanels className="mt-4 relative overflow-hidden font-semibold">
-                  {/* Information Panel */}
-                  <TabPanel className="animate-tab-fade-in">
-                    <div className="space-y-4">
-                      <div className="flex flex-row gap-3 items-center">
-                        <FootTypo footlabel="Name" className="!m-0 text-sm" />
-                        <FootTypo
-                          footlabel={fullName}
-                          className="!m-0 text-lg"
-                        />
-                      </div>
-                      <div className="flex flex-row gap-3 items-center">
-                        <FootTypo footlabel="Email" className="!m-0 text-sm" />
-                        <FootTypo footlabel={email} className="!m-0 text-lg" />
-                      </div>
-                      <div className="flex flex-row gap-3 items-center">
-                        <FootTypo
-                          footlabel="Address"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={address}
-                          className="!m-0 text-lg"
-                        />
-                      </div>
-                    </div>
-                  </TabPanel>
+              <TabPanels className="mt-4 relative overflow-hidden font-semibold">
+                {/* Information Panel */}
+                <TabPanel className="animate-tab-fade-in">
+                  {isBookingLoading ? (
+                    <Card>
+                      <CardContent>
+                        <Skeleton variant="text" height={40} />
+                        <Skeleton variant="rectangular" height={120} />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card elevation={3}>
+                      <CardContent>
+                        <Box display="flex" alignItems="center" gap={2} mb={2}>
+                          <Avatar
+                            userImg={bookingData?.customer?.avatar}
+                            alt={bookingData?.customer?.fullName}
+                            w={80}
+                            h={80}
+                          />
+                          <Box>
+                            <Typography variant="h5" component="div">
+                              {bookingData?.customer?.fullName ||
+                                quotationData.customerName}
+                            </Typography>
+                          </Box>
+                        </Box>
 
-                  {/* Materials Panel */}
-                  <TabPanel className="animate-tab-slide-right">
-                    <MaterialTab
-                      materials={quotationData.materials}
-                      onMaterialChange={handleMaterialChange}
-                      onAddMaterial={addMaterial}
-                      onRemoveMaterial={removeMaterial}
-                      calculateMaterialTotal={calculateMaterialTotal}
-                      register={register}
-                      control={control}
-                    />
-                  </TabPanel>
+                        <Divider textAlign="left" sx={{ my: 1 }}>
+                          Customer Information
+                        </Divider>
 
-                  {/* Labour Panel */}
-                  <TabPanel className="animate-tab-slide-left">
-                    <LabourTab
-                      constructionTasks={quotationData.constructionTasks}
-                      onTaskChange={handleTaskChange}
-                      onAddTask={addTask}
-                      onRemoveTask={removeTask}
-                      calculateConstructionTotal={calculateConstructionTotal}
-                      register={register}
-                      control={control}
-                    />
-                  </TabPanel>
+                        <Box sx={{ px: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdEmail size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Email
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.customer?.email ||
+                                  quotationData.customerEmail ||
+                                  "Not specified"}
+                              </Typography>
+                            </Box>
+                          </Box>
 
-                  {/* Terms Panel */}
-                  <TabPanel className="animate-tab-slide-right">
-                    <TermTab
-                      register={register}
-                      value={quotationData.terms}
-                      depositPercentage={quotationData.depositPercentage}
-                      onTermsChange={handleTermsChange}
-                      onDepositChange={handleDepositChange}
-                    />
-                  </TabPanel>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdLocationOn size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Address
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.address ||
+                                  quotationData.customerAddress ||
+                                  "Not specified"}
+                              </Typography>
+                            </Box>
+                          </Box>
 
-                  {/* Summary Panel */}
-                  <TabPanel className="animate-tab-fade-in">
-                    <div className="space-y-4">
-                      <div className="border-b pb-4">
-                        <h3 className="text-lg font-bold mb-4">
-                          Quotation Summary
-                        </h3>
-                        <div className="flex justify-between items-center mb-2">
-                          <span>Materials Total:</span>
-                          <span className="font-bold">
-                            {formatCurrency(calculateMaterialTotal())}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span>Construction Total:</span>
-                          <span className="font-bold">
-                            {formatCurrency(calculateConstructionTotal())}
-                          </span>
-                        </div>
-                      </div>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdLocalPhone size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Phone
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.customer?.phone || "Not provided"}
+                              </Typography>
+                            </Box>
+                          </Box>
 
-                      <div className="flex justify-between items-center mb-2 text-lg">
-                        <span>Grand Total:</span>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdCalendarToday size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Booked Survey Date
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.surveyDate
+                                  ? formatDateVN(bookingData.surveyDate)
+                                  : "Not scheduled"}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+
+                        <Divider textAlign="left" sx={{ my: 2 }}>
+                          Customer Preferences
+                        </Divider>
+
+                        <Box sx={{ px: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdColorLens size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2, flex: 1 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Main Theme Colors
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 2 }}>
+                                {bookingData?.themeColors?.map((color, index) => (
+                                  <Box
+                                    key={index}
+                                    sx={{
+                                      width: 70,
+                                      height: 30,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      borderRadius: "4px",
+                                      backgroundColor: color.colorCode,
+                                      border: "1px solid #ddd",
+                                    }}
+                                  >
+                                    <Typography variant="body2" color="white">
+                                      {color.colorCode}
+                                    </Typography>
+                                  </Box>
+                                ))}
+                              </Box>
+                            </Box>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdHouse size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Space Type
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.bookingForm?.spaceStyle ||
+                                  "Not specified"}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdSquareFoot size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Room Size
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.bookingForm?.roomSize
+                                  ? `${bookingData.bookingForm.roomSize} m²`
+                                  : "Not specified"}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdPerson size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Party Type
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.bookingForm?.primaryUser ||
+                                  "Not specified"}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdBuild size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Scope of Work
+                              </Typography>
+                              {bookingData?.bookingForm?.scopeOfWorks && bookingData?.bookingForm?.scopeOfWorks?.length > 0 ? (
+                                bookingData?.bookingForm?.scopeOfWorks.map((work, index) => (
+                                  <Typography
+                                    key={`scope-${index}`}
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
+                                    {work.workType || "Not specified"}
+                                  </Typography>
+                                ))
+                              ) : (
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  Not specified
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              py: 2,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: 40,
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MdOutlineDesignServices size={22} />
+                            </Box>
+                            <Box sx={{ ml: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                color="text.primary"
+                              >
+                                Design Preference
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                {bookingData?.designName ||
+                                  quotationData.customerStylePreference ||
+                                  "Not specified"}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabPanel>
+
+                {/* Materials Panel */}
+                <TabPanel className="animate-tab-slide-right">
+                  <MaterialTab
+                    materials={quotationData.materials}
+                    onMaterialChange={handleMaterialChange}
+                    onAddMaterial={addMaterial}
+                    onRemoveMaterial={removeMaterial}
+                    calculateMaterialTotal={calculateMaterialTotal}
+                    register={register}
+                    control={control}
+                  />
+                </TabPanel>
+
+                {/* Labour Panel */}
+                <TabPanel className="animate-tab-slide-left">
+                  <LabourTab
+                    constructionTasks={quotationData.constructionTasks}
+                    onTaskChange={handleTaskChange}
+                    onAddTask={addTask}
+                    onRemoveTask={removeTask}
+                    calculateConstructionTotal={calculateConstructionTotal}
+                    register={register}
+                    control={control}
+                  />
+                </TabPanel>
+
+                {/* Terms Panel */}
+                <TabPanel className="animate-tab-slide-right">
+                  <TermTab
+                    register={register}
+                    value={quotationData.terms}
+                    depositPercentage={quotationData.depositPercentage}
+                    onTermsChange={handleTermsChange}
+                    onDepositChange={handleDepositChange}
+                  />
+                </TabPanel>
+
+                {/* Summary Panel */}
+                <TabPanel className="animate-tab-fade-in">
+                  <div className="space-y-4">
+                    <div className="border-b pb-4">
+                      <h3 className="text-lg font-bold mb-4">
+                        Quotation Summary
+                      </h3>
+                      <div className="flex justify-between items-center mb-2">
+                        <span>Materials Total:</span>
                         <span className="font-bold">
-                          {formatCurrency(calculateGrandTotal())}
+                          {formatCurrency(calculateMaterialTotal())}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span>Construction Total:</span>
+                        <span className="font-bold">
+                          {formatCurrency(calculateConstructionTotal())}
                         </span>
                       </div>
                     </div>
-                  </TabPanel>
-                </TabPanels>
-              </TabGroup>
-            </BorderBox>
+
+                    <div className="flex justify-between items-center mb-2 text-lg">
+                      <span>Grand Total:</span>
+                      <span className="font-bold">
+                        {formatCurrency(calculateGrandTotal())}
+                      </span>
+                    </div>
+                  </div>
+                </TabPanel>
+              </TabPanels>
+            </TabGroup>
           ) : (
-            <div className="bg-transparent h-[800px]">
+            <div className="bg-transparent h-[90vh]">
               {isPdfReady ? (
                 <PdfPreview
                   quotationData={quotationData}
@@ -745,7 +1195,7 @@ const QuotationPage = () => {
 const PdfPreview = ({ quotationData }) => {
   const [Component, setComponent] = useState(null);
 
-  console.log("PdfPreview received data:", quotationData);
+  console.log("PdfPreview received enhanced data:", quotationData);
 
   useEffect(() => {
     import("../[id]/QuotationPdf").then((module) => {

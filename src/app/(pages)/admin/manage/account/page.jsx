@@ -11,6 +11,7 @@ import RoleChip from "../../components/RoleChip";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
 import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { IoFilterOutline } from "react-icons/io5";
+import { FootTypo } from "@/app/components/ui/Typography";
 
 const ManageAccount = () => {
   const [pagination, setPagination] = useState({
@@ -81,6 +82,11 @@ const ManageAccount = () => {
 
   const columns = [
     {
+      header: "ID",
+      accessorKey: "id",
+      cell: ({ row }) => <FootTypo footlabel={row.original.id} />,
+    },
+    {
       header: "Image",
       accessorKey: "imageUrls",
       cell: ({ row }) => (
@@ -94,7 +100,7 @@ const ManageAccount = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+              <FootTypo footlabel="No image" fontSize="12px" />
             </div>
           )}
         </div>
@@ -103,27 +109,35 @@ const ManageAccount = () => {
     {
       header: "Email",
       accessorKey: "email",
+      cell: ({ row }) => (
+        <FootTypo footlabel={row.original.email} fontWeight="bold" />
+      ),
     },
     {
       header: "First Name",
       accessorKey: "firstName",
+      cell: ({ row }) => (
+        <FootTypo footlabel={row.original.firstName} fontWeight="bold" />
+      ),
     },
     {
       header: "Last Name",
       accessorKey: "lastName",
+      cell: ({ row }) => (
+        <FootTypo footlabel={row.original.lastName} fontWeight="bold" />
+      ),
     },
     {
       header: "Status",
       accessorKey: "isDisable",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded-full text-white text-sm text-center font-bold ${
+          <FootTypo
+            footlabel={row.original.isDisable ? "Disabled" : "Active"}
+            className={`px-3 py-1 rounded-full text-white text-sm text-center font-bold ${
               row.original.isDisable ? "bg-red" : "bg-green"
             }`}
-          >
-            {row.original.isDisable ? "Disabled" : "Active"}
-          </span>
+          />
         </div>
       ),
     },
@@ -135,7 +149,9 @@ const ManageAccount = () => {
     {
       header: "Location",
       accessorKey: "location",
+      cell: ({ row }) => <FootTypo footlabel={row.original.location} />,
     },
+
     {
       header: "Actions",
       cell: ({ row }) => (

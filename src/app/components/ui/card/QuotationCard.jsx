@@ -29,7 +29,6 @@ const QuotationCard = ({
         <div className="absolute top-[-30px] left-4">
           <FootTypo
             footlabel={formatDateVN(createdDate)}
-            className="!m-0 text-sm"
           />
         </div>
         {isQuoteExisted && !isContractExist && status !== 4 && (
@@ -39,7 +38,7 @@ const QuotationCard = ({
                 className="text-primary flex-shrink-0 animate-pulse"
                 size={20}
               />
-              <FootTypo footlabel="Your quotation is ready" className="!m-0 text-sm" />
+              <FootTypo footlabel="Your quotation is ready" />
             </span>
           </div>
         )}
@@ -54,7 +53,7 @@ const QuotationCard = ({
                   />
                   <FootTypo
                     footlabel="Contract Signed"
-                    className="!m-0 text-sm"
+                    fontWeight="bold"
                   />
                   <Folder
                     size={0.4}
@@ -69,7 +68,7 @@ const QuotationCard = ({
                 <span className="flex flex-row items-center">
                   <FootTypo
                     footlabel="View Contract"
-                    className="!m-0 text-sm"
+                    fontWeight="bold"
                   />
                   <Folder
                     size={0.4}
@@ -86,23 +85,24 @@ const QuotationCard = ({
         <div className="space-y-2">
           <div className="flex flex-row gap-2 items-center">
             <FaBarcode className="text-primary flex-shrink-0" size={20} />
-            <FootTypo footlabel="Quotation Code" className="!m-0 text-sm" />
+            <FootTypo footlabel="Quotation Code" />
             <FootTypo
               footlabel={quotationCode}
-              className="!m-0 text-lg underline"
+              fontWeight="bold"
+              className="underline"
             />
           </div>
           <div className="flex flex-row gap-2 items-center">
             <TbFileInvoice className="text-primary flex-shrink-0" size={20} />
-            <FootTypo footlabel="Service name" className="!m-0 text-sm" />
-            <FootTypo footlabel={serviceName} className="!m-0 text-lg" />
+            <FootTypo footlabel="Service name" />
+            <FootTypo footlabel={serviceName} fontWeight="bold" />
           </div>
           <div className="flex flex-row gap-2 items-center">
             <HiOutlineStatusOnline
               className="text-primary flex-shrink-0"
               size={20}
             />
-            <FootTypo footlabel="Status" className="!m-0 text-sm" />
+            <FootTypo footlabel="Status" />
             <StatusChip status={status} isQuotation={true} />
           </div>
         </div>

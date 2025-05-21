@@ -38,7 +38,8 @@ import ProductCard from "@/app/components/ui/card/ProductCard";
 import EmptyState from "@/app/components/EmptyState";
 import { generateSlug } from "@/app/helpers";
 import ScrollAnimationWrapper from "@/app/components/ScrollAnimation";
-import Skeleton from "@mui/material/Skeleton";
+import { Skeleton, Alert } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import useProductRemoveModal from "@/app/hooks/useProductRemoveModal";
 import ProductRemoveModal from "@/app/components/ui/Modals/ProductRemoveModal";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
@@ -442,154 +443,138 @@ const QuotationDetailPage = () => {
               <TabPanel className=" p-3 animate-tab-fade-in">
                 {/* Quotation Details Panel */}
                 <div className="space-y-3 p-4">
-                  <div className="grid grid-cols-2 grid-rows-1 gap-4 font-semibold">
-                    <BorderBox className="section-left">
-                      <div className="flex flex-row gap-2 items-center">
-                        <FootTypo
-                          footlabel="Quotation Code"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={quotationDetail?.quotationCode}
-                          className="!m-0 text-lg bg-primary text-white rounded-md px-2 py-1"
-                        />
-                      </div>
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <BorderBox className="section-left">
+                        <div className="flex flex-row gap-2 items-center">
+                          <FootTypo footlabel="Quotation Code" />
+                          <FootTypo
+                            footlabel={quotationDetail?.quotationCode}
+                            className="bg-primary text-white rounded-md px-2 py-1"
+                            fontWeight="bold"
+                          />
+                        </div>
 
-                      <div className="flex flex-row gap-2 items-center mt-3">
-                        <FootTypo
-                          footlabel="Created Date"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={formatDate(quotationDetail?.createdAt)}
-                          className="!m-0 text-lg"
-                        />
-                      </div>
-                      <div className="flex flex-row gap-2 items-center mt-3">
-                        <FootTypo footlabel="Status" className="!m-0 text-sm" />
-                        <StatusChip
-                          status={quotationDetail?.status}
-                          isQuotation={true}
-                        />
-                      </div>
-                      {quotationDetail?.status === 1 &&
-                        !quotationDetail?.isContractExisted && (
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <FootTypo footlabel="Created Date" />
+                          <FootTypo
+                            footlabel={formatDate(quotationDetail?.createdAt)}
+                            fontWeight="bold"
+                          />
+                        </div>
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <FootTypo footlabel="Status" />
+                          <StatusChip
+                            status={quotationDetail?.status}
+                            isQuotation={true}
+                          />
+                        </div>
+                        {quotationDetail?.status === 0 &&
+                          !quotationDetail?.isContractExisted && (
+                            <Alert severity="info">
+                              You have a pending quotation.
+                            </Alert>
+                          )}
+                        {quotationDetail?.status === 1 &&
+                          !quotationDetail?.isContractExisted && (
+                            <Alert severity="info">
+                              The provider is preparing the contract
+                            </Alert>
+                          )}
+                        {quotationDetail?.isContractExisted &&
+                          !quotationDetail?.isSigned && (
+                            <Alert severity="success">
+                              Your contract is ready to sign
+                            </Alert>
+                          )}
+                        {quotationDetail?.isSigned && (
+                          <Alert severity="success">
+                            Contract signed
+                          </Alert>
+                        )}
+                      </BorderBox>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <BorderBox className="section-right">
+                        <div className="flex flex-row gap-2 items-center">
+                          <FootTypo footlabel="Material Cost" />
+                          <FootTypo
+                            footlabel={formatCurrency(
+                              quotationDetail?.materialCost
+                            )}
+                            fontWeight="bold"
+                            className=" underline"
+                          />
+                        </div>
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <FootTypo footlabel="Labour Cost" />
+                          <FootTypo
+                            footlabel={formatCurrency(
+                              quotationDetail?.constructionCost
+                            )}
+                            fontWeight="bold"
+                            className=" underline"
+                          />
+                        </div>
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <FootTypo footlabel="Commit Deposit" />
+                          <FootTypo
+                            footlabel={`- ${formatCurrency(500000)}`}
+                            fontWeight="bold"
+                            className=" underline"
+                          />
+                          <FootTypo
+                            footlabel="(Total cost is included your commitment deposit)"
+                          />
+                        </div>
+
+                        {quotationProducts.length > 0 && (
                           <div className="flex flex-row gap-2 items-center mt-3">
-                            <PiSealWarning size={20} />
+                            <FootTypo footlabel="Product Total" />
                             <FootTypo
-                              footlabel="The provider is preparing the contract"
-                              className="!m-0 text-sm"
+                              footlabel={formatCurrency(totalProductsPrice)}
+                              fontWeight="bold"
+                              className=" underline"
                             />
                           </div>
                         )}
-                      {quotationDetail?.isContractExisted &&
-                        !quotationDetail?.isSigned && (
-                          <div className="flex flex-row gap-2 items-center mt-3">
-                            <TbSignature size={20} color="blue" />
-                            <FootTypo
-                              footlabel="Your contract is ready to sign"
-                              className="!m-0 text-sm"
+
+                        <div className="flex flex-row gap-2 items-center mt-3">
+                          <FootTypo footlabel="Total Cost" />
+                          <FootTypo
+                            footlabel={formatCurrency(
+                              quotationDetail?.totalCost
+                            )}
+                            fontWeight="bold"
+                            className=" underline"
+                          />
+                          <FootTypo
+                            footlabel={`(Deposit: ${
+                              quotationDetail?.depositPercentage || 0
+                            }%)`}
+                          />
+                        </div>
+                        {quotationDetail?.status === 0 && (
+                          <div className="flex flex-row gap-5 items-center mt-3">
+                            <Button
+                              label="Accept Quotation"
+                              className="bg-action text-lg font-bold text-white"
+                              icon={<FaCheck size={20} />}
+                              onClick={handleAcceptQuotation}
+                            />
+                            <Divider orientation="vertical" flexItem />
+                            <Button
+                              label="Request Changes"
+                              className="text-lg font-bold bg-red text-white"
+                              icon={<IoIosRemove size={20} />}
+                              onClick={handleOpenChangeRequest}
                             />
                           </div>
                         )}
-                      {quotationDetail?.isSigned && (
-                        <div className="flex flex-row gap-2 items-center mt-3">
-                          <BsCheckCircleFill size={20} color="green" />
-                          <FootTypo
-                            footlabel="Contract signed"
-                            className="!m-0 text-sm"
-                          />
-                        </div>
-                      )}
-                    </BorderBox>
-                    <BorderBox className="section-right">
-                      <div className="flex flex-row gap-2 items-center">
-                        <FootTypo
-                          footlabel="Material Cost"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={formatCurrency(
-                            quotationDetail?.materialCost
-                          )}
-                          className="!m-0 text-lg underline"
-                        />
-                      </div>
-                      <div className="flex flex-row gap-2 items-center mt-3">
-                        <FootTypo
-                          footlabel="Labour Cost"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={formatCurrency(
-                            quotationDetail?.constructionCost
-                          )}
-                          className="!m-0 text-lg underline"
-                        />
-                      </div>
-                      <div className="flex flex-row gap-2 items-center mt-3">
-                        <FootTypo
-                          footlabel="Commit Deposit"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={`- ${formatCurrency(500000)}`}
-                          className="!m-0 text-lg underline"
-                        />
-                        <FootTypo
-                          footlabel="(Total cost is included your commitment deposit)"
-                          className="text-xs"
-                        />
-                      </div>
-                      
-                      {quotationProducts.length > 0 && (
-                        <div className="flex flex-row gap-2 items-center mt-3">
-                          <FootTypo
-                            footlabel="Product Total"
-                            className="!m-0 text-sm"
-                          />
-                          <FootTypo
-                            footlabel={formatCurrency(totalProductsPrice)}
-                            className="!m-0 text-lg underline text-green-600"
-                          />
-                        </div>
-                      )}
-                      
-                      <div className="flex flex-row gap-2 items-center mt-3">
-                        <FootTypo
-                          footlabel="Total Cost"
-                          className="!m-0 text-sm"
-                        />
-                        <FootTypo
-                          footlabel={formatCurrency(quotationDetail?.totalCost)}
-                          className="!m-0 text-lg font-bold text-primary underline"
-                        />
-                        <FootTypo
-                          footlabel={`(Deposit: ${
-                            quotationDetail?.depositPercentage || 0
-                          }%)`}
-                          className="!m-0 text-lg"
-                        />
-                      </div>
-                      {quotationDetail?.status === 0 && (
-                        <div className="flex flex-row gap-5 items-center mt-3">
-                          <Button
-                            label="Accept Quotation"
-                            className="bg-action text-lg font-bold text-white"
-                            icon={<FaCheck size={20} />}
-                            onClick={handleAcceptQuotation}
-                          />
-                          <Divider orientation="vertical" flexItem />
-                          <Button
-                            label="Request Changes"
-                            className="text-lg font-bold bg-red text-white"
-                            icon={<IoIosRemove size={20} />}
-                            onClick={handleOpenChangeRequest}
-                          />
-                        </div>
-                      )}
-                    </BorderBox>
-                  </div>
+                      </BorderBox>
+                    </Grid>
+                  </Grid>
 
                   {/* Materials Section */}
                   <BorderBox>
@@ -808,8 +793,8 @@ const QuotationDetailPage = () => {
                             position: "relative",
                           }}
                         >
-                          <FootTypo
-                            footlabel={`Make your ${quotationDetail?.decorCategoryName} more beautiful with our funitures`}
+                          <BodyTypo
+                            bodylabel={`Make your ${quotationDetail?.decorCategoryName} more beautiful with our funitures`}
                             className="max-w-[20vw] break-after-all !m-0 text-base absolute top-1/2 -translate-y-1/2 bg-transparent  font-bold"
                           />
                           <Threads
@@ -860,7 +845,7 @@ const QuotationDetailPage = () => {
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6">
+                          <Grid container spacing={5}>
                             {isRelatedProductLoading ? (
                               <ProductsSkeleton />
                             ) : (
@@ -905,7 +890,7 @@ const QuotationDetailPage = () => {
                                 })}
                               />
                             )}
-                          </div>
+                          </Grid>
 
                           {totalProductCount > 0 && (
                             <div className="flex justify-center mt-6 gap-4">

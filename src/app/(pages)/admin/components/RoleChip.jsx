@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { FaUser } from "react-icons/fa";
 import { FaUserShield } from "react-icons/fa";
-
+import { FootTypo } from "@/app/components/ui/Typography";
 
 const RoleChip = ({
   status,
@@ -37,7 +37,7 @@ const RoleChip = ({
       )}
     >
       {icon}
-      {label}
+      <FootTypo footlabel={label} />
     </div>
   );
 };

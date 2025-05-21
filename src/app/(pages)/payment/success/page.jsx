@@ -18,7 +18,8 @@ const PaymentSuccessPage = () => {
           <FcOk size={80} />
           <FootTypo
             footlabel="Your payment has been successfully processed!"
-            className="text-3xl font-semibold"
+            fontSize="1.5rem"
+            fontWeight="bold"
           />
           <ButtonInvert2
             label="Go Back"

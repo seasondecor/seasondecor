@@ -13,7 +13,7 @@ export const EffectBackground = ({
     <main>
       <div
         className={cn(
-          "relative h-full items-center justify-center bg-zinc-50 dark:bg-zinc-900  text-slate-950 transition-bg",
+          "relative h-full items-center justify-center transition-bg",
           className
         )}
         {...props}

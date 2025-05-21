@@ -92,7 +92,7 @@ const Cart = () => {
     formData.append("addressId", data.addressId);
 
     // Log the FormData entries for debugging
-    console.log("Creating order with FormData:");
+    //console.log("Creating order with FormData:");
     for (let pair of formData.entries()) {
       console.log(pair[0] + ": " + pair[1]);
     }
@@ -151,7 +151,7 @@ const Cart = () => {
     <Container>
       <MuiBreadcrumbs />
       <section className="w-full min-h-screen mx-auto 2xl:px-0">
-        <BodyTypo bodylabel="Cart item" />
+        <BodyTypo bodylabel="Cart item" fontWeight="bold" />
         <main className="mt-6 sm:mt-8 md:gap-6 lg:flex lg:items-start xl:gap-8">
           {/* left Cart */}
 

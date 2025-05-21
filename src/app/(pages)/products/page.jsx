@@ -21,6 +21,7 @@ import {
 import { generateSlug } from "@/app/helpers";
 import Container from "@/app/components/layouts/Container";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import Grid from '@mui/material/Grid2';
 
 // Skeleton component for product card
 const ProductCardSkeleton = () => {
@@ -150,11 +151,13 @@ const ListProductPage = () => {
   // Render skeleton loaders while data is loading
   const renderSkeletons = () => {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+      <Grid container spacing={15}>
         {Array.from(new Array(6)).map((_, index) => (
-          <ProductCardSkeleton key={index} />
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 3 }} key={index}>
+            <ProductCardSkeleton />
+          </Grid>
         ))}
-      </div>
+      </Grid>
     );
   };
 
@@ -326,7 +329,7 @@ const ListProductPage = () => {
                 >
                   Showing {products.length} results
                 </Typography>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                <Grid container spacing={15}>
                   <DataMapper
                     data={products}
                     Component={ProductCard}
@@ -349,7 +352,7 @@ const ListProductPage = () => {
                       isAdditionalProduct: false,
                     })}
                   />
-                </div>
+                </Grid>
               </div>
             )}
 

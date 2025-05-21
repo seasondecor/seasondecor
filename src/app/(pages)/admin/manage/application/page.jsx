@@ -40,6 +40,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { Textarea } from "@headlessui/react";
+import { FootTypo } from "@/app/components/ui/Typography";
 
 const ManageApplication = () => {
   const [pagination, setPagination] = useState({
@@ -127,6 +128,11 @@ const ManageApplication = () => {
 
   const columns = [
     {
+      header: "ID",
+      accessorKey: "id",
+      cell: ({ row }) => <FootTypo footlabel={row.original.id} />,
+    },
+    {
       header: "Image",
       accessorKey: "imageUrls",
       cell: ({ row }) => (
@@ -140,7 +146,7 @@ const ManageApplication = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+              <FootTypo footlabel="No image" fontSize="12px" />
             </div>
           )}
         </div>
@@ -149,15 +155,19 @@ const ManageApplication = () => {
     {
       header: "Email",
       accessorKey: "email",
+      cell: ({ row }) => <FootTypo footlabel={row.original.email} fontWeight="bold" />,
     },
     {
       header: "Bussiness Name",
       accessorKey: "businessName",
+      cell: ({ row }) => <FootTypo footlabel={row.original.businessName} fontWeight="bold" />,
     },
     {
       header: "Phone Number",
       accessorKey: "phone",
+      cell: ({ row }) => <FootTypo footlabel={row.original.phone}/>,
     },
+
     {
       header: "Status",
       accessorKey: "isDisable",
@@ -181,7 +191,9 @@ const ManageApplication = () => {
     {
       header: "Address",
       accessorKey: "businessAddress",
+      cell: ({ row }) => <FootTypo footlabel={row.original.businessAddress} />,
     },
+
     {
       header: "Actions",
       cell: ({ row }) => (
@@ -485,21 +497,6 @@ const ManageApplication = () => {
                         </Typography>
                         <Chip
                           label={skillName || "N/A"}
-                          size="small"
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      </Box>
-
-                      <Box>
-                        <Typography
-                          variant="subtitle2"
-                          color="text.secondary"
-                          gutterBottom
-                        >
-                          Decoration Style
-                        </Typography>
-                        <Chip
-                          label={decorationStyleName || "N/A"}
                           size="small"
                           sx={{ mr: 1, mb: 1 }}
                         />

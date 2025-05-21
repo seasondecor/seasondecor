@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 import { UserWrapper } from "../../components/UserWrapper";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import Input from "@/app/components/ui/Inputs/Input";
 import DropdownSelect from "@/app/components/ui/Select/DropdownSelect";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,7 @@ import { useUser } from "@/app/providers/userprovider";
 import { UserProfileUpdate } from "@/app/api/upload";
 
 const UserProfile = () => {
-  const { user, isError } = useUser();
+  const { user } = useUser();
 
   const [isLoading, setIsLoading] = useState(false);
   const { updateProfile } = UserProfileUpdate();
@@ -70,28 +70,25 @@ const UserProfile = () => {
     <UserWrapper>
       <div className="flex-grow ml-6 relative ">
         <div className="flex flex-col relative ">
-          <div className="pb-9 border-b-[1px]">
-            <FootTypo
-              footlabel="My Profile"
-              className="!m-0 text-lg font-semibold"
-            />
+          <div className="pb-5">
+            <BodyTypo bodylabel="My Profile" />
           </div>
           <div className="pt-7">
             <div className="flex-1 pr-12">
               <form className="flex flex-col gap-7 mb-10">
-                <EditAvatar userImg={user?.avatar} childStyle="left-14" />
+                <EditAvatar userImg={user?.avatar}/>
 
                 <div className="inline-flex gap-5 items-center">
                   <FootTypo
                     footlabel="Email :"
-                    className="!m-0 font-semibold w-40"
+                    className="w-40"
                   />
                   {user?.email || "email"}
                 </div>
                 <div className="inline-flex gap-5 items-center">
                   <FootTypo
                     footlabel="Slug :"
-                    className="!m-0 font-semibold w-40"
+                    className=" w-40"
                   />
                   <Input
                     id="slug"
@@ -107,7 +104,7 @@ const UserProfile = () => {
                 <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 mb-4 items-center gap-5">
                   <FootTypo
                     footlabel="First name :"
-                    className="!m-0 font-semibold w-40"
+                    className="w-40"
                   />
                   <Input
                     id="firstName"
@@ -120,7 +117,7 @@ const UserProfile = () => {
                   />
                   <FootTypo
                     footlabel="Last name :"
-                    className="!m-0 font-semibold w-40"
+                    className="w-40"
                   />
                   <Input
                     id="lastName"
@@ -135,7 +132,7 @@ const UserProfile = () => {
                 <div className="inline-flex gap-5 items-center">
                   <FootTypo
                     footlabel="Phone number :"
-                    className="!m-0 font-semibold w-40"
+                    className="w-40"
                   />
                   <Input
                     id="phone"
@@ -150,7 +147,7 @@ const UserProfile = () => {
                 <div className="inline-flex gap-5">
                   <FootTypo
                     footlabel="Gender :"
-                    className="!m-0 font-semibold w-40"
+                    className="w-40"
                   />
                   <DropdownSelect
                     options={genderOptions}
@@ -162,7 +159,7 @@ const UserProfile = () => {
                 <div className="inline-flex gap-5 items-center">
                   <FootTypo
                     footlabel="Date of birth :"
-                    className="!m-0 font-semibold w-40"
+                    className="w-40"
                   />
                   <BasicDatePicker
                     selectedDate={watch("dob")}

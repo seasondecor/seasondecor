@@ -11,7 +11,7 @@ const styles = {
   ...baseStyles,
   page: {
     ...baseStyles.page,
-    padding: 30,
+    padding: 20,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
@@ -19,13 +19,13 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     borderBottom: '3px solid #FF385C',
-    paddingBottom: 10,
+    paddingBottom: 5,
   },
   logo: {
-    width: 120,
-    height: 50,
+    width: 100,
+    height: 40,
     objectFit: 'contain',
   },
   headerRight: {
@@ -44,8 +44,8 @@ const styles = {
   },
   section: {
     ...baseStyles.section,
-    marginBottom: 15,
-    padding: 12,
+    marginBottom: 8,
+    padding: 8,
     backgroundColor: '#f9f9f9',
     borderRadius: 6,
     borderLeft: '4px solid #FF385C',
@@ -67,8 +67,8 @@ const styles = {
   },
   tableContainer: {
     ...baseStyles.tableContainer,
-    marginTop: 8,
-    marginBottom: 10,
+    marginTop: 5,
+    marginBottom: 5,
   },
   tableTitle: {
     ...baseStyles.tableTitle,
@@ -140,7 +140,7 @@ const styles = {
   },
   infoBox: {
     flexDirection: 'row',
-    marginBottom: 15,
+    marginBottom: 8,
     borderRadius: 5,
     overflow: 'hidden',
     borderWidth: 1,
@@ -148,15 +148,15 @@ const styles = {
   },
   infoColumn: {
     flex: 1,
-    padding: 10,
+    padding: 8,
   },
   infoLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#777',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   infoValue: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -178,10 +178,10 @@ const styles = {
     fontWeight: 'bold',
   },
   infoGroup: {
-    marginTop: 5,
+    marginTop: 3,
   },
   compactRows: {
-    maxHeight: 200,
+    maxHeight: 150,
   },
   termsText: {
     fontSize: 9,
@@ -265,8 +265,14 @@ const QuotationDocument = ({ data = {} }) => {
     materials = [],
     constructionTasks = [],
     depositPercentage = 20,
-    note = 'N/A',
-    logoUrl = '/logo/logo-white.png' // Default logo URL
+    logoUrl = '/logo/logo-white.png', // Default logo URL
+    designName = 'Not specified',
+    themeColors = [],
+    spaceType = 'Not specified',
+    roomSize = 'Not specified',
+    primaryUser = 'Not specified',
+    scopeOfWorks = [],
+    surveyDate = null
   } = data;
 
   // Ensure materials and constructionTasks are arrays
@@ -286,12 +292,13 @@ const QuotationDocument = ({ data = {} }) => {
 
   // Calculate total for construction tasks
   const constructionTotal = safetyTasks.reduce((sum, item) => {
-    // Parse cost, handling formatted strings
+    // Parse cost and area, handling formatted strings
     const cost = parseFormattedNumber(item.cost);
+    const area = parseFormattedNumber(item.area);
     
-    console.log(`Task ${item.taskName}: raw cost=${item.cost}, parsed cost=${cost}`);
+    console.log(`Task ${item.taskName}: raw cost=${item.cost}, parsed cost=${cost}, area=${area}, total=${cost * area}`);
     
-    return sum + cost;
+    return sum + (cost * area);
   }, 0);
 
   // Calculate grand total
@@ -320,10 +327,10 @@ const QuotationDocument = ({ data = {} }) => {
           </View>
         </View>
 
-        {/* Client & Event Information */}
+        {/* Client & Event Information - Enhanced with more fields */}
         <View style={styles.infoBox}>
-          <View style={[styles.infoColumn, { backgroundColor: '#f9f9f9' }]}>
-            <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Customer Details</Text>
+          <View style={[styles.infoColumn, { backgroundColor: '#f9f9f9', flex: 1.2 }]}>
+            <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>Customer Details</Text>
             <View style={styles.infoGroup}>
               <Text style={styles.infoLabel}>Name</Text>
               <Text style={styles.infoValue}>{customerName}</Text>
@@ -332,9 +339,13 @@ const QuotationDocument = ({ data = {} }) => {
               <Text style={styles.infoLabel}>Email</Text>
               <Text style={styles.infoValue}>{customerEmail}</Text>
             </View>
+            <View style={styles.infoGroup}>
+              <Text style={styles.infoLabel}>Phone</Text>
+              <Text style={styles.infoValue}>{customerPhone || 'Not provided'}</Text>
+            </View>
           </View>
           <View style={[styles.infoColumn, { backgroundColor: '#f5f5f5' }]}>
-            <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Quotation Details</Text>
+            <Text style={[styles.sectionTitle, { marginBottom: 5 }]}>Quotation Details</Text>
             <View style={styles.infoGroup}>
               <Text style={styles.infoLabel}>Created Date</Text>
               <Text style={styles.infoValue}>{new Date().toLocaleDateString()}</Text>
@@ -343,12 +354,90 @@ const QuotationDocument = ({ data = {} }) => {
               <Text style={styles.infoLabel}>Quotation Code</Text>
               <Text style={styles.infoValue}>{quotationCode}</Text>
             </View>
+            <View style={styles.infoGroup}>
+              <Text style={styles.infoLabel}>Survey Date</Text>
+              <Text style={styles.infoValue}>
+                {surveyDate ? new Date(surveyDate).toLocaleDateString() : 'Not scheduled'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Customer Preferences - More compact layout */}
+        <View style={[styles.section, { marginBottom: 8 }]}>
+          <Text style={[styles.sectionTitle, { color: '#333', marginBottom: 5 }]}>Customer Preferences</Text>
+          
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            {/* First row of preferences */}
+            <View style={{ width: '33%' }}>
+              <Text style={styles.infoLabel}>Design Style</Text>
+              <Text style={[styles.infoValue, { fontSize: 8 }]}>{designName}</Text>
+            </View>
+            
+            <View style={{ width: '33%' }}>
+              <Text style={styles.infoLabel}>Theme Colors</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {themeColors && themeColors.length > 0 ? (
+                  <>
+                    {themeColors.map((color, index) => (
+                      <View
+                        key={`color-${index}`}
+                        style={{
+                          width: 8,
+                          height: 8,
+                          backgroundColor: color.colorCode,
+                          marginRight: 3,
+                          marginLeft: index > 0 ? 3 : 0,
+                          borderRadius: 2,
+                          border: '1px solid #ddd'
+                        }}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  <Text style={[styles.infoValue, { fontSize: 8 }]}>None specified</Text>
+                )}
+              </View>
+            </View>
+            
+            <View style={{ width: '33%' }}>
+              <Text style={styles.infoLabel}>Space Type</Text>
+              <Text style={[styles.infoValue, { fontSize: 8 }]}>{spaceType}</Text>
+            </View>
+            
+            {/* Second row of preferences */}
+            <View style={{ width: '33%', marginTop: 4 }}>
+              <Text style={styles.infoLabel}>Room Size</Text>
+              <Text style={[styles.infoValue, { fontSize: 8 }]}>
+                {roomSize ? `${roomSize} m²` : 'Not specified'}
+              </Text>
+            </View>
+            
+            <View style={{ width: '33%', marginTop: 4 }}>
+              <Text style={styles.infoLabel}>Primary User</Text>
+              <Text style={[styles.infoValue, { fontSize: 8 }]}>{primaryUser}</Text>
+            </View>
+            
+            <View style={{ width: '33%', marginTop: 4 }}>
+              <Text style={styles.infoLabel}>Scope of Work</Text>
+              <View>
+                {Array.isArray(scopeOfWorks) && scopeOfWorks.length > 0 ? (
+                  scopeOfWorks.map((work, index) => (
+                    <Text key={`work-${index}`} style={[styles.infoValue, { fontSize: 8 }]}>
+                      {work.workType || 'Not specified'}
+                    </Text>
+                  ))
+                ) : (
+                  <Text style={[styles.infoValue, { fontSize: 8 }]}>Not specified</Text>
+                )}
+              </View>
+            </View>
           </View>
         </View>
 
         {/* Service Details */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: '#FF385C' }]}>Quotation Breakdown</Text>
+          <Text style={[styles.sectionTitle, { color: '#FF385C', marginBottom: 5 }]}>Quotation Breakdown</Text>
           
           {/* Materials Table */}
           <View style={styles.tableContainer}>
@@ -357,20 +446,20 @@ const QuotationDocument = ({ data = {} }) => {
               {/* Table Header */}
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <View style={[styles.tableCell, { flex: 2 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Material Name</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Material Name</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 1 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Note</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Note</Text>
+                </View>
+                <View style={[styles.tableCell, { flex: 0.5 }]}>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Quantity</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 1 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Quantity</Text>
-                </View>
-                <View style={[styles.tableCell, { flex: 1 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 8 }}>Cost</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Cost</Text>
                 </View>
               </View>
               
-              {/* Materials Rows - limit to at most 3 rows */}
+              {/* Materials Rows - more compact */}
               {safetyMaterials.length > 0 ? (
                 safetyMaterials.slice(0, 3).map((item, index) => {
                   // Parse formatted numbers for display
@@ -382,28 +471,28 @@ const QuotationDocument = ({ data = {} }) => {
                       key={`material-${index}`} 
                       style={[
                         styles.tableRow, 
-                        { backgroundColor: isEvenRow ? '#fff' : '#f5f9ff' }
+                        { backgroundColor: isEvenRow ? '#fff' : '#f5f9ff', minHeight: 20 }
                       ]}
                     >
                       <View style={[styles.tableCell, { flex: 2 }]}>
-                        <Text>{item.materialName || 'N/A'}</Text>
+                        <Text style={{ fontSize: 7 }}>{item.materialName || 'N/A'}</Text>
                       </View>
-                      <View style={[styles.noteCell, { flex: 1 }]}>
-                        <Text>{item.note || 'N/A'}</Text>
+                      <View style={[styles.noteCell, { flex: 1, fontSize: 7 }]}>
+                        <Text style={{ fontSize: 7 }}>{item.note || 'N/A'}</Text>
+                      </View>
+                      <View style={[styles.tableCell, { flex: 0.5 }]}>
+                        <Text style={{ fontSize: 7 }}>{item.quantity || 0}</Text>
                       </View>
                       <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text>{item.quantity || 0}</Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text>{formatVND(parsedCost)}</Text>
+                        <Text style={{ fontSize: 7 }}>{formatVND(parsedCost)}</Text>
                       </View>
                     </View>
                   );
                 })
               ) : (
-                <View style={[styles.tableRow, { minHeight: 28 }]}>
+                <View style={[styles.tableRow, { minHeight: 20 }]}>
                   <View style={[styles.tableCell, { flex: 6 }]}>
-                    <Text>No materials added</Text>
+                    <Text style={{ fontSize: 7 }}>No materials added</Text>
                   </View>
                 </View>
               )}
@@ -417,33 +506,35 @@ const QuotationDocument = ({ data = {} }) => {
           </View>
           
           {/* Labour Tasks Table */}
-          <View style={[styles.tableContainer, { marginTop: 12 }]}>
+          <View style={[styles.tableContainer, { marginTop: 5 }]}>
             <Text style={styles.tableTitle}>Labour Tasks</Text>
             <View style={[styles.table, styles.compactRows]}>
               {/* Table Header */}
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <View style={[styles.tableCell, { flex: 3 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Task Name</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Task Name</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 1.5 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Note</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Note</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 1 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Cost</Text>
-                </View>
-                <View style={[styles.tableCell, { flex: 1}]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Unit</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Cost</Text>
                 </View>
                 <View style={[styles.tableCell, { flex: 0.8 }]}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 9 }}>Dimension</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Unit</Text>
+                </View>
+                <View style={[styles.tableCell, { flex: 0.5 }]}>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 7 }}>Area</Text>
                 </View>
               </View>
               
-              {/* Labour Task Rows - limit to at most 3 rows */}
+              {/* Labour Task Rows - more compact */}
               {safetyTasks.length > 0 ? (
                 safetyTasks.slice(0, 3).map((item, index) => {
                   // Parse formatted numbers for display
                   const parsedCost = parseFormattedNumber(item.cost);
+                  const parsedArea = parseFormattedNumber(item.area);
+                  const totalCost = parsedCost * parsedArea;
                   const isEvenRow = index % 2 === 0;
                   
                   return (
@@ -451,11 +542,11 @@ const QuotationDocument = ({ data = {} }) => {
                       key={`task-${index}`} 
                       style={[
                         styles.tableRow, 
-                        { backgroundColor: isEvenRow ? '#fff' : '#f8f8f8', minHeight: 28 }
+                        { backgroundColor: isEvenRow ? '#fff' : '#f8f8f8', minHeight: 20 }
                       ]}
                     >
                       <View style={[styles.tableCell, { flex: 3 }]}>
-                        <Text>{item.taskName || 'N/A'}</Text>
+                        <Text style={{ fontSize: 7 }}>{item.taskName || 'N/A'}</Text>
                       </View>
                       <View style={[styles.noteCell, { flex: 1.5 }]}>
                         <Text style={{ fontSize: 7 }}>
@@ -463,21 +554,21 @@ const QuotationDocument = ({ data = {} }) => {
                         </Text>
                       </View>
                       <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text>{formatVND(parsedCost)}</Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1}]}>
-                        <Text>{item.unit || 'N/A'}</Text>
+                        <Text style={{ fontSize: 7 }}>{formatVND(parsedCost)}</Text>
                       </View>
                       <View style={[styles.tableCell, { flex: 0.8 }]}>
-                        <Text>{item.area || 0}</Text>
+                        <Text style={{ fontSize: 7 }}>{item.unit || 'N/A'}</Text>
+                      </View>
+                      <View style={[styles.tableCell, { flex: 0.5 }]}>
+                        <Text style={{ fontSize: 7 }}>{item.area || 0}</Text>
                       </View>
                     </View>
                   );
                 })
               ) : (
-                <View style={[styles.tableRow, { minHeight: 28 }]}>
+                <View style={[styles.tableRow, { minHeight: 20 }]}>
                   <View style={[styles.tableCell, { flex: 6.6 }]}>
-                    <Text>No labour tasks added</Text>
+                    <Text style={{ fontSize: 7 }}>No labour tasks added</Text>
                   </View>
                 </View>
               )}
@@ -505,14 +596,14 @@ const QuotationDocument = ({ data = {} }) => {
 
         {/* Terms & Conditions - more compact */}
         <View style={[styles.section, {marginBottom: 0}]}>
-          <Text style={[styles.sectionTitle, { color: '#333' }]}>Terms and Conditions</Text>
-          <Text style={styles.termsText}>{terms || 'Payment due within 30 days. Cancellation policy: 50% refund if canceled 30 days before the event.'}</Text>
+          <Text style={[styles.sectionTitle, { color: '#333', fontSize: 12 }]}>Terms and Conditions</Text>
+          <Text style={[styles.termsText, { fontSize: 7 }]}>{terms || 'Payment due within 30 days. Cancellation policy: 50% refund if canceled 30 days before the event.'}</Text>
         </View>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, styles.highlight]}>Season Decor - A Decoration Platform</Text>
-          <Text style={styles.footerText}>www.seasondecor.com | info@seasondecor.com | +84 123 456 789</Text>
+        <View style={[styles.footer, { paddingTop: 5 }]}>
+          <Text style={[styles.footerText, styles.highlight, { fontSize: 7 }]}>Season Decor - A Decoration Platform</Text>
+          <Text style={[styles.footerText, { fontSize: 6 }]}>www.seasondecor.com | info@seasondecor.com | +84 123 456 789</Text>
         </View>
       </Page>
     </Document>
@@ -564,9 +655,22 @@ export const PdfDownloadButton = ({ quotationData }) => {
   );
 };
 
-// Add this function to generate PDF blob for API upload
+// Update the generatePdfBlob function to include additional customer data
 export const generatePdfBlob = async (quotationData) => {
-  const pdfDoc = <QuotationDocument data={quotationData} />;
+  // Include additional customer preference data for the PDF
+  const enhancedData = {
+    ...quotationData,
+    // Use the themeColors array as is
+    themeColors: quotationData.themeColors || [],
+    // Extract booking form data
+    spaceType: quotationData.bookingForm && quotationData.bookingForm.spaceStyle || 'N/A',
+    roomSize: quotationData.bookingForm && quotationData.bookingForm.roomSize || 'N/A',
+    primaryUser: quotationData.bookingForm && quotationData.bookingForm.primaryUser || 'N/A',
+    // Use the scopeOfWorks array as is
+    scopeOfWorks: quotationData.scopeOfWorks || [],
+  };
+  
+  const pdfDoc = <QuotationDocument data={enhancedData} />;
   const blob = await pdf(pdfDoc).toBlob();
   return blob;
 };

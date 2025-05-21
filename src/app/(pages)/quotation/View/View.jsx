@@ -12,6 +12,7 @@ import {
   Divider,
   Paper,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import Button from "@/app/components/ui/Buttons/Button";
 import { AiOutlineEdit } from "react-icons/ai";
 import { FaRegTimesCircle } from "react-icons/fa";
@@ -187,8 +188,8 @@ const QuotationChangeRequestView = ({ onClose }) => {
       </Paper>
 
       <form onSubmit={submitForm(onSubmit)}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <Paper
               elevation={0}
               className="p-6 rounded-xl shadow-sm border border-gray-100"
@@ -226,7 +227,7 @@ const QuotationChangeRequestView = ({ onClose }) => {
                       />
                     }
                     label={
-                      <Box className="flex items-center">
+                      <Box display="flex" alignItems="center">
                         <AiOutlineEdit
                           className="mr-2 text-indigo-600"
                           size={20}
@@ -256,7 +257,7 @@ const QuotationChangeRequestView = ({ onClose }) => {
                       />
                     }
                     label={
-                      <Box className="flex items-center">
+                      <Box display="flex" alignItems="center">
                         <FaRegTimesCircle
                           className="mr-2 text-rose-500"
                           size={18}
@@ -397,9 +398,9 @@ const QuotationChangeRequestView = ({ onClose }) => {
                 />
               </div>
             </Paper>
-          </div>
+          </Grid>
 
-          <div className="lg:col-span-1">
+          <Grid size={{ xs: 12, md: 5}}>
             <Paper
               elevation={0}
               className="p-6 rounded-xl shadow-sm border border-gray-100"
@@ -499,8 +500,8 @@ const QuotationChangeRequestView = ({ onClose }) => {
                 </Typography>
               </div>
             </Paper>
-          </div>
-        </div>
+          </Grid>
+        </Grid>
       </form>
     </Container>
   );

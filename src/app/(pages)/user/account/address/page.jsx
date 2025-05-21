@@ -2,7 +2,7 @@
 
 import React from "react";
 import Button from "@/app/components/ui/Buttons/Button";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import { UserWrapper } from "../../components/UserWrapper";
 import { FaPlus } from "react-icons/fa6";
 import useAddressModal from "@/app/hooks/useAddressModal";
@@ -29,13 +29,10 @@ const UserAddress = () => {
     <UserWrapper>
       <div className="flex-grow ml-6 relative ">
         <div className="flex flex-col relative ">
-          <div className="pb-9 border-b-[1px]">
+          <div className="pb-5">
             <div className="flex flex-row justify-between items-center ">
               <span>
-                <FootTypo
-                  footlabel="My Addresses"
-                  className="!m-0 text-lg font-semibold"
-                />
+                <BodyTypo bodylabel="My Addresses" />
               </span>
 
               {canAddMoreAddresses && (

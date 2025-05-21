@@ -15,12 +15,30 @@ import { BodyTypo, FootTypo } from "@/app/components/ui/Typography";
 import { BorderBox } from "@/app/components/ui/BorderBox";
 import { customCalendarStyles } from "@/app/(pages)/booking/components/PickDate";
 import { format } from "date-fns";
-import Spinner from "@/app/components/Spinner";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { TbArrowLeft } from "react-icons/tb";
 import { Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
+import Image from "next/image";
+import LinearProgress from '@mui/material/LinearProgress';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box'; 
+
+function LinearProgressWithLabel(props) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: '400px' }}>
+      <Box sx={{ width: '100%', mr: 1 }}>
+        <LinearProgress variant="determinate" {...props} />
+      </Box>
+      <Box sx={{ minWidth: 35 }}>
+        <Typography variant="body2" color="text.secondary">{`${Math.round(
+          props.value,
+        )}%`}</Typography>
+      </Box>
+    </Box>
+  );
+}
 
 const CreateContractPage = () => {
   const router = useRouter();
@@ -36,12 +54,31 @@ const CreateContractPage = () => {
   } = useGetContractFile(quotationCode);
   const [currentStep, setCurrentStep] = useState(1);
   const [isCreatingContract, setIsCreatingContract] = useState(false);
+  const [progress, setProgress] = useState(10);
 
   useEffect(() => {
     if (contractFile?.data) {
       setCurrentStep(2);
     }
   }, [contractFile?.data]);
+
+  useEffect(() => {
+    let timer;
+    if (isCreatingContract) {
+      setProgress(10);
+      timer = setInterval(() => {
+        setProgress((prevProgress) => {
+          // Slowly increase progress but don't reach 100%
+          // until we have confirmation of completion
+          const newProgress = prevProgress >= 90 ? 90 : prevProgress + 10;
+          return newProgress;
+        });
+      }, 800);
+    }
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isCreatingContract]);
 
   const handleCreateContract = () => {
     setIsCreatingContract(true);
@@ -57,6 +94,7 @@ const CreateContractPage = () => {
       {
         onSuccess: async () => {
           toast.success("Contract created successfully");
+          setProgress(100);
           // Wait a bit for the file to be processed
           setTimeout(async () => {
             await refetchContractFile();
@@ -89,15 +127,31 @@ const CreateContractPage = () => {
       <SellerWrapper>
         <BodyTypo bodylabel="Create Contract" className="!m-0 mb-5" />
         <div className="flex flex-col items-center justify-center self-center h-[600px] gap-4">
-          <Spinner />
+          <Image
+            src="/gif/loading.gif"
+            alt="loading"
+            width={150}
+            height={150}
+            priority
+            unoptimized
+          />
           <FootTypo
             footlabel={
               isCreatingContract
                 ? "Creating contract..."
                 : "Loading contract file..."
             }
-            className="!m-0 text-gray-500"
+            className=" text-gray-500"
           />
+          {isCreatingContract && (
+            <Box sx={{ width: '100%', maxWidth: '400px', textAlign: 'center', mt: 2 }}>
+              <LinearProgressWithLabel value={progress} />
+              <FootTypo 
+                footlabel={progress === 100 ? "Finalizing contract..." : "Processing contract..."}
+                className="text-gray-500 mt-2"
+              />
+            </Box>
+          )}
         </div>
       </SellerWrapper>
     );
@@ -112,7 +166,10 @@ const CreateContractPage = () => {
         <TbArrowLeft size={20} />
         <FootTypo footlabel="Go Back" className="!m-0" />
       </button>
-      <BodyTypo bodylabel={contractFile?.data ? "View Contract" : "Create Contract"} className="!m-0 mb-5" />
+      <BodyTypo
+        bodylabel={contractFile?.data ? "View Contract" : "Create Contract"}
+        className="!m-0 mb-5"
+      />
       <Stepper
         initialStep={currentStep}
         onStepChange={(step) => {
@@ -128,11 +185,11 @@ const CreateContractPage = () => {
             <BorderBox className="flex flex-col gap-4 border shadow-xl p-6">
               <FootTypo
                 footlabel="Select Construction Date"
-                className="!m-0 text-lg font-semibold"
+                fontWeight="bold"
               />
               <FootTypo
                 footlabel="Please choose when you will start the construction"
-                className="!m-0 text-sm text-gray-500"
+                className="text-gray-500"
               />
               <div className="flex justify-center w-full">
                 <style jsx global>
@@ -147,7 +204,7 @@ const CreateContractPage = () => {
                 />
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <FootTypo footlabel="Selected date:" className="!m-0 text-sm" />
+                <FootTypo footlabel="Selected date:" />
                 <FootTypo
                   footlabel={constructionDate.toLocaleDateString("en-US", {
                     weekday: "long",
@@ -155,7 +212,7 @@ const CreateContractPage = () => {
                     month: "long",
                     day: "numeric",
                   })}
-                  className="!m-0 text-sm font-medium"
+                  fontWeight="bold"
                 />
               </div>
             </BorderBox>
@@ -163,18 +220,18 @@ const CreateContractPage = () => {
         </Step>
         <Step>
           <div className="flex flex-col gap-6">
-            <FootTypo
-              footlabel="Contract preview"
-              className="!m-0 text-lg font-semibold self-center"
-            />
+            <FootTypo footlabel="Contract preview" fontWeight="bold" />
             <div className="h-[800px] flex flex-col border rounded-md">
               {contractFile?.data ? (
-                <Viewer fileUrl={contractFile?.data.fileUrl} defaultScale={1.5} />
+                <Viewer
+                  fileUrl={contractFile?.data.fileUrl}
+                  defaultScale={1.5}
+                />
               ) : (
                 <div className="flex items-center justify-center h-[600px] bg-gray-50">
                   <FootTypo
                     footlabel="No contract file available yet"
-                    className="!m-0 text-sm text-gray-500"
+                    className="text-gray-500"
                   />
                 </div>
               )}

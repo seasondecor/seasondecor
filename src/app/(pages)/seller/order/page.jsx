@@ -131,13 +131,13 @@ const OrderPage = () => {
     {
       header: "ID",
       accessorKey: "id",
-      cell: ({ row }) => <span className="font-bold">{row.original.id}</span>,
+      cell: ({ row }) => <FootTypo footlabel={row.original.id}/>,
     },
     {
       header: "Order Code",
       accessorKey: "orderCode",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.orderCode}</span>
+        <FootTypo footlabel={row.original.orderCode} fontWeight="bold"/>
       ),
     },
     {
@@ -146,7 +146,7 @@ const OrderPage = () => {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <CiWallet size={20} />
-          <span className="font-bold">{row.original.paymentMethod}</span>
+          <FootTypo footlabel={row.original.paymentMethod} fontWeight="bold"/>
         </div>
       ),
     },
@@ -159,10 +159,10 @@ const OrderPage = () => {
         const dateTime = formatDateTime(row.original.orderDate);
         return (
           <div className="flex flex-col">
-            <span className="font-medium">{dateTime.date}</span>
-            <span className="text-xs text-gray-500 inline-flex items-center gap-1">
-              <BsClock /> {dateTime.time}
-            </span>
+            <FootTypo footlabel={dateTime.date} fontWeight="bold"/>
+            <FootTypo footlabel={dateTime.time} fontSize="12px" className="text-gray-500 inline-flex items-center gap-1">
+              <BsClock /> 
+            </FootTypo>
           </div>
         );
       },

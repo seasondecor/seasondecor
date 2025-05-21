@@ -12,6 +12,7 @@ import {
   MenuItem,
   Box,
   Paper,
+  Alert,
 } from "@mui/material";
 import StatusChip from "@/app/components/ui/statusChip/StatusChip";
 import { FaCheck } from "react-icons/fa6";
@@ -123,6 +124,7 @@ const RequestTableSkeleton = () => {
 
 const SellerOrderManage = () => {
   const router = useRouter();
+  const [bookingLoading, setBookingLoading] = useState({});
   const { mutate: rejectBooking, isPending: isRejecting } = useRejectBooking();
   const { mutate: approveBooking, isPending: isApproving } =
     useApproveBooking();
@@ -189,8 +191,9 @@ const SellerOrderManage = () => {
   // Create a dedicated component for action buttons with clear status-based logic
   const ActionButtons = ({ booking }) => {
     const status = booking.status;
+    const bookingCode = booking.bookingCode;
+    const isLoading = bookingLoading[bookingCode] || false;
     const {
-      bookingCode,
       customer,
       isQuoteExisted,
       isTracked,
@@ -198,16 +201,53 @@ const SellerOrderManage = () => {
       isCommitDepositPaid,
     } = booking;
 
+    // Helper function to set loading state for this specific booking
+    const setLoading = (isLoading) => {
+      setBookingLoading(prev => ({
+        ...prev,
+        [bookingCode]: isLoading
+      }));
+    };
+
     // Helper function for routing to quotation creation
     const navigateToQuotation = () => {
       router.push(
-        `/seller/quotation/create/${bookingCode}?fullName=${encodeURIComponent(
-          customer.fullName || customer.businessName
-        )}&email=${encodeURIComponent(
-          customer.email
-        )}&address=${encodeURIComponent(address)}`
+        `/seller/quotation/create/${bookingCode}`
       );
     };
+    
+    // Helper function to handle status changes with loading state
+    const handleStatusChange = (callback) => {
+      setLoading(true);
+      changeBookingStatus(bookingCode, {
+        onSuccess: () => {
+          setLoading(false);
+          if (callback) callback();
+        },
+        onError: () => {
+          setLoading(false);
+        }
+      });
+    };
+
+    // Helper function to handle approval with loading state
+    const handleApprove = () => {
+      setLoading(true);
+      approveBooking(bookingCode, {
+        onSuccess: () => setLoading(false),
+        onError: () => setLoading(false)
+      });
+    };
+
+    // Helper function to handle rejection with loading state
+    const handleReject = () => {
+      setLoading(true);
+      rejectBooking(bookingCode, {
+        onSuccess: () => setLoading(false),
+        onError: () => setLoading(false)
+      });
+    };
+
     if (status === 11) {
       return (
         <FootTypo footlabel="Completed" className="text-green font-medium" />
@@ -222,7 +262,7 @@ const SellerOrderManage = () => {
           onClick={() => router.push(`/seller/request/${bookingCode}`)}
           className="bg-primary"
           icon={<GoQuestion size={20} />}
-          isLoading={isChangingStatus}
+          isLoading={isLoading}
         />
       );
     }
@@ -233,17 +273,17 @@ const SellerOrderManage = () => {
         <div className="flex gap-2">
           <Button
             label="Approved"
-            onClick={() => approveBooking(bookingCode)}
+            onClick={handleApprove}
             className="bg-green text-white"
             icon={<FaCheck size={20} />}
-            isLoading={isApproving}
+            isLoading={isLoading}
           />
           <Button
             label="Reject"
-            onClick={() => rejectBooking(bookingCode)}
+            onClick={handleReject}
             className="bg-red text-white"
             icon={<MdCancel size={20} />}
-            isLoading={isRejecting}
+            isLoading={isLoading}
           />
         </div>
       );
@@ -254,14 +294,10 @@ const SellerOrderManage = () => {
       return (
         <Button
           label="Create Quotation"
-          onClick={() => {
-            changeBookingStatus(bookingCode, {
-              onSuccess: navigateToQuotation,
-            });
-          }}
+          onClick={() => handleStatusChange(navigateToQuotation)}
           className="bg-yellow"
           icon={<TbReportAnalytics size={20} />}
-          isLoading={isChangingStatus}
+          isLoading={isLoading}
         />
       );
     } else if (status === 1 && !isCommitDepositPaid) {
@@ -277,7 +313,7 @@ const SellerOrderManage = () => {
           onClick={navigateToQuotation}
           className="bg-yellow"
           icon={<MdOutlineEditNote size={20} />}
-          isLoading={isChangingStatus}
+          isLoading={isLoading}
         />
       );
     }
@@ -307,8 +343,9 @@ const SellerOrderManage = () => {
         <Button
           label="Preparing"
           className="bg-primary"
-          onClick={() => changeBookingStatus(bookingCode, {})}
+          onClick={() => handleStatusChange()}
           icon={<LuClipboardList size={20} />}
+          isLoading={isLoading}
         />
       );
     }
@@ -318,8 +355,9 @@ const SellerOrderManage = () => {
         <Button
           label="In transit"
           className="bg-primary"
-          onClick={() => changeBookingStatus(bookingCode, {})}
+          onClick={() => handleStatusChange()}
           icon={<FaTruck size={20} />}
+          isLoading={isLoading}
         />
       );
     }
@@ -328,8 +366,9 @@ const SellerOrderManage = () => {
         <Button
           label="Progress Start"
           className="bg-primary"
-          onClick={() => changeBookingStatus(bookingCode, {})}
+          onClick={() => handleStatusChange()}
           icon={<IoBuild size={20} />}
+          isLoading={isLoading}
         />
       );
     }
@@ -347,10 +386,10 @@ const SellerOrderManage = () => {
       return (
         <Button
           label="Finish service"
-          onClick={() => changeBookingStatus(bookingCode, {})}
-          s
+          onClick={() => handleStatusChange()}
           className="bg-action text-white"
           icon={<FaCheck size={20} />}
+          isLoading={isLoading}
         />
       );
     }
@@ -362,6 +401,7 @@ const SellerOrderManage = () => {
           className="bg-primary"
           onClick={() => router.push(`/seller/tracking/${bookingCode}`)}
           icon={<MdOutlineFileUpload size={20} />}
+          isLoading={isLoading}
         />
       );
     }
@@ -373,6 +413,7 @@ const SellerOrderManage = () => {
           className=""
           onClick={() => router.push(`/seller/tracking/${bookingCode}`)}
           icon={<MdOutlineFileUpload size={20} />}
+          isLoading={isLoading}
         />
       );
     }
@@ -380,7 +421,7 @@ const SellerOrderManage = () => {
     // Cancelled status
     if (status === 13) {
       return (
-        <FootTypo footlabel="Cancelled" className="!m-0 text-red font-medium" />
+        <FootTypo footlabel="Cancelled" className="text-red" />
       );
     }
 
@@ -393,7 +434,7 @@ const SellerOrderManage = () => {
 
     // Default - No specific action
     return (
-      <FootTypo footlabel="No action required" className="!m-0 text-gray-500" />
+      <FootTypo footlabel="No action required"/>
     );
   };
 
@@ -403,23 +444,21 @@ const SellerOrderManage = () => {
       header: "ID",
       accessorKey: "id",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.bookingId}</span>
+        <FootTypo footlabel={row.original.bookingId}/>
       ),
     },
     {
       header: "Code",
       accessorKey: "Code",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.bookingCode}</span>
+        <FootTypo footlabel={row.original.bookingCode} fontWeight="bold"/>
       ),
     },
     {
       header: "Created At",
       accessorKey: "createdAt",
       cell: ({ row }) => (
-        <span>
-          {new Date(row.original.createdAt).toLocaleDateString("vi-VN")}
-        </span>
+        <FootTypo footlabel={new Date(row.original.createdAt).toLocaleDateString("vi-VN")}/>
       ),
     },
     {
@@ -440,7 +479,7 @@ const SellerOrderManage = () => {
             w={40}
             h={40}
           />
-          <span>{row.original.customer.email}</span>
+          <FootTypo footlabel={row.original.customer.email}/>
         </div>
       ),
     },
@@ -470,20 +509,19 @@ const SellerOrderManage = () => {
       cell: ({ row }) => {
         const isCommitted = row.original.isCommitDepositPaid;
         return (
-          <div className={`flex items-center gap-2 py-1 px-2 rounded-full w-fit ${
+          <div className={`${
             isCommitted 
-            ? "bg-green text-white" 
-            : "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+            ? "bg-success-light" 
+            : "bg-error-light"
           }`}>
-            {isCommitted ? (
-              <FaCheck size={16} className="text-white" />
-            ) : (
-              <FaCheck size={16} className="text-amber-600 dark:text-amber-400" />
-            )}
-            <FootTypo
-              footlabel={isCommitted ? "Committed" : "Not Committed"}
-              className="!m-0 text-xs font-medium"
-            />
+            <Alert severity={isCommitted ? "success" : "error"} sx={{
+              paddingX: 0.1,
+              paddingY: 0.2,
+              borderRadius: 100,
+              justifyContent: "center",
+            }}>
+              {isCommitted ? "Committed" : "Not Committed"}
+            </Alert>
           </div>
         );
       },

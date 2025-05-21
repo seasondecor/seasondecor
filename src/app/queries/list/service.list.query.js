@@ -80,7 +80,7 @@ export function useGetListDecorService(paginationParams = defaultPagination) {
       }
     },
     keepPreviousData: true,
-    staleTime: 30000,
+    staleTime: 120000,
   });
 }
 

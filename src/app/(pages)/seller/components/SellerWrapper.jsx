@@ -11,7 +11,8 @@ import {
   IconChartBarPopular,
   IconWorldDollar,
   IconPackage,
-  IconPackageExport
+  IconPackageExport,
+  IconUserCircle
 } from "@tabler/icons-react";
 import { cn } from "@/app/utils/Utils";
 import ScrollToTop from "@/app/components/ScrollToTop";
@@ -70,6 +71,11 @@ export default function SellerWrapper({ children }) {
       href: "/seller/service",
       icon: <RiFolderSettingsLine className=" h-5 w-5 flex-shrink-0" />,
     },
+    {
+      label: "My Account",
+      href: "/seller/account",
+      icon: <IconUserCircle className=" h-5 w-5 flex-shrink-0" />,
+    },
   ];
   const [open, setOpen] = useState(false);
   return (
@@ -99,8 +105,8 @@ export default function SellerWrapper({ children }) {
 const Dashboard = ({ props }) => {
   return (
     <div className="flex flex-1">
-      <div className="flex h-full w-full flex-col gap-2 rounded-tl-2xl border border-neutral-200 p-2 md:p-10">
-        <div className="flex flex-grow flex-col items-start justify-start ">
+      <div className="flex h-full w-full flex-col gap-2 rounded-tl-2xl border border-neutral-200 p-2 md:p-10 overflow-x-hidden">
+        <div className="flex flex-grow flex-col">
           {props}
         </div>
       </div>

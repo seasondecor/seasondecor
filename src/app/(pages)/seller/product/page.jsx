@@ -11,6 +11,7 @@ import { MdDelete } from "react-icons/md";
 import DataTable from "@/app/components/ui/table/DataTable";
 import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
+import { FootTypo } from "@/app/components/ui/Typography";
 import {
   Skeleton,
   Box,
@@ -27,7 +28,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Alert,
 } from "@mui/material";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
 import { IoSearch, IoFilterOutline } from "react-icons/io5";
@@ -241,7 +241,7 @@ const SellerProductManage = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+              <FootTypo footlabel="No image" fontSize="12px"/>
             </div>
           )}
         </div>
@@ -251,9 +251,7 @@ const SellerProductManage = () => {
       header: "Product Name",
       accessorKey: "productName",
       cell: ({ row }) => (
-        <span className="font-bold">
-          {row.original.productName}
-        </span>
+        <FootTypo footlabel={row.original.productName} fontWeight="bold"/>
       ),
     },
     {
@@ -275,9 +273,7 @@ const SellerProductManage = () => {
       header: "Price",
       accessorKey: "productPrice",
       cell: ({ row }) => (
-        <span className="text-primary font-bold">
-          {formatCurrency(row.original.productPrice)}
-        </span>
+        <FootTypo footlabel={formatCurrency(row.original.productPrice)} fontWeight="bold"/>
       ),
     },
     {
@@ -288,9 +284,7 @@ const SellerProductManage = () => {
       header: "Total Sold",
       accessorKey: "totalSold",
       cell: ({ row }) => (
-        <span className="font-bold">
-          {`${row.original.totalSold} sold`}
-        </span>
+        <FootTypo footlabel={`${row.original.totalSold} sold`} fontWeight="bold"/>
       ),
     },
     {
@@ -521,7 +515,7 @@ const SellerProductManage = () => {
           </div>
         ) : products.length === 0 && !isLoading ? (
           <div>
-            <h2 className="text-xl font-semibold mb-4">No Products Found</h2>
+            <FootTypo footlabel="No Products Found" fontWeight="bold"/>
             <p className="text-gray-600 dark:text-gray-300">
               {pagination.productName ||
               pagination.minPrice ||

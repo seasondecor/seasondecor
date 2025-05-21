@@ -524,11 +524,11 @@ const BookingRequestPage = () => {
           <h2 className="text-xl font-semibold mb-4">
             No Booking Requests Found
           </h2>
-          <p>
+          <span>
             {filters.status
               ? "No booking requests match your filter criteria. Try adjusting your filters."
               : "You don't have any booking requests at the moment."}
-          </p>
+          </span>
         </div>
       ) : (
         <>
@@ -809,10 +809,10 @@ const BookingRequestPage = () => {
             </div>
 
             {walletData && walletData.balance < DEPOSIT_AMOUNT && (
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                <Typography variant="body2" color="error">
+              <div className="p-4 rounded-lg border border-red">
+                <Typography variant="body2" color="error" component="div">
                   Your wallet balance is insufficient for this deposit. Please
-                  top up your wallet with at least{" "}
+                  top up your wallet with at least
                   {formatCurrency(DEPOSIT_AMOUNT - walletData.balance)} more.
                 </Typography>
               </div>
@@ -823,6 +823,7 @@ const BookingRequestPage = () => {
               <Typography
                 variant="subtitle2"
                 className="font-semibold mb-2 text-blue-700 dark:text-blue-300"
+                component="div"
               >
                 Deposit Regulation:
               </Typography>
@@ -880,6 +881,7 @@ const BookingRequestPage = () => {
         onClose={handleCloseMeetingDialog}
         maxWidth="md"
         fullWidth
+        disableScrollLock
       >
         <DialogTitle>
           <div className="flex justify-between items-center">
@@ -1089,7 +1091,7 @@ const BookingRequestPage = () => {
           <Button
             label="Request Meeting"
             onClick={handleMeetingRequest}
-            className="bg-blue-600 text-white"
+            className="bg-action text-white"
             isLoading={isCreatingMeeting}
             disabled={
               !selectedMeetingDate || !selectedMeetingTime || isCreatingMeeting

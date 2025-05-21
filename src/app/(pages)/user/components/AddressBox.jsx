@@ -20,7 +20,7 @@ const AddressBox = ({
   street,
   detail,
   phone,
-  addressType
+  addressType,
 }) => {
   const deleteConfirmModal = useDeleteConfirmModal();
   const addressModal = useAddressModal();
@@ -38,7 +38,7 @@ const AddressBox = ({
   };
 
   const handleDeleteClick = () => {
-    deleteConfirmModal.onOpen('address', id, 'address');
+    deleteConfirmModal.onOpen("address", id, "address");
   };
 
   const handleEditClick = () => {
@@ -52,7 +52,7 @@ const AddressBox = ({
       street,
       detail,
       phone,
-      addressType
+      addressType,
     });
   };
 
@@ -63,7 +63,8 @@ const AddressBox = ({
           <span className="flex flex-row items-center gap-2">
             <FootTypo
               footlabel={fullName}
-              className="!m-0 text-lg font-semibold"
+              fontSize="1.25rem"
+              fontWeight="bold"
             />
             <div className="border-l-[2px] pl-3">{phone}</div>
           </span>
@@ -83,25 +84,13 @@ const AddressBox = ({
         </div>
         <div className="flex flex-row justify-between mt-3">
           <span className="flex flex-row gap-1">
-            <FootTypo
-              footlabel={street}
-              className="!m-0 text-sm font-secondary "
-            />
+            <FootTypo footlabel={street} />
             <div>,</div>
-            <FootTypo
-              footlabel={ward}
-              className="!m-0 text-sm font-secondary "
-            />
+            <FootTypo footlabel={ward} />
             <div>,</div>
-            <FootTypo
-              footlabel={district}
-              className="!m-0 text-sm font-secondary "
-            />
+            <FootTypo footlabel={district} />
             <div>,</div>
-            <FootTypo
-              footlabel={province}
-              className="!m-0 text-sm font-secondary "
-            />
+            <FootTypo footlabel={province} />
           </span>
 
           {!isDefault && (
@@ -112,7 +101,7 @@ const AddressBox = ({
             />
           )}
         </div>
-        <FootTypo footlabel={detail} className="!m-0 text-sm font-secondary " />
+        <FootTypo footlabel={detail} />
 
         <Status isDefault={isDefault} />
       </div>

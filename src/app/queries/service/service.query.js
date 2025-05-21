@@ -82,6 +82,10 @@ export function useSearchDecorService(params) {
         if (params.CategoryName) {
           queryParams.append("CategoryName", params.CategoryName);
         }
+
+        if (params.DesignName) {
+          queryParams.append("DesignName", params.DesignName);
+        }
         
         // Handle seasons as multiple separate parameters
         if (params.SeasonNames) {

@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { TfiMoreAlt } from "react-icons/tfi";
 import ThemeSwitch from "../../../ThemeSwitch";
@@ -19,24 +19,25 @@ import Notifcation from "@/app/components/ui/notification/Notifcation";
 import { notificationService } from "@/app/services/notificationService";
 import { toast } from "sonner";
 import { createMarkup } from "@/app/helpers";
+import { Container as MuiContainer, Paper } from "@mui/material";
 
 export default function Header() {
   const { user } = useUser();
   const { data: session } = useSession();
   const mutationChangeStatus = useChangeStatus();
   const pathname = usePathname();
-  const [isScrolled, setIsScrolled] = React.useState(false);
-  const [isDrawerOpen, setDrawerOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
 
-  //console.log(session)
+  // console.log(session)
 
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
   };
 
   // Add scroll event listener
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       setIsScrolled(scrollPosition > 0);
@@ -51,7 +52,7 @@ export default function Header() {
   }, []);
 
   // Initialize notification service connection
-  React.useEffect(() => {
+  useEffect(() => {
     if (user?.id) {
       // Track connection attempts to prevent excessive retries
       let retryCount = 0;
@@ -60,9 +61,9 @@ export default function Header() {
       const connectNotificationService = async () => {
         try {
           if (!notificationService.isConnected()) {
-           // console.log("Attempting to connect to notification service...");
+            // console.log("Attempting to connect to notification service...");
             await notificationService.startConnection(user.id);
-           // console.log("Successfully connected to notification service");
+            // console.log("Successfully connected to notification service");
             retryCount = 0; // Reset retry count on success
           }
         } catch (error) {
@@ -101,7 +102,7 @@ export default function Header() {
   }, [user?.id]);
 
   // Set up notification event listener
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user?.id) return;
 
     // Use a Set to track notifications we've already shown toasts for
@@ -158,7 +159,7 @@ export default function Header() {
     };
   }, [user?.id, isDrawerOpen, router, toggleDrawer]);
 
-  const onChangeStatus = React.useCallback(() => {
+  const onChangeStatus = useCallback(() => {
     mutationChangeStatus.mutate(true, {
       onSuccess: () => {
         router.push("/seller/dashboard");
@@ -202,73 +203,75 @@ export default function Header() {
       }`}
       tabIndex="-1"
     >
-      <div className="hidden lg:block">
-        <div className="header container mx-auto max-w-[88rem]">
-          <nav className="flex items-center justify-between">
-            {/* Logo Section */}
-            <div className="flex items-center">
-              <Logo />
-            </div>
-
-            {/* Center Navigation */}
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center gap-4 transition-all ">
-                <ColourfulText
-                  colors={[
-                    "#40ffaa",
-                    "#4079ff",
-                    "#40ffaa",
-                    "#4079ff",
-                    "#40ffaa",
-                  ]}
-                  animationSpeed={3}
-                  showBorder={true}
-                  className="p-2 text-sm font-semibold"
-                  onClick={onChangeStatus}
-                >
-                  PROVIDER CENTRE
-                </ColourfulText>
+      <MuiContainer maxWidth="xl">
+        <div className="hidden lg:block">
+          <div className="header container mx-auto">
+            <nav className="flex items-center justify-between">
+              {/* Logo Section */}
+              <div className="flex items-center">
+                <Logo />
               </div>
-              <Link
-                href="/provider"
-                className="text-sm font-semibold text-white/70 hover:text-primary "
-              >
-                PROVIDERS
-              </Link>
 
-              <Link
-                href="/products"
-                className="text-sm font-semibold text-white/70 hover:text-primary"
-              >
-                SHOP
-              </Link>
-              <Link
-                href="/support"
-                className="text-sm font-semibold text-white/70 hover:text-primary "
-              >
-                SUPPORT
-              </Link>
-            </div>
+              {/* Center Navigation */}
+              <div className="flex items-center space-x-8">
+                <div className="flex items-center gap-4 transition-all ">
+                  <ColourfulText
+                    colors={[
+                      "#40ffaa",
+                      "#4079ff",
+                      "#40ffaa",
+                      "#4079ff",
+                      "#40ffaa",
+                    ]}
+                    animationSpeed={3}
+                    showBorder={true}
+                    className="p-2 text-sm font-semibold"
+                    onClick={onChangeStatus}
+                  >
+                    PROVIDER CENTRE
+                  </ColourfulText>
+                </div>
+                <Link
+                  href="/provider"
+                  className="text-sm font-semibold text-white/70 hover:text-primary "
+                >
+                  PROVIDERS
+                </Link>
 
-            {/* Right Section */}
-            <div className="flex items-center space-x-4">
-              <ThemeSwitch />
-              <span>/</span>
-              <CartBtn cartClick={() => router.push("/cart")} />
-              <NotificationBtn
-                toggleDrawer={toggleDrawer}
-                isDrawerOpen={isDrawerOpen}
-              />
-              {user && (
-                <>
-                  <UserMenu />
-                </>
-              )}
-              {!user && <RightWrapper />}
-            </div>
-          </nav>
+                <Link
+                  href="/products"
+                  className="text-sm font-semibold text-white/70 hover:text-primary"
+                >
+                  SHOP
+                </Link>
+                <Link
+                  href="/support"
+                  className="text-sm font-semibold text-white/70 hover:text-primary "
+                >
+                  SUPPORT
+                </Link>
+              </div>
+
+              {/* Right Section */}
+              <div className="flex items-center space-x-4">
+                <ThemeSwitch />
+                <span>/</span>
+                <CartBtn cartClick={() => router.push("/cart")} />
+                <NotificationBtn
+                  toggleDrawer={toggleDrawer}
+                  isDrawerOpen={isDrawerOpen}
+                />
+                {user && (
+                  <>
+                    <UserMenu />
+                  </>
+                )}
+                {!user && <RightWrapper />}
+              </div>
+            </nav>
+          </div>
         </div>
-      </div>
+      </MuiContainer>
 
       {/* Mobile Header */}
       <div className="block lg:hidden">

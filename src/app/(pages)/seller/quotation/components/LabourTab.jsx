@@ -3,11 +3,10 @@
 import React from "react";
 import { MdAdd } from "react-icons/md";
 import Button from "@/app/components/ui/Buttons/Button";
-import Input from "@/app/components/ui/Inputs/Input";
 import { IoIosRemove } from "react-icons/io";
 import { formatCurrency } from "@/app/helpers";
 import { AiOutlineStop } from "react-icons/ai";
-import { Textarea } from "@headlessui/react";
+import { TextField, Typography, Select, MenuItem } from "@mui/material";
 
 // Define measurement unit options
 const UNIT_OPTIONS = [
@@ -24,6 +23,22 @@ const LabourTab = ({
   register,
   control,
 }) => {
+  // Format number with thousand separators
+  const formatNumber = (value) => {
+    if (!value) return "";
+    // Remove any non-digit characters
+    const number = value.toString().replace(/\D/g, "");
+    // Format with thousand separator
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  // Handle number input
+  const handleNumberInput = (index, field, value) => {
+    // Remove any non-digit characters
+    const rawValue = value.replace(/\D/g, "");
+    onTaskChange(index, field, rawValue);
+  };
+
   // Register all tasks with react-hook-form
   React.useEffect(() => {
     constructionTasks.forEach((task, index) => {
@@ -40,22 +55,22 @@ const LabourTab = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Task Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Note
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Cost <span className="text-red">*</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Unit <span className="text-red">*</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
-                  Dimension <span className="text-red">*</span>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Area <span className="text-red">*</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Remove
                 </th>
               </tr>
@@ -65,116 +80,129 @@ const LabourTab = ({
                 constructionTasks.map((task, index) => (
                   <tr key={`task-${index}`}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Input
-                        id={`constructionTasks.${index}.taskName`}
-                        name={`constructionTasks.${index}.taskName`}
+                      <TextField
+                        fullWidth
+                        placeholder="Task name"
                         value={task.taskName || ""}
                         onChange={(e) =>
                           onTaskChange(index, "taskName", e.target.value)
                         }
-                        className={`pl-3 ${!task.taskName ? "border-red" : ""}`}
-                        placeholder="Task name"
-                        required
-                        register={() => ({})}
+                        error={!task.taskName}
+                        helperText={!task.taskName && "Required field"}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
                       />
-                      {!task.taskName && (
-                        <p className="text-red text-xs mt-1">Required field</p>
-                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Textarea
-                        id={`constructionTasks.${index}.note`}
-                        name={`constructionTasks.${index}.note`}
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        placeholder="Add detail notes"
                         value={task.note || ""}
                         onChange={(e) =>
                           onTaskChange(index, "note", e.target.value)
                         }
-                        className="pl-3 w-full p-2 border rounded"
-                        placeholder="Add detail notes"
-                        rows={3}
-                        required
-                        //register={() => ({})}
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Input
-                        id={`constructionTasks.${index}.cost`}
-                        name={`constructionTasks.${index}.cost`}
-                        type="text"
-                        pattern="^\d+(\.\d{1,2})?$"
-                        maxLength="10"
-                        value={task.cost}
-                        onChange={(e) => {
-                          // Store the raw input value without parsing
-                          const rawValue = e.target.value;
-                          //console.log(`Setting task ${index} cost to:`, rawValue);
-                          onTaskChange(index, "cost", rawValue);
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
                         }}
-                        className={`pl-3 ${
-                          !task.cost || parseFloat(task.cost) <= 0
-                            ? "border-red"
-                            : ""
-                        }`}
-                        placeholder="0"
-                        register={() => ({})}
-                        control={control}
-                        required
                       />
-                      {(!task.cost || parseFloat(task.cost) <= 0) && (
-                        <p className="text-red text-xs mt-1">
-                          Must be greater than 0
-                        </p>
-                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        id={`constructionTasks.${index}.unit`}
-                        name={`constructionTasks.${index}.unit`}
+                      <TextField
+                        fullWidth
+                        placeholder="0"
+                        value={formatNumber(task.cost)}
+                        onChange={(e) =>
+                          handleNumberInput(index, "cost", e.target.value)
+                        }
+                        error={!task.cost || parseFloat(task.cost) <= 0}
+                        helperText={(!task.cost || parseFloat(task.cost) <= 0) && "Must be greater than 0"}
+                        InputProps={{
+                          inputProps: {
+                            inputMode: "numeric",
+                            pattern: "[0-9]*",
+                          },
+                        }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Select
+                        fullWidth
                         value={task.unit || ""}
                         onChange={(e) =>
                           onTaskChange(index, "unit", e.target.value)
                         }
-                        className={`pl-3 py-2 rounded-md border ${
-                          !task.unit ? "border-red" : "border-gray-300"
-                        } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full`}
-                        required
+                        error={!task.unit}
+                        displayEmpty
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
                       >
-                        <option value="" disabled>
+                        <MenuItem value="" disabled>
                           Select unit
-                        </option>
+                        </MenuItem>
                         {UNIT_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
+                          <MenuItem key={option.value} value={option.value}>
                             {option.label}
-                          </option>
+                          </MenuItem>
                         ))}
-                      </select>
-                      {!task.unit && (
-                        <p className="text-red text-xs mt-1">Required field</p>
-                      )}
+                      </Select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Input
-                        id={`constructionTasks.${index}.area`}
-                        name={`constructionTasks.${index}.area`}
-                        value={task.area || 0}
-                        onChange={(e) =>
-                          onTaskChange(
-                            index,
-                            "area",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        className={`pl-3 ${task.area <= 0 ? "border-red" : ""}`}
-                        min="1"
+                      <TextField
+                        fullWidth
                         placeholder="0"
-                        required
-                        register={() => ({})}
+                        value={formatNumber(task.area)}
+                        onChange={(e) =>
+                          handleNumberInput(index, "area", e.target.value)
+                        }
+                        error={!task.area || parseFloat(task.area) <= 0}
+                        helperText={(!task.area || parseFloat(task.area) <= 0) && "Must be greater than 0"}
+                        InputProps={{
+                          inputProps: {
+                            inputMode: "numeric",
+                            pattern: "[0-9]*",
+                          },
+                        }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
                       />
-                      {task.area <= 0 && (
-                        <p className="text-red text-xs mt-1">
-                          Must be greater than 0
-                        </p>
-                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {constructionTasks.length > 1 ? (
@@ -182,20 +210,17 @@ const LabourTab = ({
                           label="Remove"
                           onClick={() => onRemoveTask(index)}
                           className="bg-red"
-                          icon={<IoIosRemove size={20} />}
+                          icon={<IoIosRemove size={18} />}
                         />
                       ) : (
-                        <AiOutlineStop size={20} />
+                        <AiOutlineStop size={18} />
                       )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     No construction tasks added. Add a new task to get started.
                   </td>
                 </tr>
@@ -213,10 +238,12 @@ const LabourTab = ({
         />
 
         <div className="text-right">
-          <div className="text-sm text-gray-500 mb-1">Total Labour Cost:</div>
-          <div className="text-xl font-bold text-gray-900">
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Total Labour Cost:
+          </Typography>
+          <Typography variant="h6" fontWeight="bold">
             {formatCurrency(calculateConstructionTotal())}
-          </div>
+          </Typography>
         </div>
       </div>
     </div>

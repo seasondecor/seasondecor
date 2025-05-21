@@ -3,6 +3,7 @@
 import { useTheme } from "next-themes";
 import clsx from "clsx";
 import { ClipLoader } from "react-spinners";
+import { FootTypo } from "../Typography";
 
 const Button = ({
   onClick,
@@ -25,7 +26,7 @@ const Button = ({
       onClick={onClick}
       disabled={disabled || isLoading}
       className={clsx(
-        "flex flex-row items-center rounded-md border px-4 py-2 text-sm transition duration-200",
+        "flex flex-row items-center rounded-md border px-3 py-2 transition duration-200",
         {
           "cursor-not-allowed opacity-50": isLoading,
           "border-gray-400 bg-gray-200 text-gray-400": disabled,
@@ -48,8 +49,9 @@ const Button = ({
         </>
       ) : (
         <>
-          {icon && <span className="mr-2">{icon}</span>}
-          {label}
+       
+          {icon && <span className="mr-2">{icon}</span>} 
+          <FootTypo footlabel={label}/>
         </>
       )}
     </button>

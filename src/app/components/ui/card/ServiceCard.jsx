@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FootTypo } from "../Typography";
+import { FootTypo, BodyTypo } from "../Typography";
 import Button from "../Buttons/Button";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { MdLocationOn } from "react-icons/md";
 import { seasons } from "@/app/constant/season";
 import { getSeasonConfig } from "@/app/helpers";
 import StatusChip from "../statusChip/StatusChip";
+import DesignStyle from "../designStyle/DesignStyle";
 
 const ServiceCard = ({
   href = "",
@@ -18,6 +19,7 @@ const ServiceCard = ({
   seasons: serviceSeasons = [],
   category,
   isAvailable = false,
+  designStyle = [],
 }) => {
   const displayedImages = [...images, ...images, ...images].slice(0, 3);
 
@@ -27,14 +29,14 @@ const ServiceCard = ({
       className="mb-10 grid w-full cursor-pointer grid-cols-1 md:grid-cols-4 gap-4 px-4 xl:px-0 hover:shadow-lg transition-shadow duration-300 rounded-lg"
     >
       <div className="order-last md:order-first flex flex-col gap-2 space-y-2 p-4">
-        <FootTypo footlabel={style} className="!m-0 font-bold text-lg" />
+        <BodyTypo bodylabel={style} />
         <FootTypo
           footlabel={category}
-          className="!m-0 font-bold text-sm rounded-md bg-gray-800 w-fit p-2 text-white"
+          className="rounded-md bg-gray-800 w-fit p-2 text-white"
         />
 
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm font-medium">Suitable for :</span>
+        <div className="flex flex-wrap gap-2 items-center line-clamp-2">
+          <FootTypo footlabel="Suitable for :" fontWeight="bold" />
           {serviceSeasons.map((season, index) => {
             const { icon, bgColor } = getSeasonConfig(
               season.seasonName,
@@ -51,9 +53,12 @@ const ServiceCard = ({
             );
           })}
         </div>
+
+        <DesignStyle styles={designStyle} compact />
+
         <div className="flex items-center gap-2">
           <MdLocationOn size={20} />
-          <FootTypo footlabel={province} className="!m-0 font-bold text-sm" />
+          <FootTypo footlabel={province} fontWeight="bold" />
         </div>
         {isAvailable ? (
           <StatusChip status={isAvailable} isService={true} />

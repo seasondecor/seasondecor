@@ -52,6 +52,7 @@ const ProductsTab = () => {
             productName: product.productName,
             rate: product.rate,
             price: product.productPrice,
+            designStyle: product.designs,
             href: `/products/${product.id}-${generateSlug(product.productName)}`,
           })}
         />

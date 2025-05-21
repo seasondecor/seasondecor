@@ -314,7 +314,7 @@ const TrackingPage = () => {
           onClick={() => router.back()}
         >
           <TbArrowLeft size={20} />
-          <FootTypo footlabel="Go Back" className="!m-0" />
+          <FootTypo footlabel="Go Back"/>
         </button>
       </div>
 
@@ -331,7 +331,8 @@ const TrackingPage = () => {
           <div className="flex items-center bg-primary/10 px-3 py-1 rounded-full">
             <FootTypo
               footlabel={`Booking: ${id}`}
-              className="font-medium text-sm bg-primary rounded-lg p-1"
+              fontWeight="bold"
+              className="bg-primary rounded-lg p-1"
             />
           </div>
         </div>

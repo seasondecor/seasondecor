@@ -45,7 +45,7 @@ export const EditAvatar = ({ userImg, className, childStyle }) => {
         <Avatar userImg={preview} h={80} w={80} className="cursor-pointer" />
         <label
           className={clsx(
-            "absolute bottom-0 right-0 inline-flex items-center gap-1 rounded bg-action p-[1px] text-sm text-white dark:bg-white dark:text-black cursor-pointer hover:bg-primary",
+            "absolute bottom-0 right-0 inline-flex items-center gap-1 rounded bg-action px-[2px] py-[1px] text-sm text-white dark:bg-white dark:text-black cursor-pointer hover:bg-primary",
             childStyle
           )}
         >

@@ -17,6 +17,7 @@ import { LuClipboardList } from "react-icons/lu";
 import { MdCancel, MdOutlineChecklist } from "react-icons/md";
 import { HiOutlineBadgeCheck } from "react-icons/hi";
 import { GoDotFill } from "react-icons/go";
+import { FootTypo } from "../Typography";
 
 const StatusChip = ({
   status,
@@ -47,7 +48,7 @@ const StatusChip = ({
         label = "Unavailable";
         icon = <CgUnavailable size={14} />;
       } else if (isBooking) {
-        statusClass = "bg-primary text-white";
+        statusClass = "bg-primary";
         label = "Planning";
         icon = <LuClipboardList size={14} />;
       } else if (isQuotation) {
@@ -187,7 +188,7 @@ const StatusChip = ({
       )}
     >
       {icon}
-      {label}
+      <FootTypo footlabel={label} />
     </div>
   );
 };

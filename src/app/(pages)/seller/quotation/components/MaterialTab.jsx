@@ -4,10 +4,9 @@ import React from "react";
 import { MdAdd } from "react-icons/md";
 import Button from "@/app/components/ui/Buttons/Button";
 import { IoIosRemove } from "react-icons/io";
-import Input from "@/app/components/ui/Inputs/Input";
 import { formatCurrency } from "@/app/helpers";
 import { AiOutlineStop } from "react-icons/ai";
-import { Textarea } from "@headlessui/react";
+import { TextField, Typography } from "@mui/material";
 
 const MaterialTab = ({
   materials,
@@ -18,14 +17,21 @@ const MaterialTab = ({
   register,
   control,
 }) => {
-  // Register all materials with react-hook-form
-  React.useEffect(() => {
-    materials.forEach((material, index) => {
-      Object.keys(material).forEach((key) => {
-        register(`materials.${index}.${key}`);
-      });
-    });
-  }, [materials, register]);
+  // Format number with thousand separators
+  const formatNumber = (value) => {
+    if (!value) return "";
+    // Remove any non-digit characters
+    const number = value.toString().replace(/\D/g, "");
+    // Format with thousand separator
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  // Handle number input
+  const handleNumberInput = (index, field, value) => {
+    // Remove any non-digit characters
+    const rawValue = value.replace(/\D/g, "");
+    onMaterialChange(index, field, rawValue);
+  };
 
   return (
     <div className="space-y-4">
@@ -34,7 +40,7 @@ const MaterialTab = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Material Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -43,10 +49,10 @@ const MaterialTab = ({
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Quantity <span className="text-red">*</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Cost <span className="text-red">*</span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Remove
                 </th>
               </tr>
@@ -56,99 +62,95 @@ const MaterialTab = ({
                 materials.map((material, index) => (
                   <tr key={`material-${index}`}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Input
-                        id={`materials.${index}.materialName`}
-                        name={`materials.${index}.materialName`}
+                      <TextField
+                        fullWidth
+                        placeholder="Material name"
                         value={material.materialName || ""}
                         onChange={(e) =>
-                          onMaterialChange(
-                            index,
-                            "materialName",
-                            e.target.value
-                          )
+                          onMaterialChange(index, "materialName", e.target.value)
                         }
-                        className={`pl-3 ${
-                          !material.materialName ? "border-red" : ""
-                        }`}
-                        placeholder="Material name"
-                        required
-                        register={() => ({})}
+                        error={!material.materialName}
+                        helperText={!material.materialName && "Required field"}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
                       />
-                      {!material.materialName && (
-                        <p className="text-red text-xs mt-1">Required field</p>
-                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Textarea
-                        id={`materials.${index}.note`}
-                        name={`materials.${index}.note`}
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        placeholder="Add detail notes"
                         value={material.note || ""}
                         onChange={(e) =>
                           onMaterialChange(index, "note", e.target.value)
                         }
-                        className="pl-3 w-full p-2 border rounded"
-                        placeholder="Add detail notes"
-                        rows={3}
-                        required
-                        //register={() => ({})}
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Input
-                        id={`materials.${index}.quantity`}
-                        name={`materials.${index}.quantity`}
-                        value={material.quantity || 0}
-                        onChange={(e) =>
-                          onMaterialChange(
-                            index,
-                            "quantity",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        className={`pl-3 ${
-                          material.quantity <= 0 ? "border-red" : ""
-                        }`}
-                        min="1"
-                        placeholder="0"
-                        required
-                        register={() => ({})}
-                      />
-                      {material.quantity <= 0 && (
-                        <p className="text-red text-xs mt-1">
-                          Must be greater than 0
-                        </p>
-                      )}
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Input
-                        id={`materials.${index}.cost`}
-                        name={`materials.${index}.cost`}
-                        type="text"
-                        value={material.cost}
-                        onChange={(e) => {
-                          // Store the raw input value without parsing
-                          const rawValue = e.target.value;
-                          //console.log(`Setting material ${index} cost to:`, rawValue);
-                          onMaterialChange(index, "cost", rawValue);
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
                         }}
-                        className={`pl-3 ${
-                          !material.cost || parseFloat(material.cost) <= 0
-                            ? "border-red"
-                            : ""
-                        }`}
-                        placeholder="0"
-                        required
-                        register={() => ({})}
-                        control={control}
                       />
-                      {(!material.cost || parseFloat(material.cost) <= 0) && (
-                        <p className="text-red text-xs mt-1">
-                          Must be greater than 0
-                        </p>
-                      )}
                     </td>
-
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <TextField
+                        fullWidth
+                        placeholder="0"
+                        value={material.quantity}
+                        onChange={(e) =>
+                          handleNumberInput(index, "quantity", e.target.value)
+                        }
+                        error={material.quantity <= 0}
+                        helperText={material.quantity <= 0 && "Must be greater than 0"}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <TextField
+                        fullWidth
+                        placeholder="0"
+                        value={formatNumber(material.cost)}
+                        onChange={(e) =>
+                          handleNumberInput(index, "cost", e.target.value)
+                        }
+                        error={!material.cost || parseFloat(material.cost) <= 0}
+                        helperText={(!material.cost || parseFloat(material.cost) <= 0) && "Must be greater than 0"}
+                        InputProps={{
+                          inputProps: {
+                            inputMode: "numeric",
+                            pattern: "[0-9]*",
+                          },
+                        }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                            backgroundColor: "white",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E2E8F0",
+                          },
+                        }}
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {materials.length > 1 ? (
                         <Button
@@ -165,10 +167,7 @@ const MaterialTab = ({
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                     No materials added. Add a new material to get started.
                   </td>
                 </tr>
@@ -182,16 +181,16 @@ const MaterialTab = ({
         <Button
           label="Add Material"
           onClick={onAddMaterial}
-          icon={<MdAdd size={20} />}
+          icon={<MdAdd size={18} />}
         />
 
         <div className="text-right">
-          <div className="text-sm text-gray-500 mb-1">
+          <Typography variant="body2" color="text.secondary" gutterBottom>
             Total Materials Cost:
-          </div>
-          <div className="text-xl font-bold text-gray-900">
+          </Typography>
+          <Typography variant="h6" fontWeight="bold">
             {formatCurrency(calculateMaterialTotal())}
-          </div>
+          </Typography>
         </div>
       </div>
     </div>

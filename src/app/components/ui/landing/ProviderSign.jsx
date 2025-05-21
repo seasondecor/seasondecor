@@ -10,7 +10,6 @@ import { people } from "@/app/constant/people";
 import Input from "../Inputs/Input";
 import { IoIosMail } from "react-icons/io";
 import { HeadTypo, BodyTypo, FootTypo } from "../Typography";
-import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,7 +18,6 @@ import { Element } from "react-scroll";
 import { useUser } from "@/app/providers/userprovider";
 
 const ProviderSign = () => {
-  const { data: session } = useSession();
   const { user } = useUser();
   // const accountId = session?.accountId;
   const mutationSendInv = useSendInvitation();
@@ -70,7 +68,8 @@ const ProviderSign = () => {
         <BodyTypo bodylabel="Explore your benefits when become a provider" />
         <FootTypo
           footlabel="Fast and reliable"
-          className="mt-4 lg:text-xl lg:leading-8 text-lg font-normal text-zinc-500 dark:text-zinc-300 max-w-2xl"
+          className="self-center"
+          
         />
       </div>
       <div className="relative">
