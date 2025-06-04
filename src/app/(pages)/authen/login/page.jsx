@@ -13,12 +13,14 @@ import Button2 from "@/app/components/ui/Buttons/Button2";
 import { FcGoogle } from "react-icons/fc";
 import Logo from "@/app/components/Logo";
 import { signIn } from "next-auth/react";
-import { useLogin } from "@/app/queries/user/authen.query";
+import { Alert, Collapse } from "@mui/material";
 
 export default function Login() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
-  const mutateLogin = useLogin();
   const {
     register,
     handleSubmit,
@@ -28,19 +30,38 @@ export default function Login() {
       email: "",
       password: "",
     },
-    //resolver: yupResolver(schema),
   });
 
   const onSubmit = async (data) => {
-    mutateLogin.mutate(data, {
-      onSuccess: (data) => {
-        console.log("Login data:", data);
-        router.push("/");
-      },
-      onError: (error) => {
-        console.error("Login error:", error);
-      },
-    });
+    setIsLoading(true);
+    setError(""); // Clear previous errors
+    try {
+      const result = await signIn("credentials", {
+        ...data,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid email or password");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push("/");
+    } catch (error) {
+      setError("An error occurred during login");
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (error) {
+      setError("Failed to login with Google");
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -54,6 +75,12 @@ export default function Login() {
           <p className="text-gray-600 dark:text-gray-300 text-center">
             Login to your account and start exploring seasonal decorations.
           </p>
+
+          <Collapse in={!!error}>
+            <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          </Collapse>
 
           <form className="flex flex-col space-y-8">
             <div className="relative">
@@ -84,7 +111,8 @@ export default function Login() {
               type="submit"
               onClick={handleSubmit(onSubmit)}
               label="Continue with email"
-              //loading={mutateLogin.isPending}
+              loading={isLoading}
+              disabled={isLoading || isGoogleLoading}
               btnClass="w-full mt-3 mb-1"
               labelClass="justify-center p-3"
             />
@@ -102,8 +130,9 @@ export default function Login() {
 
           <Button2
             type="button"
-            onClick={async () => await signIn("google", { callbackUrl: "/" })}
-            //loading={isLoading}
+            onClick={handleGoogleSignIn}
+            loading={isGoogleLoading}
+            disabled={isLoading || isGoogleLoading}
             label="Continue with"
             btnClass="w-full m-0"
             labelClass="justify-center p-3"

@@ -18,11 +18,13 @@ import {
   Card,
   CardContent,
   Stack,
+  Box,
 } from "@mui/material";
 import Button from "@/app/components/ui/Buttons/Button";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
+import { MdFilterListOff } from "react-icons/md";
 
 const QuotationPage = () => {
   const router = useRouter();
@@ -115,6 +117,7 @@ const QuotationPage = () => {
       </FormControl>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filter"
         onClick={() =>
           setFilters({
@@ -133,12 +136,22 @@ const QuotationPage = () => {
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <Skeleton variant="text" width={120} height={28} animation="wave" />
-            <Skeleton variant="rounded" width={100} height={30} animation="wave" />
+            <Skeleton
+              variant="rounded"
+              width={100}
+              height={30}
+              animation="wave"
+            />
           </div>
           <Skeleton variant="text" width="70%" height={20} animation="wave" />
           <div className="mt-2 flex justify-between items-center">
             <Skeleton variant="text" width={150} height={20} animation="wave" />
-            <Skeleton variant="rounded" width={80} height={36} animation="wave" />
+            <Skeleton
+              variant="rounded"
+              width={80}
+              height={36}
+              animation="wave"
+            />
           </div>
         </div>
       </CardContent>
@@ -148,16 +161,16 @@ const QuotationPage = () => {
   return (
     <Container>
       <MuiBreadcrumbs />
-      <section className="flex flex-row justify-between items-center my-5">
-        <div className="flex flex-row gap-4">
+      <Box display="flex" flexDirection="row" alignItems="center" my={2}>
+        <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
           <BodyTypo bodylabel="Quotation" />
           <RefreshButton
             onRefresh={refetchQuotations}
             isLoading={isQuotationsLoading}
             tooltip="Refresh quotation list"
           />
-        </div>
-      </section>
+        </Box>
+      </Box>
 
       <FilterSelectors />
 
@@ -181,6 +194,7 @@ const QuotationPage = () => {
           <DataMapper
             data={quotations}
             Component={QuotationCard}
+            useGrid={false}
             emptyStateComponent={<EmptyState title="No quotations found" />}
             loading={isQuotationsLoading}
             getKey={(item) => item.quotationCode}
@@ -190,6 +204,7 @@ const QuotationPage = () => {
               status: item.status,
               isContractExist: item.isContractExisted,
               isQuoteExisted: item.isQuoteExisted,
+              hasTerminated: item.hasTerminated,
               serviceName: item.style,
               viewContract: () => {
                 router.push(`/quotation/view-contract/${item.quotationCode}`);
@@ -201,7 +216,7 @@ const QuotationPage = () => {
           />
 
           {totalCount > 0 && (
-            <div className="flex justify-center mt-4 gap-4">
+            <Box display="flex" justifyContent="center" mt={2} gap={2}>
               <button
                 onClick={() =>
                   pagination.pageIndex > 1 &&
@@ -212,9 +227,9 @@ const QuotationPage = () => {
               >
                 <IoIosArrowBack size={20} />
               </button>
-              <span className="flex items-center">
+              <Box display="flex" alignItems="center">
                 Page {pagination.pageIndex} of {totalPages}
-              </span>
+              </Box>
               <button
                 onClick={() =>
                   pagination.pageIndex < totalPages &&
@@ -225,7 +240,7 @@ const QuotationPage = () => {
               >
                 <IoIosArrowForward size={20} />
               </button>
-            </div>
+            </Box>
           )}
         </>
       )}

@@ -29,7 +29,7 @@ const CartItem = ({
 
   return (
     <BorderBox>
-      <div id={id} className="rounded-lg border border-gray-300 p-6 shadow-lg">
+      <div id={id}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-6">
           {/* Product Image */}
           <Link href="#" className="shrink-0 md:order-1">

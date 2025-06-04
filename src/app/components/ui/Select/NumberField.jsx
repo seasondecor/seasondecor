@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from "react";
 import { NumberField } from "@base-ui-components/react/number-field";
 import { FaMinus } from "react-icons/fa6";
@@ -16,9 +18,11 @@ export default function ExampleNumberField({ value, onChange }) {
 
   // Handle value changes and propagate to parent
   const handleValueChange = (newValue) => {
-    setInternalValue(newValue);
+    // If newValue is empty, null, undefined, or less than 1, set to 1
+    const clampedValue = !newValue || newValue < 1 ? 1 : Math.min(9999, Math.max(1, newValue));
+    setInternalValue(clampedValue);
     if (onChange) {
-      onChange(newValue);
+      onChange(clampedValue);
     }
   };
 
@@ -43,7 +47,31 @@ export default function ExampleNumberField({ value, onChange }) {
 
         <NumberField.Input
           className="h-6 w-24 border-t border-b border-gray-200 text-center text-lg text-gray-900 tabular-nums focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-          onBlur={(e) => e.preventDefault()}
+          onBlur={(e) => {
+            const value = e.target.value;
+            if (!value || value === '') {
+              handleValueChange(1);
+            }
+          }}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === '') {
+              setInternalValue(1);
+              return;
+            }
+            const newValue = parseInt(value, 10);
+            if (!isNaN(newValue)) {
+              handleValueChange(newValue);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (
+              ["e", "E", "+", "-", ".", ","].includes(e.key) || // prevent non-numeric
+              (e.key === "0" && e.currentTarget.value === "") // prevent starting with 0
+            ) {
+              e.preventDefault();
+            }
+          }}
         />
 
         <NumberField.Increment className="flex size-6 items-center justify-center rounded-tr-md rounded-br-md border border-gray-200 bg-gray-50 text-gray-900 select-none hover:bg-gray-100 active:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:active:bg-gray-600">

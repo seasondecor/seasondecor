@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FootTypo } from "../Typography";
+import { FootTypo, BodyTypo } from "../Typography";
 import Button from "../Buttons/Button";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,6 +9,9 @@ import { MdLocationOn } from "react-icons/md";
 import { seasons } from "@/app/constant/season";
 import { getSeasonConfig } from "@/app/helpers";
 import StatusChip from "../statusChip/StatusChip";
+import DesignStyle from "../designStyle/DesignStyle";
+import { Box, Paper } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 
 const ServiceCard = ({
   href = "",
@@ -18,69 +21,158 @@ const ServiceCard = ({
   seasons: serviceSeasons = [],
   category,
   isAvailable = false,
+  designStyle = [],
 }) => {
   const displayedImages = [...images, ...images, ...images].slice(0, 3);
 
   return (
-    <Link
-      href={href}
-      className="mb-10 grid w-full cursor-pointer grid-cols-1 md:grid-cols-4 gap-4 px-4 xl:px-0 hover:shadow-lg transition-shadow duration-300 rounded-lg"
-    >
-      <div className="order-last md:order-first flex flex-col gap-2 space-y-2 p-4">
-        <FootTypo footlabel={style} className="!m-0 font-bold text-lg" />
-        <FootTypo
-          footlabel={category}
-          className="!m-0 font-bold text-sm rounded-md bg-gray-800 w-fit p-2 text-white"
-        />
+    <Link href={href}>
+      <Paper
+        elevation={0}
+        className="dark:text-white"
+        sx={{
+          p: 2,
+          backgroundColor: "transparent",
+          transition: "box-shadow 0.3s ease-in-out",
+          "&:hover": {
+            boxShadow: 3,
+          },
+        }}
+      >
+        <Grid container spacing={3}>
+          {/* Content Section */}
+          <Grid xs={12} width="100%">
+            <Box display="flex">
+              <Box display="flex" flexDirection="column" gap={2} width="100%">
+                {/* Title and Category */}
+                <Box display="flex" justifyContent="space-between">
+                  <FootTypo
+                    footlabel={category}
+                    sx={{
+                      bgcolor: "grey.800",
+                      color: "white",
+                      px: 2,
+                      py: 1,
+                      borderRadius: 1,
+                      display: "inline-block",
+                    }}
+                  />
+                  {/* Action Button */}
+                  {isAvailable ? (
+                    <StatusChip status={isAvailable} isService={true} />
+                  ) : (
+                    <Button
+                      className="w-fit h-fit"
+                      label="View details"
+                      icon={<IoIosArrowForward size={20} />}
+                    />
+                  )}
+                </Box>
+                <Box>
+                  <BodyTypo
+                    bodylabel={style}
+                    className="truncate max-w-[50vh] tracking-tight"
+                    fontSize="24px"
+                  />
+                </Box>
 
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm font-medium">Suitable for :</span>
-          {serviceSeasons.map((season, index) => {
-            const { icon, bgColor } = getSeasonConfig(
-              season.seasonName,
-              seasons
-            );
-            return (
-              <div
-                key={index}
-                className={`flex items-center gap-2 text-white ${bgColor} rounded-xl py-1 px-3 text-xs font-medium`}
-              >
-                {icon}
-                {season.seasonName}
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2">
-          <MdLocationOn size={20} />
-          <FootTypo footlabel={province} className="!m-0 font-bold text-sm" />
-        </div>
-        {isAvailable ? (
-          <StatusChip status={isAvailable} isService={true} />
-        ) : (
-          <Button
-            className="mt-4 w-fit"
-            label="View details"
-            icon={<IoIosArrowForward size={20} />}
-          />
-        )}
-      </div>
+                {/* Seasons */}
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  flexWrap="wrap"
+                  gap={1}
+                  alignItems="start"
+                >
+                  <FootTypo footlabel="Suitable for" fontWeight="bold" />
+                  <Box
+                    display="flex"
+                    flexDirection="row"
+                    flexWrap="wrap"
+                    gap={1}
+                    alignItems="center"
+                  >
+                    {serviceSeasons.map((season, index) => {
+                      const { icon, bgColor } = getSeasonConfig(
+                        season.seasonName,
+                        seasons
+                      );
+                      return (
+                        <Box
+                          key={index}
+                          className={`${bgColor}`}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: 4,
+                            color: "white",
+                            fontSize: "0.875rem",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {icon}
+                          {season.seasonName}
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                </Box>
 
-      {displayedImages.map((img, index) => (
-        <div
-          key={index}
-          className="relative aspect-[4/3] w-full overflow-hidden rounded-lg"
-        >
-          <Image
-            src={img.imageURL}
-            alt={`service-${index}`}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
-            className="object-cover"
-            priority={index === 0}
-          />
-        </div>
-      ))}
+                {/* Design Styles */}
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="start"
+                  flexWrap="wrap"
+                  gap={1}
+                >
+                  <FootTypo footlabel="Design Style" fontWeight="bold" />
+                  <Box width="100%">
+                    <DesignStyle styles={designStyle} compact />
+                  </Box>
+                </Box>
+
+                {/* Location */}
+                <Box display="flex" alignItems="center" gap={1}>
+                  <MdLocationOn size={20} />
+                  <FootTypo footlabel={province} fontWeight="bold" />
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Images Gallery */}
+          <Grid size={{ xs: 12 }}>
+            <Grid container spacing={2}>
+              {displayedImages.map((img, index) => (
+                <Grid size={{ xs: 12, sm: 4 }} key={index}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      aspectRatio: "4/3",
+                      width: "100%",
+                      overflow: "hidden",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Image
+                      src={img.imageURL}
+                      alt={`service-${index}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
+                      className="object-cover transition-transform duration-300"
+                      priority={index === 0}
+                    />
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        </Grid>
+      </Paper>
     </Link>
   );
 };

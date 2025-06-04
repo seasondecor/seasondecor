@@ -21,7 +21,8 @@ import { CiWallet } from "react-icons/ci";
 import { BsClock } from "react-icons/bs";
 import { formatDateTime } from "@/app/helpers";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
-
+import { FootTypo } from "@/app/components/ui/Typography";
+import { MdFilterListOff } from "react-icons/md";
 // Skeleton loader for the order table
 const OrderTableSkeleton = () => {
   return (
@@ -131,13 +132,13 @@ const OrderPage = () => {
     {
       header: "ID",
       accessorKey: "id",
-      cell: ({ row }) => <span className="font-bold">{row.original.id}</span>,
+      cell: ({ row }) => <FootTypo footlabel={row.original.id}/>,
     },
     {
       header: "Order Code",
       accessorKey: "orderCode",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.orderCode}</span>
+        <FootTypo footlabel={row.original.orderCode} fontWeight="bold"/>
       ),
     },
     {
@@ -146,7 +147,7 @@ const OrderPage = () => {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <CiWallet size={20} />
-          <span className="font-bold">{row.original.paymentMethod}</span>
+          <FootTypo footlabel={row.original.paymentMethod} fontWeight="bold"/>
         </div>
       ),
     },
@@ -159,17 +160,17 @@ const OrderPage = () => {
         const dateTime = formatDateTime(row.original.orderDate);
         return (
           <div className="flex flex-col">
-            <span className="font-medium">{dateTime.date}</span>
-            <span className="text-xs text-gray-500 inline-flex items-center gap-1">
-              <BsClock /> {dateTime.time}
-            </span>
+            <FootTypo footlabel={dateTime.date} fontWeight="bold"/>
+            <FootTypo footlabel={dateTime.time} fontSize="12px" className="text-gray-500 inline-flex items-center gap-1">
+              <BsClock /> 
+            </FootTypo>
           </div>
         );
       },
     },
     {
       header: "Status",
-      cell: ({ row }) => <StatusChip status={row.original.status} />,
+      cell: ({ row }) => <StatusChip status={row.original.status} isOrder={true} />,
     },
   ];
 
@@ -242,6 +243,7 @@ const OrderPage = () => {
       </div>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filters"
         onClick={() => {
           setFilters({

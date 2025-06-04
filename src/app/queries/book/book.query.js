@@ -18,7 +18,7 @@ export function useBookService() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["booking-list-for-customer"],
+        queryKey: ["booking_list_for_customer"],
       });
     },
   });
@@ -37,7 +37,7 @@ export function useCancelBooking() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["booking-list-for-provider"],
+        queryKey: ["booking_list_for_provider"],
       });
     },
   });
@@ -56,7 +56,7 @@ export function useApproveBooking() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["booking-list-for-provider"],
+        queryKey: ["booking_list_for_provider"],
       });
     },
   });
@@ -75,7 +75,7 @@ export function useRejectBooking() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["booking-list-for-provider"],
+        queryKey: ["booking_list_for_provider"],
       });
     },
   });
@@ -112,7 +112,7 @@ export function useChangeBookingStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["booking-list-for-provider"],
+        queryKey: ["booking_list_for_provider"],
       });
     },
   });
@@ -197,7 +197,7 @@ export function useApproveCancelRequest() {
           queryKey: ["booking-detail-for-provider"],
         }),
         queryClient.invalidateQueries({
-          queryKey: ["booking-list-for-provider"],
+          queryKey: ["booking_list_for_provider"],
         }),
       ]);
     },
@@ -218,7 +218,7 @@ export function useRevokeCancelRequest() {
           queryKey: ["booking-detail-for-provider"],
         }),
         queryClient.invalidateQueries({
-          queryKey: ["booking-list-for-provider"],
+          queryKey: ["booking_list_for_provider"],
         }),
       ]);
     },
@@ -235,7 +235,7 @@ export function usePayCommitDeposit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["booking-list-for-customer"],
+        queryKey: ["booking_list_for_customer"],
       });
     },
   });

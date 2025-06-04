@@ -116,7 +116,7 @@ const Categories = () => {
   return (
     <>
       <div className="flex flex-col items-center justify-center my-20">
-        <HeadTypo label="Explore funitures from all categories" />
+        <HeadTypo label="Shop now" />
         <BodyTypo bodylabel="Explore funitures from all categories" />
       </div>
 

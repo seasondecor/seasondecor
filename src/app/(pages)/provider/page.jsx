@@ -92,6 +92,7 @@ const ListProviderPage = () => {
             followingLoading,
           onChatClick: () => handleChatClick(provider),
         })}
+        useGrid={false}
       />
     </ListWrapper>
   );

@@ -9,8 +9,6 @@ import {
   MdOutlineInventory2,
   MdOutlineAnalytics,
 } from "react-icons/md";
-import { BorderBox } from "@/app/components/ui/BorderBox";
-import { GrMoney } from "react-icons/gr";
 import {
   useGetProviderDashboard,
   useGetMonthlyRevenue,
@@ -29,17 +27,11 @@ import {
   Legend,
 } from "chart.js";
 import { useTheme } from "next-themes";
-import { formatCurrency, GrowthIndicator } from "@/app/helpers";
-import { HiOutlineUsers } from "react-icons/hi2";
-import { FaRegCreditCard } from "react-icons/fa";
-import { FaRegCalendarCheck } from "react-icons/fa";
+import { formatCurrency } from "@/app/helpers";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
 import { Skeleton } from "@mui/material";
-import { GoPackage } from "react-icons/go";
 import { CiClock1 } from "react-icons/ci";
-import { RiBaseStationLine } from "react-icons/ri";
 import CountUp from "@/app/components/ui/animated/CountUp";
-import { LuLamp } from "react-icons/lu";
 import EmptyState from "@/app/components/EmptyState";
 import DataMapper from "@/app/components/DataMapper";
 import { useGetSupportTicketForProvider } from "@/app/queries/support/support.query";
@@ -51,10 +43,28 @@ import {
 import { formatDateTime } from "@/app/helpers";
 import { TextField, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { FaInfoCircle } from "react-icons/fa";
 import { renderAttachment } from "@/app/helpers";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
 import Button from "@/app/components/ui/Buttons/Button";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import { Box } from "@mui/material";
+import { Card, CardContent, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
+import {
+  People,
+  BookOnline,
+  CheckCircle,
+  ArrowUpward,
+  ArrowDownward,
+  MonetizationOn,
+  ShoppingCart,
+  Assignment,
+} from "@mui/icons-material";
 
 // Register ChartJS components
 Chart.register(
@@ -66,6 +76,103 @@ Chart.register(
   Title,
   Tooltip,
   Legend
+);
+
+const StatCard = ({
+  title,
+  value,
+  icon,
+  color,
+  isLoading,
+  trend,
+  subtitle,
+}) => (
+  <Card
+    sx={{
+      height: "100%",
+      background: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(10px)",
+    }}
+    className="dark:text-white"
+  >
+    <CardContent>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            className="dark:text-white"
+          >
+            {title}
+          </Typography>
+          {isLoading ? (
+            <Skeleton width={100} height={40} />
+          ) : (
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              <CountUp to={value} duration={1} separator="." />
+            </Typography>
+          )}
+        </Box>
+        <IconButton sx={{ backgroundColor: `${color}20`, color: color }}>
+          {icon}
+        </IconButton>
+      </Box>
+      {trend !== undefined && (
+        <Box display="flex" alignItems="center" mt={2}>
+          {trend > 0 ? (
+            <ArrowUpward sx={{ color: "success.main", fontSize: 16 }} />
+          ) : (
+            <ArrowDownward sx={{ color: "error.main", fontSize: 16 }} />
+          )}
+          <Typography variant="caption" sx={{ ml: 0.5 }}>
+            {Math.abs(trend)}% from last week
+          </Typography>
+        </Box>
+      )}
+      {subtitle && (
+        <Typography
+          variant="caption"
+          color="textSecondary"
+          display="block"
+          mt={1}
+          className="dark:text-white"
+        >
+          {subtitle}
+        </Typography>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const ChartCard = ({ title, children, height = 400 }) => (
+  <Card
+    sx={{
+      height: "100%",
+      background: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(10px)",
+    }}
+  >
+    <CardContent>
+      <Typography variant="h6" gutterBottom className="dark:text-white">
+        {title}
+      </Typography>
+      <Box height={height}>{children}</Box>
+    </CardContent>
+  </Card>
+);
+
+const AnalyticsCard = ({ title, value, icon, color }) => (
+  <Box display="flex" justifyContent="space-between" alignItems="center" >
+    <Box display="flex" alignItems="center" gap={1} >
+      <IconButton size="small" sx={{ color: color }}>
+        {icon}
+      </IconButton>
+      <Typography variant="body1">{title}</Typography>
+    </Box>
+    <Typography variant="h6" sx={{ color: color }}>
+      <CountUp to={value || 0} duration={1} />
+    </Typography>
+  </Box>
 );
 
 const SellerDashboard = () => {
@@ -303,7 +410,7 @@ const SellerDashboard = () => {
 
   return (
     <SellerWrapper>
-      <div className="w-full px-2 py-4 sm:px-0">
+      <Box className="w-full px-2 py-4 sm:px-0">
         <TabGroup>
           <TabList className="flex space-x-1 rounded-xl bg-gray-100 dark:bg-gray-700 p-1">
             <Tab
@@ -318,7 +425,7 @@ const SellerDashboard = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <MdDashboard size={20} />
-                <FootTypo footlabel="Overview" className="!m-0" />
+                <FootTypo footlabel="Overview" />
               </div>
             </Tab>
             <Tab
@@ -333,7 +440,7 @@ const SellerDashboard = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <MdOutlineInventory2 size={20} />
-                <FootTypo footlabel="Analytics" className="!m-0" />
+                <FootTypo footlabel="Analytics" />
               </div>
             </Tab>
             <Tab
@@ -348,536 +455,215 @@ const SellerDashboard = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <MdOutlineAnalytics size={20} />
-                <FootTypo footlabel="Reports" className="!m-0" />
+                <FootTypo footlabel="Reports" />
               </div>
             </Tab>
           </TabList>
           <TabPanels className="mt-5 font-semibold relative">
             <TabPanel className="bg-transparent space-y-5 animate-tab-fade-in">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <BorderBox className="p-4">
-                  <div className="flex items-center justify-between">
-                    <FootTypo
-                      footlabel="Total Revenue"
-                      className="!m-0 text-sm tracking-tight"
-                    />
-                    <GrMoney size={16} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    {isProviderDashboardLoading ? (
-                      <Skeleton variant="text" width={100} height={20} />
-                    ) : (
-                      <FootTypo
-                        footlabel={`+ ${formatCurrency(
-                          providerDashboard?.totalRevenue
-                        )}`}
-                        className="!m-0 text-sm tracking-tight"
-                      />
-                    )}
-                    <GrowthIndicator value={revenueGrowth} />
-                  </div>
-                  <div className="text-xs">
-                    <span className="font-medium">+</span>{" "}
-                    {formatCurrency(providerDashboard?.thisWeekTotalRevenue) ||
-                      0}{" "}
-                    since last week
-                  </div>
-                </BorderBox>
-                <BorderBox className="p-4">
-                  <div className="flex items-center justify-between ">
-                    <FootTypo
-                      footlabel="Subscriptions"
-                      className="!m-0 text-sm tracking-tight"
-                    />
-                    <HiOutlineUsers size={16} />
-                  </div>
-                  {isProviderDashboardLoading ? (
-                    <Skeleton variant="text" width={100} height={20} />
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <CountUp
-                        to={providerDashboard?.totalFollowers}
-                        className="!m-0 text-sm tracking-tight"
-                        direction="up"
-                        duration={0.5}
-                      />
-                    </div>
-                  )}
-                </BorderBox>
-                <BorderBox className="p-4">
-                  <div className="flex items-center justify-between">
-                    <FootTypo
-                      footlabel="Booking"
-                      className="!m-0 text-sm tracking-tight"
-                    />
-                    <FaRegCalendarCheck size={16} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    {isProviderDashboardLoading ? (
-                      <Skeleton variant="text" width={100} height={20} />
-                    ) : (
-                      <CountUp
-                        to={providerDashboard?.totalBookings}
-                        className="!m-0 text-sm tracking-tight"
-                        direction="up"
-                        duration={0.5}
-                      />
-                    )}
-                    <GrowthIndicator value={bookingGrowth} />
-                  </div>
-                  <div className="text-xs">
-                    <span className="font-medium">+</span>{" "}
-                    {providerDashboard?.thisWeekBookings || 0} since last week
-                  </div>
-                </BorderBox>
-                <BorderBox className="p-4">
-                  <div className="flex items-center justify-between">
-                    <FootTypo
-                      footlabel="Orders"
-                      className="!m-0 text-sm tracking-tight"
-                    />
-                    <FaRegCreditCard size={16} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    {isProviderDashboardLoading ? (
-                      <Skeleton variant="text" width={100} height={20} />
-                    ) : (
-                      <CountUp
-                        to={providerDashboard?.totalOrders}
-                        className="!m-0 text-sm tracking-tight"
-                        direction="up"
-                        duration={0.5}
-                      />
-                    )}
-                    <GrowthIndicator value={orderGrowth} />
-                  </div>
-                  <div className="text-xs">
-                    <span className="font-medium">+</span>{" "}
-                    {providerDashboard?.thisWeekOrders || 0} since last week
-                  </div>
-                </BorderBox>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <BorderBox className="col-span-4 p-4">
-                  <div className="h-[400px] dark:bg-transparent rounded-lg p-4">
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <StatCard
+                    title="Total Revenue"
+                    value={providerDashboard?.totalRevenue}
+                    icon={<MonetizationOn />}
+                    color="#00d8ff"
+                    isLoading={isProviderDashboardLoading}
+                    trend={revenueGrowth}
+                    subtitle={`+${formatCurrency(
+                      providerDashboard?.thisWeekTotalRevenue || 0
+                    )} this week`}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <StatCard
+                    title="Subscriptions"
+                    value={providerDashboard?.totalFollowers}
+                    icon={<People />}
+                    color="#3f51b5"
+                    isLoading={isProviderDashboardLoading}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <StatCard
+                    title="Bookings"
+                    value={providerDashboard?.totalBookings}
+                    icon={<BookOnline />}
+                    color="#4caf50"
+                    isLoading={isProviderDashboardLoading}
+                    trend={bookingGrowth}
+                    subtitle={`+${
+                      providerDashboard?.thisWeekBookings || 0
+                    } this week`}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <StatCard
+                    title="Orders"
+                    value={providerDashboard?.totalOrders}
+                    icon={<ShoppingCart />}
+                    color="#ff9800"
+                    isLoading={isProviderDashboardLoading}
+                    trend={orderGrowth}
+                    subtitle={`+${
+                      providerDashboard?.thisWeekOrders || 0
+                    } this week`}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 8 }}>
+                  <ChartCard title="Revenue Analysis">
                     {!isMonthlyRevenueLoading && (
                       <Bar options={options} data={chartData} />
                     )}
-                  </div>
-                </BorderBox>
-                <BorderBox className="col-span-3">
-                  <FootTypo
-                    footlabel="Top Contribution Users"
-                    className="!m-0 text-lg tracking-tight"
-                  />
-                  <div className="flex flex-col gap-2">
+                  </ChartCard>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom className="dark:text-white">
+                        Top Contributing Users
+                      </Typography>
+                      <Box className="space-y-4 dark:text-white">
                     {topCustomerSpending?.map((item, index) => (
-                      <div key={item.customerId}>
-                        <div className="flex items-center gap-2 justify-between pl-16 relative">
-                          <div className="number w-[50px] absolute left-0 top-0 text-center text-[2.2em] italic bg-gradient-to-r from-yellow to-white text-transparent bg-clip-text ">
-                            {index + 1}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Avatar userImg={item.avatar} w={36} h={36} />
-                            <span className="flex flex-col">
-                              <FootTypo
-                                footlabel={item.fullName}
-                                className="!m-0 text-lg tracking-tight"
-                              />
-                              <FootTypo
-                                footlabel={item.email}
-                                className="!m-0 text-xs tracking-tight"
-                              />
-                            </span>
-                          </div>
-                          <FootTypo
-                            footlabel={`+ ${formatCurrency(
-                              item.totalSpending
-                            )}`}
-                            className="!m-0 text-lg tracking-tight"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {isTopCustomerSpendingLoading && (
-                      <>
-                        {[1, 2, 3, 4, 5].map((num) => (
-                          <div
-                            key={`skeleton-${num}`}
-                            className="flex items-center gap-2 justify-between pl-16 relative"
+                          <Box
+                            key={item.customerId}
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
                           >
-                            <div className="number absolute left-0 top-0 text-center text-[2.2em] italic bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
-                              {num}
-                            </div>
-                            <div className="flex items-center gap-3">
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Typography
+                                variant="h4"
+                                sx={{ color: "#ffd700", width: 40 }}
+                              >
+                            {index + 1}
+                              </Typography>
+                            <Avatar userImg={item.avatar} w={36} h={36} />
+                              <Box>
+                                <Typography variant="subtitle2">
+                                  {item.fullName}
+                                </Typography>
+                                <Typography variant="caption">
+                                  {item.email}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Typography variant="subtitle1" color="primary">
+                              {formatCurrency(item.totalSpending)}
+                            </Typography>
+                          </Box>
+                        ))}
+                        {isTopCustomerSpendingLoading &&
+                          [...Array(5)].map((_, i) => (
+                            <Box
+                              key={i}
+                              className="flex items-center justify-between"
+                            >
+                              <Box className="flex items-center gap-3">
+                                <Skeleton variant="text" width={40} />
                               <Skeleton
                                 variant="circular"
                                 width={36}
                                 height={36}
                               />
-                              <span className="flex flex-col">
-                                <Skeleton
-                                  variant="text"
-                                  width={120}
-                                  height={24}
-                                />
-                                <Skeleton
-                                  variant="text"
-                                  width={80}
-                                  height={16}
-                                />
-                              </span>
-                            </div>
-                            <Skeleton variant="text" width={80} height={24} />
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    {!isTopCustomerSpendingLoading &&
-                      topCustomerSpending?.length === 0 && (
-                        <div className="text-center py-4 text-gray-500">
-                          No customer spending data available
-                        </div>
-                      )}
-                  </div>
-                </BorderBox>
-              </div>
+                                <Box>
+                                  <Skeleton variant="text" width={120} />
+                                  <Skeleton variant="text" width={80} />
+                                </Box>
+                              </Box>
+                              <Skeleton variant="text" width={80} />
+                            </Box>
+                          ))}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
             </TabPanel>
             <TabPanel className="bg-transparent space-y-5 animate-tab-fade-in">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-                <BorderBox className="col-span-2 p-4">
-                  <div className="flex flex-col gap-4">
-                    <FootTypo
-                      footlabel="Detail Analytics"
-                      className="!m-0 text-lg"
-                    />
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-row items-center justify-between border-b pb-3">
-                        <div className="flex items-center gap-2">
-                          <GoPackage size={20} className="text-primary" />
-                          <FootTypo
-                            footlabel="Total Services"
-                            className="!m-0 text-sm tracking-tight"
-                          />
-                        </div>
-                        <CountUp
-                          to={providerDashboard?.totalServices || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
-                          direction="up"
-                          duration={0.5}
-                        />
-                      </div>
-                      <div className="flex flex-row items-center justify-between border-b pb-3">
-                        <div className="flex items-center gap-2">
-                          <CiClock1 size={20} className="text-yellow" />
-                          <FootTypo
-                            footlabel="On Going Services"
-                            className="!m-0 text-sm tracking-tight"
-                          />
-                        </div>
-                        <CountUp
-                          to={providerDashboard?.processingBookings || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
-                          direction="up"
-                          duration={0.5}
-                        />
-                      </div>
-                      <div className="flex flex-row items-center justify-between border-b pb-3">
-                        <div className="flex items-center gap-2">
-                          <RiBaseStationLine
-                            size={20}
-                            className="text-success"
-                          />
-                          <FootTypo
-                            footlabel="Services Available"
-                            className="!m-0 text-sm tracking-tight"
-                          />
-                        </div>
-                        <CountUp
-                          to={providerDashboard?.completedBookings || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
-                          direction="up"
-                          duration={0.5}
-                        />
-                      </div>
-                      <div className="flex flex-row items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <LuLamp size={20} />
-                          <FootTypo
-                            footlabel="Total Products"
-                            className="!m-0 text-sm tracking-tight"
-                          />
-                        </div>
-                        <CountUp
-                          to={providerDashboard?.totalProducts || 0}
-                          className="!m-0 text-lg tracking-tight font-bold"
-                          direction="up"
-                          duration={0.5}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </BorderBox>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      p: 3,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom className="dark:text-white">
+                      Detail Analytics
+                    </Typography>
+                    <Box className="space-y-4 dark:text-white">
+                      <AnalyticsCard
+                        title="Total Services"
+                        value={providerDashboard?.totalServices}
+                        icon={<Assignment />}
+                        color="#00d8ff"
+                      />
+                      <AnalyticsCard
+                        title="On Going Services"
+                        value={providerDashboard?.processingBookings}
+                        icon={<CiClock1 />}
+                        color="#ffd700"
+                      />
+                      <AnalyticsCard
+                        title="Services Available"
+                        value={providerDashboard?.completedBookings}
+                        icon={<CheckCircle />}
+                        color="#4caf50"
+                      />
+                      <AnalyticsCard
+                        title="Total Products"
+                        value={providerDashboard?.totalProducts}
+                        icon={<ShoppingCart />}
+                        color="#9c27b0"
+                      />
+                    </Box>
+                  </Card>
+                </Grid>
 
-                <BorderBox className="col-span-3 p-4">
-                  <div className="flex flex-col h-full">
-                    <FootTypo
-                      footlabel="Top Services"
-                      className="!m-0 pb-4 text-lg"
-                    />
-                    <div className="flex flex-col gap-3">
-                      {providerDashboard?.topServices?.map((item, index) => (
-                        <div key={item.serviceId} className=" pb-3">
-                          <div className="flex items-center gap-2 justify-between pl-16 relative">
-                            <div className="number w-[50px] absolute left-0 top-[-10px] text-center text-[2.2em] italic bg-gradient-to-r from-yellow to-white text-transparent bg-clip-text">
-                              {index + 1}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <FootTypo
-                                footlabel={item.style}
-                                className="!m-0 text-md tracking-tight"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {!providerDashboard?.topServices?.length && (
-                        <div className="flex items-center justify-center h-full text-gray-500">
-                          No top services data available
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </BorderBox>
-                <BorderBox className="col-span-3 p-4">
-                  <div className="flex flex-col h-full">
-                    <FootTypo
-                      footlabel="Best Selling Products"
-                      className="!m-0 pb-4 text-lg"
-                    />
-                    <div className="flex flex-col gap-3">
-                      {providerDashboard?.topProducts?.map((item, index) => (
-                        <div key={item.productId} className=" pb-3">
-                          <div className="flex items-center gap-2 justify-between pl-16 relative">
-                            <div className="number w-[50px] absolute left-0 top-[-10px] text-center text-[2.2em] italic bg-gradient-to-r from-yellow to-white text-transparent bg-clip-text">
-                              {index + 1}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <FootTypo
-                                footlabel={item.productName}
-                                className="!m-0 text-md tracking-tight"
-                              />
-                            </div>
-                            <FootTypo
-                              footlabel={`${item.soldQuantity} sold`}
-                              className="!m-0 text-md tracking-tight"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      {!providerDashboard?.topProducts?.length && (
-                        <div className="flex items-center justify-center h-full text-gray-500">
-                          No top products data available
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </BorderBox>
-
-                <BorderBox className="col-span-3 p-4">
-                  <div className="flex flex-col gap-4">
-                    <FootTypo
-                      footlabel="Booking Analytics"
-                      className="!m-0 text-lg"
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                        <FootTypo
-                          footlabel="Completed"
-                          className="!m-0 text-sm tracking-tight mb-2"
-                        />
-                        <div className="text-2xl font-bold text-success">
-                          <CountUp
-                            to={providerDashboard?.completedBookings || 0}
-                            direction="up"
-                            duration={0.5}
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                        <FootTypo
-                          footlabel="Pending"
-                          className="!m-0 text-sm tracking-tight mb-2"
-                        />
-                        <div className="text-2xl font-bold text-yellow">
-                          <CountUp
-                            to={providerDashboard?.pendingBookings || 0}
-                            direction="up"
-                            duration={0.5}
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                        <FootTypo
-                          footlabel="Cancelled"
-                          className="!m-0 text-sm tracking-tight mb-2"
-                        />
-                        <div className="text-2xl font-bold text-error">
-                          <CountUp
-                            to={providerDashboard?.canceledBookings || 0}
-                            direction="up"
-                            duration={0.5}
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                        <FootTypo
-                          footlabel="Total"
-                          className="!m-0 text-sm tracking-tight mb-2"
-                        />
-                        <div className="text-2xl font-bold text-primary">
-                          <CountUp
-                            to={providerDashboard?.totalBookings || 0}
-                            direction="up"
-                            duration={0.5}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </BorderBox>
-
-                <BorderBox className="col-span-5 p-4">
-                  <div className="flex flex-col h-full">
-                    <FootTypo
-                      footlabel="Revenue Breakdown"
-                      className="!m-0 mb-4"
-                    />
-                    <div className="flex flex-col gap-4 h-full">
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <FootTypo
-                            footlabel="This Week"
-                            className="!m-0 text-sm tracking-tight"
-                          />
-                          <div className="text-lg font-bold">
-                            {formatCurrency(
-                              providerDashboard?.thisWeekTotalRevenue || 0
-                            )}
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-gradient-to-r from-primary to-secondary h-full rounded-full"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (providerDashboard?.thisWeekTotalRevenue /
-                                  providerDashboard?.totalRevenue) *
-                                  100 || 0
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <FootTypo
-                            footlabel="Last Week"
-                            className="!m-0 text-sm tracking-tight"
-                          />
-                          <div className="text-lg font-bold">
-                            {formatCurrency(
-                              providerDashboard?.lastWeekTotalRevenue || 0
-                            )}
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-gradient-to-r from-yellow to-orange h-full rounded-full"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (providerDashboard?.lastWeekTotalRevenue /
-                                  providerDashboard?.totalRevenue) *
-                                  100 || 0
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div className="mt-auto flex items-center justify-between">
-                        <FootTypo
-                          footlabel="Growth Rate"
-                          className="!m-0 text-md tracking-tight"
-                        />
-                        <div
-                          className={`text-lg font-bold ${
-                            providerDashboard?.thisWeekTotalRevenue >
-                            providerDashboard?.lastWeekTotalRevenue
-                              ? "text-success"
-                              : "text-error"
-                          }`}
-                        >
-                          {providerDashboard?.thisWeekTotalRevenue >
-                          providerDashboard?.lastWeekTotalRevenue
-                            ? "+"
-                            : ""}
-                          {(
-                            (((providerDashboard?.thisWeekTotalRevenue || 0) -
-                              (providerDashboard?.lastWeekTotalRevenue || 0)) /
-                              (providerDashboard?.lastWeekTotalRevenue || 1)) *
-                            100
-                          ).toFixed(1)}
-                          %
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </BorderBox>
-
-                <BorderBox className="col-span-8 p-4 mt-4">
-                  <FootTypo
-                    footlabel="Growth Rate Analysis"
-                    className="!m-0 text-lg mb-4"
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Revenue Growth Chart */}
+                <Grid size={{ xs: 12, md: 9 }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      p: 3,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom className="dark:text-white">
+                      Weekly Booking Comparison
+                    </Typography>
                     <div className="h-[300px]">
                       <Line
                         data={{
-                          labels: [
-                            "Week 1",
-                            "Week 2",
-                            "Week 3",
-                            "Week 4",
-                            "Current",
-                          ],
+                          labels: ["Last Week", "This Week"],
                           datasets: [
                             {
-                              label: "Revenue Growth",
+                              label: "Bookings",
                               data: [
-                                providerDashboard?.lastMonthTotalRevenue *
-                                  0.2 || 0,
-                                providerDashboard?.lastMonthTotalRevenue *
-                                  0.4 || 0,
-                                providerDashboard?.lastMonthTotalRevenue *
-                                  0.7 || 0,
-                                providerDashboard?.lastWeekTotalRevenue || 0,
-                                providerDashboard?.thisWeekTotalRevenue || 0,
+                                providerDashboard?.lastWeekBookings || 0,
+                                providerDashboard?.thisWeekBookings || 0
                               ],
-                              borderColor: "rgb(0, 216, 255)",
-                              backgroundColor: "rgba(0, 216, 255, 0.1)",
+                              borderColor: "rgb(75, 192, 192)",
+                              backgroundColor: "rgba(75, 192, 192, 0.1)",
                               borderWidth: 2,
                               fill: true,
                               tension: 0.4,
-                              pointBackgroundColor: "rgb(0, 216, 255)",
+                              pointBackgroundColor: "rgb(75, 192, 192)",
                               pointBorderColor: "#fff",
                               pointBorderWidth: 2,
-                              pointRadius: 4,
-                              pointHoverRadius: 6,
+                              pointRadius: 6,
+                              pointHoverRadius: 8,
                             },
                           ],
                         }}
@@ -896,7 +682,7 @@ const SellerDashboard = () => {
                             },
                             title: {
                               display: true,
-                              text: "Weekly Revenue Trend",
+                              text: `Booking Growth: ${bookingGrowth > 0 ? '+' : ''}${bookingGrowth}%`,
                               color: isDark ? "#fff" : "#666",
                               font: {
                                 size: 14,
@@ -911,10 +697,10 @@ const SellerDashboard = () => {
                               borderWidth: 1,
                               displayColors: false,
                               callbacks: {
-                                label: function (context) {
-                                  return formatCurrency(context.raw);
-                                },
-                              },
+                                label: function(context) {
+                                  return `Bookings: ${context.raw}`;
+                                }
+                              }
                             },
                           },
                           scales: {
@@ -926,9 +712,6 @@ const SellerDashboard = () => {
                               },
                               ticks: {
                                 color: isDark ? "#9CA3AF" : "#666",
-                                callback: function (value) {
-                                  return formatCurrency(value);
-                                },
                                 font: {
                                   size: 11,
                                 },
@@ -955,127 +738,332 @@ const SellerDashboard = () => {
                         }}
                       />
                     </div>
+                  </Card>
+                </Grid>
 
-                    {/* Booking Growth Chart */}
-                    <div className="h-[300px]">
-                      <Line
-                        data={{
-                          labels: [
-                            "Week 1",
-                            "Week 2",
-                            "Week 3",
-                            "Week 4",
-                            "Current",
-                          ],
-                          datasets: [
-                            {
-                              label: "Booking Growth",
-                              data: [
-                                Math.max(
-                                  1,
-                                  providerDashboard?.lastWeekBookings * 0.3
-                                ) || 1,
-                                Math.max(
-                                  2,
-                                  providerDashboard?.lastWeekBookings * 0.5
-                                ) || 2,
-                                Math.max(
-                                  3,
-                                  providerDashboard?.lastWeekBookings * 0.8
-                                ) || 3,
-                                providerDashboard?.lastWeekBookings || 4,
-                                providerDashboard?.thisWeekBookings || 5,
-                              ],
-                              borderColor: "rgb(75, 192, 192)",
-                              backgroundColor: "rgba(75, 192, 192, 0.1)",
-                              borderWidth: 2,
-                              fill: true,
-                              tension: 0.4,
-                              pointBackgroundColor: "rgb(75, 192, 192)",
-                              pointBorderColor: "#fff",
-                              pointBorderWidth: 2,
-                              pointRadius: 4,
-                              pointHoverRadius: 6,
-                            },
-                          ],
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: "top",
-                              labels: {
-                                color: isDark ? "#fff" : "#666",
-                                font: {
-                                  size: 12,
-                                },
-                              },
-                            },
-                            title: {
-                              display: true,
-                              text: "Weekly Booking Trend",
-                              color: isDark ? "#fff" : "#666",
-                              font: {
-                                size: 14,
-                                weight: "bold",
-                              },
-                            },
-                            tooltip: {
-                              backgroundColor: isDark ? "#374151" : "#fff",
-                              titleColor: isDark ? "#fff" : "#000",
-                              bodyColor: isDark ? "#fff" : "#000",
-                              borderColor: isDark ? "#4B5563" : "#E5E7EB",
-                              borderWidth: 1,
-                              displayColors: false,
-                            },
-                          },
-                          scales: {
-                            y: {
-                              beginAtZero: true,
-                              grid: {
-                                color: isDark ? "#374151" : "#f0f0f0",
-                                drawBorder: false,
-                              },
-                              ticks: {
-                                color: isDark ? "#9CA3AF" : "#666",
-                                font: {
-                                  size: 11,
-                                },
-                              },
-                              border: {
-                                display: false,
-                              },
-                            },
-                            x: {
-                              grid: {
-                                display: false,
-                              },
-                              ticks: {
-                                color: isDark ? "#9CA3AF" : "#666",
-                                font: {
-                                  size: 11,
-                                },
-                              },
-                              border: {
-                                display: false,
-                              },
-                            },
-                          },
-                        }}
-                      />
-                    </div>
-                  </div>
-                </BorderBox>
-              </div>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      p: 3,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom className="dark:text-white">
+                      Top Services
+                    </Typography>
+                    <Box className="space-y-4 dark:text-white">
+                      {providerDashboard?.topServices?.map((item, index) => (
+                        <Box
+                          key={item.serviceId}
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography
+                              variant="h4"
+                              sx={{ color: "#ffd700", width: 40 }}
+                            >
+                              {index + 1}
+                            </Typography>
+                            <Typography variant="body1">
+                              {item.style}
+                            </Typography>
+                          </Box>
+                          <Typography variant="subtitle2" color="primary">
+                            {item.favoriteCount} liked
+                          </Typography>
+                        </Box>
+                      ))}
+                      {!providerDashboard?.topServices?.length && (
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
+                          textAlign="center"
+                        >
+                          No top services data available
+                        </Typography>
+                      )}
+                    </Box>
+                  </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      p: 3,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom className="dark:text-white">
+                      Best Selling Products
+                    </Typography>
+                    <Box className="space-y-4 dark:text-white">
+                      {providerDashboard?.topProducts?.map((item, index) => (
+                        <Box
+                          key={item.productId}
+                          className="flex items-center justify-between"
+                        >
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography
+                              variant="h4"
+                              sx={{ color: "#ffd700", width: 40 }}
+                            >
+                              {index + 1}
+                            </Typography>
+                            <Typography variant="body1">
+                              {item.productName}
+                            </Typography>
+                          </Box>
+                          <Typography variant="subtitle2" color="primary">
+                            {item.soldQuantity} sold
+                          </Typography>
+                        </Box>
+                      ))}
+                      {!providerDashboard?.topProducts?.length && (
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
+                          textAlign="center"
+                        >
+                          No top products data available
+                        </Typography>
+                      )}
+                    </Box>
+                  </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Card
+                    sx={{
+                      p: 3,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom className="dark:text-white">
+                      Booking Analytics
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 6 }}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            bgcolor: "background.paper",
+                            borderRadius: 1,
+                            textAlign: "center",
+                          }}
+                        >
+                          <Typography variant="subtitle2" gutterBottom>
+                            Completed
+                          </Typography>
+                          <Typography variant="h4" color="success.main">
+                          <CountUp
+                            to={providerDashboard?.completedBookings || 0}
+                              duration={1}
+                              separator="."
+                            />
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid size={{ xs: 6 }}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            bgcolor: "background.paper",
+                            borderRadius: 1,
+                            textAlign: "center",
+                          }}
+                        >
+                          <Typography variant="subtitle2" gutterBottom>
+                            Pending
+                          </Typography>
+                          <Typography variant="h4" sx={{ color: "#ffd700" }}>
+                          <CountUp
+                            to={providerDashboard?.pendingBookings || 0}
+                              duration={1}
+                              separator="."
+                            />
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid size={{ xs: 6 }}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            bgcolor: "background.paper",
+                            borderRadius: 1,
+                            textAlign: "center",
+                          }}
+                        >
+                          <Typography variant="subtitle2" gutterBottom>
+                            Cancelled
+                          </Typography>
+                          <Typography variant="h4" color="error.main">
+                          <CountUp
+                            to={providerDashboard?.canceledBookings || 0}
+                              duration={1}
+                              separator="."
+                            />
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid size={{ xs: 6 }}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            bgcolor: "background.paper",
+                            borderRadius: 1,
+                            textAlign: "center",
+                          }}
+                        >
+                          <Typography variant="subtitle2" gutterBottom>
+                            Total
+                          </Typography>
+                          <Typography variant="h4" color="primary">
+                          <CountUp
+                            to={providerDashboard?.totalBookings || 0}
+                              duration={1}
+                              separator="."
+                            />
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Card
+                    sx={{
+                      p: 3,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                      
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom className="dark:text-white">
+                      Revenue Breakdown
+                    </Typography>
+                    <Box className="space-y-4 dark:text-white">
+                      <Box>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={1}
+                        >
+                          <Typography variant="subtitle2">This Week</Typography>
+                          <Typography variant="h6">
+                            {formatCurrency(
+                              providerDashboard?.thisWeekTotalRevenue || 0
+                            )}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            width: "100%",
+                            bgcolor: "grey",
+                            borderRadius: 1,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: `${Math.min(
+                                100,
+                                (providerDashboard?.thisWeekTotalRevenue /
+                                  providerDashboard?.totalRevenue) *
+                                  100 || 0
+                              )}%`,
+                              height: 8,
+                              background:
+                                "linear-gradient(90deg, #00d8ff 0%, #00ff88 100%)",
+                            }}
+                          />
+                        </Box>
+                      </Box>
+
+                      <Box>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={1}
+                        >
+                          <Typography variant="subtitle2">Last Week</Typography>
+                          <Typography variant="h6">
+                            {formatCurrency(
+                              providerDashboard?.lastWeekTotalRevenue || 0
+                            )}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            width: "100%",
+                            bgcolor: "grey",
+                            borderRadius: 1,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: `${Math.min(
+                                100,
+                                (providerDashboard?.lastWeekTotalRevenue /
+                                  providerDashboard?.totalRevenue) *
+                                  100 || 0
+                              )}%`,
+                              height: 8,
+                              background:
+                                "linear-gradient(90deg, #ffd700 0%, #ff9800 100%)",
+                            }}
+                          />
+                        </Box>
+                      </Box>
+
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        mt={2}
+                      >
+                        <Typography variant="subtitle2">Growth Rate</Typography>
+                        <Typography
+                          variant="h6"
+                          color={
+                            providerDashboard?.thisWeekTotalRevenue >
+                            providerDashboard?.lastWeekTotalRevenue
+                              ? "success.main"
+                              : "error.main"
+                          }
+                        >
+                          {providerDashboard?.thisWeekTotalRevenue >
+                          providerDashboard?.lastWeekTotalRevenue
+                            ? "+"
+                            : ""}
+                          {(
+                            (((providerDashboard?.thisWeekTotalRevenue || 0) -
+                              (providerDashboard?.lastWeekTotalRevenue || 0)) /
+                              (providerDashboard?.lastWeekTotalRevenue || 1)) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Card>
+                </Grid>
+              </Grid>
             </TabPanel>
             <TabPanel className="bg-transparent space-y-5 animate-tab-fade-in">
-              <div className="grid grid-cols-2 grid-rows-1 gap-4">
-                <div className="flex flex-col gap-4">
-                  <FootTypo
-                    footlabel="All Tickets"
-                    className="!m-0 text-lg font-semibold"
-                  />
+              <div className="w-full">
+                <FootTypo footlabel="All Tickets" />
+                <div className="mt-4">
                   <DataMapper
                     data={supportTickets?.data || []}
                     Component={TicketCard}
@@ -1099,258 +1087,258 @@ const SellerDashboard = () => {
                     }}
                   />
                 </div>
-                <BorderBox className="p-0 relative">
-                  {selectedTicket ? (
-                    <div className="h-full flex flex-col">
-                      <div className="p-4 border-b flex justify-between items-center">
-                        <div className="flex flex-col">
+              </div>
+
+              {/* Ticket Details Dialog */}
+              <Dialog 
+                open={!!selectedTicket} 
+                onClose={handleCloseTicketDetails}
+                maxWidth="md"
+                fullWidth
+              >
+                {selectedTicket && (
+                  <>
+                    <DialogTitle>
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <Box>
                           <FootTypo
                             footlabel={`Ticket #${selectedTicket.id}`}
-                            className="!m-0 text-lg font-semibold"
+                            fontWeight="bold"
+                            fontSize="24px"
                           />
                           <FootTypo
-                            footlabel={selectedTicket.subject || "No subject"}
-                            className="!m-0 text-sm text-gray-600 dark:text-gray-400"
+                            footlabel={`Subject: ${
+                              selectedTicket.subject || "No subject"
+                            }`}
+                            fontWeight="bold"
                           />
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <IconButton
-                            size="small"
-                            onClick={handleCloseTicketDetails}
-                          >
-                            <CloseIcon fontSize="small" />
-                          </IconButton>
-                        </div>
-                      </div>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={handleCloseTicketDetails}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </DialogTitle>
 
-                      <div className="flex-grow overflow-y-auto p-4">
-                        <div className="space-y-4">
-                          <div>
+                    <DialogContent dividers>
+                      <Box className="space-y-4">
+                        <Box>
+                          <FootTypo
+                            footlabel="Description"
+                            fontWeight="bold"
+                            mb={1}
+                          />
+                          <Box className="border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800">
                             <FootTypo
-                              footlabel="Description"
-                              className="!m-0 font-medium mb-1"
+                              footlabel={
+                                selectedTicket.description ||
+                                "No description provided"
+                              }
                             />
-                            <div className="border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800">
+                          </Box>
+                        </Box>
+
+                        <Box className="flex justify-between text-sm text-gray-500">
+                          <span>
+                            Created:{" "}
+                            {formatDateTime(selectedTicket.createAt).date} at{" "}
+                            {formatDateTime(selectedTicket.createAt).time}
+                          </span>
+                          {selectedTicket.bookingCode && (
+                            <span>Booking: {selectedTicket.bookingCode}</span>
+                          )}
+                        </Box>
+
+                        {selectedTicket.attachmentUrls &&
+                          selectedTicket.attachmentUrls.length > 0 && (
+                          <Box>
                               <FootTypo
-                                footlabel={
-                                  selectedTicket.description ||
-                                  "No description provided"
-                                }
-                                className="!m-0 whitespace-pre-wrap"
+                                footlabel="Attachments"
+                                fontWeight="bold"
+                                mb={1}
                               />
-                            </div>
-                          </div>
+                            <Box display="flex" flexWrap="wrap" gap={2}>
+                                {selectedTicket.attachmentUrls.map(
+                                  (url, index) => (
+                                    <div key={index}>
+                                      {renderAttachment(url)}
+                                    </div>
+                                  )
+                                )}
+                            </Box>
+                          </Box>
+                        )}
 
-                          <div className="flex justify-between text-sm text-gray-500">
-                            <span>
-                              Created:{" "}
-                              {formatDateTime(selectedTicket.createAt).date} at{" "}
-                              {formatDateTime(selectedTicket.createAt).time}
-                            </span>
-                            {selectedTicket.bookingCode && (
-                              <span>Booking: {selectedTicket.bookingCode}</span>
-                            )}
-                          </div>
-
-                          {selectedTicket.attachmentUrls &&
-                            selectedTicket.attachmentUrls.length > 0 && (
-                              <div>
-                                <FootTypo
-                                  footlabel="Attachments"
-                                  className="!m-0 font-medium mb-2"
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                  {selectedTicket.attachmentUrls.map(
-                                    (url, index) => (
-                                      <div key={index}>
-                                        {renderAttachment(url)}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                          {selectedTicket.replies &&
-                            selectedTicket.replies.length > 0 && (
-                              <div>
-                                <FootTypo
-                                  footlabel="Your Replies"
-                                  className="!m-0 font-medium mb-2"
-                                />
-                                <div className="space-y-3">
-                                  {selectedTicket.replies.map(
-                                    (reply, index) => (
-                                      <div
-                                        key={index}
-                                        className={`p-3 rounded-md bg-gray-100 dark:bg-gray-700`}
-                                      >
-                                        <div className="flex justify-between items-center mb-1">
-                                          <FootTypo
-                                            footlabel={
-                                              formatDateTime(reply.createAt)
-                                                .date +
-                                              " at " +
-                                              formatDateTime(reply.createAt)
-                                                .time
-                                            }
-                                            className="!m-0 text-xs text-gray-500"
-                                          />
-                                        </div>
-                                        <FootTypo
-                                          footlabel={reply.description}
-                                          className="!m-0 whitespace-pre-wrap mb-2"
-                                        />
-
-                                        {/* Render attachments if they exist */}
-                                        {reply.attachmentUrls &&
-                                          reply.attachmentUrls.length > 0 && (
-                                            <div className="mt-3">
-                                              <FootTypo
-                                                footlabel="Attachments:"
-                                                className="!m-0 text-xs font-medium mb-2"
-                                              />
-                                              <div className="flex flex-wrap gap-2">
-                                                {reply.attachmentUrls.map(
-                                                  (url, idx) => (
-                                                    <div key={idx}>
-                                                      {renderAttachment(url)}
-                                                    </div>
-                                                  )
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                        {/* Handle nested attachmentUrlIs if present */}
-                                        {reply.attachmentUrlIs &&
-                                          reply.attachmentUrlIs.length > 0 && (
-                                            <div className="mt-3">
-                                              <FootTypo
-                                                footlabel="Attachments:"
-                                                className="!m-0 text-xs font-medium mb-2"
-                                              />
-                                              <div className="flex flex-wrap gap-2">
-                                                {reply.attachmentUrlIs.map(
-                                                  (item, idx) => (
-                                                    <div key={idx}>
-                                                      {item.url &&
-                                                        renderAttachment(
-                                                          item.url
-                                                        )}
-                                                    </div>
-                                                  )
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      </div>
-
-                      {!selectedTicket.isSolved && (
-                        <div className="p-4 border-t mt-auto">
-                          {showReplyForm ? (
-                            <div className="flex flex-col gap-3">
-                              <div className="flex justify-between items-center">
-                                <FootTypo
-                                  footlabel="Reply to Customer"
-                                  className="font-medium"
-                                />
-                                <button
-                                  className="text-gray-500 hover:text-gray-700"
-                                  onClick={toggleReplyForm}
+                        {selectedTicket.replies &&
+                          selectedTicket.replies.length > 0 && (
+                          <Box>
+                              <FootTypo
+                                footlabel="Your Replies"
+                                fontWeight="bold"
+                                mb={1}
+                              />
+                            <Box className="space-y-3">
+                              {selectedTicket.replies.map((reply, index) => (
+                                <Box
+                                  key={index}
+                                  className="p-3 rounded-md bg-gray-100 dark:bg-gray-700"
                                 >
-                                  Cancel
-                                </button>
-                              </div>
+                                    <Box
+                                      display="flex"
+                                      justifyContent="space-between"
+                                      alignItems="center"
+                                      mb={1}
+                                    >
+                                    <FootTypo
+                                      footlabel={
+                                        formatDateTime(reply.createAt).date +
+                                        " at " +
+                                        formatDateTime(reply.createAt).time
+                                      }
+                                    />
+                                  </Box>
+                                  <FootTypo footlabel={reply.description} />
 
-                              <TextField
-                                fullWidth
-                                placeholder="Type your reply..."
-                                value={replyMessage}
-                                onChange={(e) =>
-                                  setReplyMessage(e.target.value)
-                                }
-                                multiline
-                                rows={2}
-                                variant="outlined"
-                                size="small"
-                                className="dark:bg-white"
+                                    {reply.attachmentUrls &&
+                                      reply.attachmentUrls.length > 0 && (
+                                    <Box mt={2}>
+                                          <FootTypo footlabel="Attachments:" />
+                                          <Box
+                                            display="flex"
+                                            flexWrap="wrap"
+                                            gap={2}
+                                          >
+                                            {reply.attachmentUrls.map(
+                                              (url, idx) => (
+                                                <div key={idx}>
+                                                  {renderAttachment(url)}
+                                                </div>
+                                              )
+                                            )}
+                                      </Box>
+                                    </Box>
+                                  )}
+
+                                    {reply.attachmentUrlIs &&
+                                      reply.attachmentUrlIs.length > 0 && (
+                                    <Box mt={2}>
+                                      <FootTypo footlabel="Attachments:" />
+                                          <Box
+                                            display="flex"
+                                            flexWrap="wrap"
+                                            gap={2}
+                                          >
+                                            {reply.attachmentUrlIs.map(
+                                              (item, idx) => (
+                                          <div key={idx}>
+                                                  {item.url &&
+                                                    renderAttachment(item.url)}
+                                          </div>
+                                              )
+                                            )}
+                                      </Box>
+                                    </Box>
+                                  )}
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+                      </Box>
+                    </DialogContent>
+
+                    {!selectedTicket.isSolved && (
+                      <DialogActions
+                        sx={{
+                          p: 2.5,
+                          borderTop: "1px solid",
+                          borderColor: "divider",
+                        }}
+                      >
+                        {showReplyForm ? (
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            gap={1}
+                            width="100%"
+                          >
+                            <Box
+                              display="flex"
+                              justifyContent="space-between"
+                              alignItems="center"
+                            >
+                              <FootTypo
+                                footlabel="Reply to Customer"
+                                fontWeight="bold"
                               />
+                              <Button
+                                label="Cancel"
+                                onClick={toggleReplyForm}
+                              />
+                            </Box>
 
-                              <div className="mb-3">
-                                <FootTypo
-                                  footlabel="Attachments (optional)"
-                                  className="!m-0 font-medium mb-2 text-sm"
-                                />
-                                <ImageUpload
-                                  onImageChange={handleImageChange}
-                                />
-                              </div>
+                            <TextField
+                              fullWidth
+                              placeholder="Type your reply..."
+                              value={replyMessage}
+                              onChange={(e) => setReplyMessage(e.target.value)}
+                              multiline
+                              rows={3}
+                              variant="outlined"
+                              size="small"
+                              className="dark:bg-white"
+                            />
 
+                            <Box mb={2}>
+                              <FootTypo footlabel="Attachments (optional)" />
+                              <ImageUpload onImageChange={handleImageChange} />
+                            </Box>
+
+                            <Box
+                              display="flex"
+                              justifyContent="flex-end"
+                              gap={1}
+                            >
                               <Button
                                 label={
                                   isSubmitting ? "Sending..." : "Send Reply"
                                 }
-                                className="bg-action text-white self-end"
+                                className="bg-action text-white"
                                 onClick={handleSubmitReply}
                                 isLoading={isSubmitting}
                                 disabled={isSubmitting || !replyMessage.trim()}
                               />
-                            </div>
-                          ) : (
-                            <>
-                              {!selectedTicket.isSolved ? (
-                                <div className="flex gap-2">
-                                  <Button
-                                    label="Reply to Customer"
-                                    className="bg-action text-white"
-                                    onClick={toggleReplyForm}
-                                  />
-                                  <Button
-                                    label="Mark as Solved"
-                                    onClick={() =>
-                                      markAsSolved(selectedTicket.id)
-                                    }
-                                    isLoading={isMarkAsSolvedLoading}
-                                  />
-                                </div>
-                              ) : (
-                                <FootTypo
-                                  footlabel="Ticket is closed"
-                                  className="!m-0 text-sm text-gray-500"
-                                />
-                              )}
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-gray-500">
-                      <FaInfoCircle size={30} />
-                      <FootTypo
-                        footlabel="Select a ticket to view details"
-                        className="!m-0 text-lg font-medium mb-2"
-                      />
-                      <FootTypo
-                        footlabel="Click on any ticket from the list to see its details and reply to the customer."
-                        className="!m-0 text-sm max-w-md"
-                      />
-                    </div>
-                  )}
-                </BorderBox>
-              </div>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box display="flex" gap={1}>
+                            <Button
+                              label="Reply to Customer"
+                              className="bg-action text-white"
+                              onClick={toggleReplyForm}
+                            />
+                            <Button
+                              label="Mark as Solved"
+                              onClick={() => markAsSolved(selectedTicket.id)}
+                              isLoading={isMarkAsSolvedLoading}
+                            />
+                          </Box>
+                        )}
+                      </DialogActions>
+                    )}
+                  </>
+                )}
+              </Dialog>
             </TabPanel>
           </TabPanels>
         </TabGroup>
-      </div>
+      </Box>
     </SellerWrapper>
   );
 };

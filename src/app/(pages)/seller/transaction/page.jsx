@@ -4,7 +4,6 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import SellerWrapper from "../components/SellerWrapper";
 import DataTable from "@/app/components/ui/table/DataTable";
 import { useGetPaginatedProviderTransactions } from "@/app/queries/dashboard/dashboard.provider.query";
-import { useRouter } from "next/navigation";
 import {
   Skeleton,
   FormControl,
@@ -20,48 +19,80 @@ import { FaMoneyBillWave } from "react-icons/fa";
 import { IoFilterOutline } from "react-icons/io5";
 import { formatCurrency, formatDateTime } from "@/app/helpers";
 import { FootTypo } from "@/app/components/ui/Typography";
-import { BsClock } from "react-icons/bs";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
-
+import { MdFilterListOff } from "react-icons/md";
 // Skeleton loader for the transaction table
 const TransactionTableSkeleton = () => {
   return (
-    <Paper elevation={0} className="w-full overflow-hidden border dark:bg-gray-800 dark:border-gray-700">
-      <Box p={2} mb={2} display="flex" justifyContent="space-between" alignItems="center">
+    <Paper
+      elevation={0}
+      className="w-full overflow-hidden border dark:bg-gray-800 dark:border-gray-700"
+    >
+      <Box
+        p={2}
+        mb={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
         <Skeleton variant="text" width={150} height={30} />
         <Box display="flex" gap={2}>
           <Skeleton variant="text" width={100} height={30} />
           <Skeleton variant="text" width={80} height={30} />
         </Box>
       </Box>
-      
+
       <Box px={2}>
-        <Box mb={2} display="flex" width="100%" sx={{ borderBottom: '1px solid #eee' }}>
+        <Box
+          mb={2}
+          display="flex"
+          width="100%"
+          sx={{ borderBottom: "1px solid #eee" }}
+        >
           {[10, 15, 20, 15, 20, 10].map((width, index) => (
             <Box key={index} width={`${width}%`} p={1.5}>
               <Skeleton variant="text" width="80%" height={24} />
             </Box>
           ))}
         </Box>
-        
+
         {[...Array(5)].map((_, rowIndex) => (
-          <Box key={rowIndex} display="flex" width="100%" sx={{ borderBottom: '1px solid #f5f5f5' }}>
+          <Box
+            key={rowIndex}
+            display="flex"
+            width="100%"
+            sx={{ borderBottom: "1px solid #f5f5f5" }}
+          >
             {[10, 15, 20, 15, 20, 10].map((width, colIndex) => (
               <Box key={colIndex} width={`${width}%`} p={2}>
                 {colIndex === 2 ? (
-                  <Skeleton variant="text" width="70%" height={24} sx={{ color: 'green' }} />
+                  <Skeleton
+                    variant="text"
+                    width="70%"
+                    height={24}
+                    sx={{ color: "green" }}
+                  />
                 ) : colIndex === 5 ? (
                   <Skeleton variant="rounded" width={80} height={30} />
                 ) : (
-                  <Skeleton variant="text" width={colIndex === 0 ? "40%" : "80%"} height={24} />
+                  <Skeleton
+                    variant="text"
+                    width={colIndex === 0 ? "40%" : "80%"}
+                    height={24}
+                  />
                 )}
               </Box>
             ))}
           </Box>
         ))}
       </Box>
-      
-      <Box p={2} display="flex" justifyContent="space-between" alignItems="center">
+
+      <Box
+        p={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
         <Skeleton variant="text" width={100} height={30} />
         <Box display="flex" gap={2}>
           <Skeleton variant="rounded" width={120} height={36} />
@@ -73,7 +104,6 @@ const TransactionTableSkeleton = () => {
 };
 
 const TransactionPage = () => {
-  const router = useRouter();
   const searchInputRef = useRef(null);
   const [filters, setFilters] = useState({
     status: "",
@@ -108,22 +138,22 @@ const TransactionPage = () => {
     }));
   };
 
-
   // Transaction type options
   const typeOptions = [
     { id: "", name: "All Types" },
     { id: "2", name: "Deposite Payment" },
     { id: "4", name: "Final Payment" },
-    { id: "5", name: "Revenue" },
     { id: "6", name: "Order Payment" },
+    { id: "7", name: "Compensation" },
   ];
 
   // Transaction type map for display
   const transactionTypeMap = {
-    "2": { name: "Deposite Payment", color: "success" },
-    "4": { name: "Final Payment", color: "primary" },
-    "5": { name: "Revenue", color: "info" },
-    "6": { name: "Order Payment", color: "warning" },
+    2: { name: "Deposite Payment", color: "success" },
+    4: { name: "Final Payment", color: "primary" },
+    5: { name: "Revenue", color: "info" },
+    6: { name: "Order Payment", color: "warning" },
+    7: { name: "Compensation", color: "error" },
   };
 
   const {
@@ -139,7 +169,7 @@ const TransactionPage = () => {
   // Add a debugging effect to check what's being sent in the API call
   useEffect(() => {
     if (pagination.transactionType) {
-      console.log('Filtering by transaction type:', pagination.transactionType);
+      console.log("Filtering by transaction type:", pagination.transactionType);
     }
   }, [pagination.transactionType]);
 
@@ -155,7 +185,7 @@ const TransactionPage = () => {
       header: "ID",
       accessorKey: "transactionId",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.transactionId}</span>
+        <FootTypo footlabel={row.original.transactionId} />
       ),
     },
     {
@@ -165,10 +195,12 @@ const TransactionPage = () => {
         const dateTime = formatDateTime(row.original.transactionDate);
         return (
           <div className="flex flex-col">
-            <span className="font-medium">{dateTime.date}</span>
-            <span className="text-xs text-gray-500 inline-flex items-center gap-1">
-              <BsClock /> {dateTime.time}
-            </span>
+            <FootTypo footlabel={dateTime.date} fontWeight="bold" />
+            <FootTypo
+              footlabel={`${dateTime.time}`}
+              fontSize="12px"
+              color="gray"
+            />
           </div>
         );
       },
@@ -179,7 +211,8 @@ const TransactionPage = () => {
       cell: ({ row }) => (
         <FootTypo
           footlabel={`+ ${formatCurrency(row.original.amount)}`}
-          className="!m-0 font-semibold text-green"
+          fontWeight="bold"
+          className="text-green"
         />
       ),
     },
@@ -188,25 +221,24 @@ const TransactionPage = () => {
       accessorKey: "type",
       cell: ({ row }) => {
         const typeId = row.original.transactionType?.toString();
-        const typeInfo = transactionTypeMap[typeId] || { 
-          name: "Unknown", 
-          color: "default" 
+        const typeInfo = transactionTypeMap[typeId] || {
+          name: "Unknown",
+          color: "default",
         };
-        
+
         return (
           <Chip
-            icon={<FaMoneyBillWave size={14} />}
             label={typeInfo.name}
             color={typeInfo.color}
             size="small"
             variant="filled"
-            sx={{ 
+            sx={{
               fontWeight: 500,
-              minWidth: '130px',
-              '& .MuiChip-icon': { 
-                marginLeft: '8px',
-                color: 'inherit' 
-              }
+              minWidth: "130px",
+              "& .MuiChip-icon": {
+                marginLeft: "8px",
+                color: "inherit",
+              },
             }}
           />
         );
@@ -216,7 +248,11 @@ const TransactionPage = () => {
       header: "From",
       accessorKey: "senderEmail",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate font-bold">{row.original.senderEmail}</div>
+        <FootTypo
+          footlabel={row.original.senderEmail}
+          fontWeight="bold"
+          className="max-w-xs truncate"
+        />
       ),
     },
   ];
@@ -264,6 +300,7 @@ const TransactionPage = () => {
       </FormControl>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filters"
         onClick={() => {
           setFilters({
@@ -285,8 +322,8 @@ const TransactionPage = () => {
     <SellerWrapper>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Transaction History</h1>
-        <RefreshButton 
-          onRefresh={refetch} 
+        <RefreshButton
+          onRefresh={refetch}
           isLoading={isLoading}
           tooltip="Refresh transaction list"
         />

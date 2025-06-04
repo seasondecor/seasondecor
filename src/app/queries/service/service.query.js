@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BaseRequest from "@/app/lib/api/config/Axios-config";
 import nProgress from "nprogress";
 import "nprogress/nprogress.css";
@@ -28,9 +28,9 @@ export function useReopenService() {
       const { decorServiceId, startDate } = data;
       if (!decorServiceId) throw new Error("No service id provided");
       if (!startDate) throw new Error("No start date provided");
-      
-      return await BaseRequest.Put(`/${SUB_URL}/reOpen/${decorServiceId}`, { 
-        startDate 
+
+      return await BaseRequest.Put(`/${SUB_URL}/reOpen/${decorServiceId}`, {
+        startDate,
       });
     },
   });
@@ -60,43 +60,49 @@ export function useSearchDecorService(params) {
     queryKey: ["search-decor-service", params],
     queryFn: async () => {
       nProgress.start();
-      
+
       try {
         if (!params) {
           const res = await BaseRequest.Get(`/${SUB_URL}/getPaginated`, false);
           return {
             data: res.data.data || [],
-            total: res.data.data?.length || 0
+            total: res.data.data?.length || 0,
           };
         }
-        
+
         // Construct the query string with proper handling of arrays
         const queryParams = new URLSearchParams();
-        
+
         // Handle sublocation parameter
         if (params.Sublocation) {
           queryParams.append("Sublocation", params.Sublocation);
         }
-        
+
         // Handle category parameter
         if (params.CategoryName) {
           queryParams.append("CategoryName", params.CategoryName);
         }
-        
+
+        if (params.DesignName) {
+          queryParams.append("DesignName", params.DesignName);
+        }
+
         // Handle seasons as multiple separate parameters
         if (params.SeasonNames) {
           if (Array.isArray(params.SeasonNames)) {
             // If it's an array, add each season separately
-            params.SeasonNames.forEach(season => {
+            params.SeasonNames.forEach((season) => {
               queryParams.append("SeasonNames", season);
             });
-          } else if (typeof params.SeasonNames === 'string') {
+          } else if (typeof params.SeasonNames === "string") {
             // If it's a single string, add it directly
             queryParams.append("SeasonNames", params.SeasonNames);
           }
         }
-        
-        const url = `/${SUB_URL}/search${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+        const url = `/${SUB_URL}/search${
+          queryParams.toString() ? `?${queryParams.toString()}` : ""
+        }`;
         console.log("Search URL:", url);
         const res = await BaseRequest.Get(url, false);
         return res;
@@ -105,5 +111,71 @@ export function useSearchDecorService(params) {
       }
     },
     enabled: true,
+  });
+}
+
+export function useAddProductToService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const { serviceId, productId, quantity } = data;
+
+      return await BaseRequest.Post(
+        `/${SUB_URL}/addProductToServiceHolder/${serviceId}?productId=${productId}&quantity=${quantity}`,
+        data,
+        false
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get_added_product"] });
+    },
+  });
+}
+
+export function useUpdateProductInService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const { serviceId, productId, quantity } = data;
+
+      return await BaseRequest.Put(
+        `/${SUB_URL}/updateProductInServiceHolder/${serviceId}?productId=${productId}&quantity=${quantity}`,
+        data,
+        false
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get_added_product"] });
+    },
+  });
+}
+
+export function useRemoveProductFromService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const { serviceId, productId } = data;
+
+      return await BaseRequest.Delete(
+        `/${SUB_URL}/removeProductFromServiceHolder/${serviceId}?productId=${productId}`,
+        false
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get_added_product"] });
+    },
+  });
+}
+
+export function useGetAddedProducts(serviceId) {
+  return useQuery({
+    queryKey: ["get_added_product", serviceId],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getAddedProduct/${serviceId}`,
+        false
+      );
+      return res.data;
+    },
   });
 }

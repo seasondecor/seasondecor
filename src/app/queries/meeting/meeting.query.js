@@ -13,31 +13,34 @@ const defaultPagination = {
   descending: true,
 };
 
-export function useGetMeetingListForProvider(bookingCode, paginationParams = {}) {
+export function useGetMeetingListForProvider(
+  bookingCode,
+  paginationParams = {}
+) {
   const params = {
     ...defaultPagination,
     ...paginationParams,
   };
-  
+
   return useQuery({
     queryKey: ["meeting_list", bookingCode, params],
     queryFn: async () => {
       nProgress.start();
       try {
         let url = `/${SUB_URL}/getPaginatedListForProvider?BookingCode=${bookingCode}`;
-        
+
         url += `&PageIndex=${params.pageIndex}`;
         url += `&PageSize=${params.pageSize}`;
-        
-        if (params.status !== undefined && params.status !== "") 
+
+        if (params.status !== undefined && params.status !== "")
           url += `&Status=${encodeURIComponent(params.status)}`;
-        if (params.sortBy) 
+        if (params.sortBy)
           url += `&SortBy=${encodeURIComponent(params.sortBy)}`;
-        if (params.descending !== undefined) 
+        if (params.descending !== undefined)
           url += `&Descending=${params.descending}`;
-          
+
         const response = await BaseRequest.Get(url, false);
-        
+
         if (response && typeof response === "object") {
           if (response.data) {
             return response.data;
@@ -69,28 +72,28 @@ export function useGetMeetingListForCustomer(paginationParams = {}) {
     ...defaultPagination,
     ...paginationParams,
   };
-  
+
   return useMutation({
     mutationFn: async (data = {}) => {
       nProgress.start();
       try {
         // Get bookingCode from data parameter or default to empty string
         const bookingCode = data?.bookingCode || "";
-        
+
         let url = `/${SUB_URL}/getPaginatedListForCustomer?BookingCode=${bookingCode}`;
-        
+
         url += `&PageIndex=${params.pageIndex}`;
         url += `&PageSize=${params.pageSize}`;
-        
-        if (params.status !== undefined && params.status !== "") 
+
+        if (params.status !== undefined && params.status !== "")
           url += `&Status=${encodeURIComponent(params.status)}`;
-        if (params.sortBy) 
+        if (params.sortBy)
           url += `&SortBy=${encodeURIComponent(params.sortBy)}`;
-        if (params.descending !== undefined) 
+        if (params.descending !== undefined)
           url += `&Descending=${params.descending}`;
-          
+
         const response = await BaseRequest.Post(url, data, false);
-        
+
         if (response && typeof response === "object") {
           if (response.data) {
             return response.data;
@@ -132,7 +135,7 @@ export function useCreateMeetingRequest() {
 
 export function useAcceptMeetingRequest() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data) => {
       nProgress.start();
@@ -146,15 +149,21 @@ export function useAcceptMeetingRequest() {
     },
     onSuccess: async (_, variables) => {
       // Invalidate and refetch meeting list queries to update UI
-      await queryClient.invalidateQueries(["meeting_list", variables.bookingCode]);
-      await queryClient.invalidateQueries(["meeting_list_customer", variables.bookingCode]);
-    }
+      await queryClient.invalidateQueries([
+        "meeting_list",
+        variables.bookingCode,
+      ]);
+      await queryClient.invalidateQueries([
+        "meeting_list_customer",
+        variables.bookingCode,
+      ]);
+    },
   });
 }
 
 export function useRejectMeetingRequest() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data) => {
       nProgress.start();
@@ -168,9 +177,15 @@ export function useRejectMeetingRequest() {
     },
     onSuccess: async (_, variables) => {
       // Invalidate and refetch meeting list queries to update UI
-      await queryClient.invalidateQueries(["meeting_list", variables.bookingCode]);
-      await queryClient.invalidateQueries(["meeting_list_customer", variables.bookingCode]);
-    }
+      await queryClient.invalidateQueries([
+        "meeting_list",
+        variables.bookingCode,
+      ]);
+      await queryClient.invalidateQueries([
+        "meeting_list_customer",
+        variables.bookingCode,
+      ]);
+    },
   });
 }
 
@@ -180,7 +195,28 @@ export function useGetJoinInfo(id) {
     queryFn: async () => {
       nProgress.start();
       try {
-        const response = await BaseRequest.Get(`/${SUB_URL}/join-info/${id}`, false);
+        const response = await BaseRequest.Get(
+          `/${SUB_URL}/join-info/${id}`,
+          false
+        );
+        return response.data;
+      } finally {
+        nProgress.done();
+      }
+    },
+  });
+}
+
+export function useGetProviderMeetingForCustomer(bookingCode) {
+  return useQuery({
+    queryKey: ["provider_meeting_for_customer", bookingCode],
+    queryFn: async () => {
+      nProgress.start();
+      try {
+        const response = await BaseRequest.Get(
+          `/${SUB_URL}/getProviderMeetingForCustomer?BookingCode=${bookingCode}`,
+          false
+        );
         return response.data;
       } finally {
         nProgress.done();

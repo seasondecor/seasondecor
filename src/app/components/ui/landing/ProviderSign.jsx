@@ -10,7 +10,6 @@ import { people } from "@/app/constant/people";
 import Input from "../Inputs/Input";
 import { IoIosMail } from "react-icons/io";
 import { HeadTypo, BodyTypo, FootTypo } from "../Typography";
-import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,7 +18,6 @@ import { Element } from "react-scroll";
 import { useUser } from "@/app/providers/userprovider";
 
 const ProviderSign = () => {
-  const { data: session } = useSession();
   const { user } = useUser();
   // const accountId = session?.accountId;
   const mutationSendInv = useSendInvitation();
@@ -65,16 +63,13 @@ const ProviderSign = () => {
 
   return (
     <div className="relative z-20 sm:py-28 lg:py-52 xl:pb-36 mx-auto px-4 sm:px-6 lg:px-0">
-      <div className="text-center">
-        <HeadTypo label="Become a provider now" />
-        <BodyTypo bodylabel="Explore your benefits when become a provider" />
-        <FootTypo
-          footlabel="Fast and reliable"
-          className="mt-4 lg:text-xl lg:leading-8 text-lg font-normal text-zinc-500 dark:text-zinc-300 max-w-2xl"
-        />
-      </div>
-      <div className="relative">
-        <Element name="providerSection">
+      <Element name="providerSection">
+        <div className="text-center">
+          <HeadTypo label="Become a provider now" />
+          <BodyTypo bodylabel="Explore your benefits when become a provider" />
+          <FootTypo footlabel="Fast and reliable" className="self-center" />
+        </div>
+        <div className="relative">
           <div className="section1 grid grid-cols-1 md:grid-cols-6 mt-12">
             <div className="p-4 sm:p-32 relative overflow-hidden col-span-1 md:col-span-3 border-r dark:border-neutral-800">
               <p className="mx-auto mt-4 text-lg font-tertiary text-zinc-500 dark:text-zinc-300 lg:text-xl lg:leading-8">
@@ -133,7 +128,6 @@ const ProviderSign = () => {
                   <div>Login and contact with us </div>
                 </>
               )}
-
             </div>
             <div className="section2 p-4 sm:p-8 relative overflow-hidden col-span-1 md:col-span-3">
               <div className="flex flex-col items-center mt-10 mb-3">
@@ -212,41 +206,41 @@ const ProviderSign = () => {
               </div>
             </div>
           </div>
-        </Element>
 
-        <div
-          className="common_gridLineHorizontalDark__HxUpx hidden dark:block"
-          style={{ top: 0, left: "-10%", width: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineHorizontal__WPmNg block dark:hidden"
-          style={{ top: 0, left: "-10%", width: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineHorizontalDark__HxUpx hidden dark:block"
-          style={{ bottom: 0, left: "-10%", width: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineHorizontal__WPmNg block dark:hidden"
-          style={{ bottom: 0, left: "-10%", width: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineVerticalDark__IgDT_ hidden dark:block"
-          style={{ top: "-10%", right: 0, height: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineVertical__V_DBc block dark:hidden"
-          style={{ top: "-10%", right: 0, height: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineVerticalDark__IgDT_ hidden dark:block"
-          style={{ top: "-10%", left: 0, height: "120%" }}
-        ></div>
-        <div
-          className="common_gridLineVertical__V_DBc block dark:hidden"
-          style={{ top: "-10%", left: 0, height: "120%" }}
-        ></div>
-      </div>
+          <div
+            className="common_gridLineHorizontalDark__HxUpx hidden dark:block"
+            style={{ top: 0, left: "-10%", width: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineHorizontal__WPmNg block dark:hidden"
+            style={{ top: 0, left: "-10%", width: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineHorizontalDark__HxUpx hidden dark:block"
+            style={{ bottom: 0, left: "-10%", width: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineHorizontal__WPmNg block dark:hidden"
+            style={{ bottom: 0, left: "-10%", width: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineVerticalDark__IgDT_ hidden dark:block"
+            style={{ top: "-10%", right: 0, height: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineVertical__V_DBc block dark:hidden"
+            style={{ top: "-10%", right: 0, height: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineVerticalDark__IgDT_ hidden dark:block"
+            style={{ top: "-10%", left: 0, height: "120%" }}
+          ></div>
+          <div
+            className="common_gridLineVertical__V_DBc block dark:hidden"
+            style={{ top: "-10%", left: 0, height: "120%" }}
+          ></div>
+        </div>
+      </Element>
     </div>
   );
 };

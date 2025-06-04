@@ -2,10 +2,11 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import AdminWrapper from "../../components/AdminWrapper";
-import { 
-  useGetPendingApplicationList, 
+import {
+  useGetPendingApplicationList,
+  useGetVerifiedApplicationList,
   useApproveApplication,
-  useRejectApplication
+  useRejectApplication,
 } from "@/app/queries/user/provider.query";
 import DataTable from "@/app/components/ui/table/DataTable";
 import Button from "@/app/components/ui/Buttons/Button";
@@ -22,11 +23,8 @@ import {
   Tab,
   Stack,
 } from "@mui/material";
-import RoleChip from "../../components/RoleChip";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
-import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import {
-  IoFilterOutline,
   IoEyeSharp,
   IoClose,
   IoCheckmarkCircle,
@@ -40,8 +38,10 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { Textarea } from "@headlessui/react";
+import { FootTypo } from "@/app/components/ui/Typography";
 
 const ManageApplication = () => {
+  const [isViewingVerified, setIsViewingVerified] = useState(false);
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
@@ -72,13 +72,27 @@ const ManageApplication = () => {
   };
 
   const {
-    data: applicationList,
-    isLoading,
-    error,
+    data: pendingApplicationList,
+    isLoading: isPendingLoading,
+    error: pendingError,
   } = useGetPendingApplicationList();
 
-  const { mutate: approveApplication, isPending: isApproving } = useApproveApplication();
-  const { mutate: rejectApplication, isPending: isRejecting } = useRejectApplication();
+  const {
+    data: verifiedApplicationList,
+    isLoading: isVerifiedLoading,
+    error: verifiedError,
+  } = useGetVerifiedApplicationList();
+
+  const applicationList = isViewingVerified
+    ? verifiedApplicationList
+    : pendingApplicationList;
+  const isLoading = isViewingVerified ? isVerifiedLoading : isPendingLoading;
+  const error = isViewingVerified ? verifiedError : pendingError;
+
+  const { mutate: approveApplication, isPending: isApproving } =
+    useApproveApplication();
+  const { mutate: rejectApplication, isPending: isRejecting } =
+    useRejectApplication();
 
   // Update pagination when filters change
   useEffect(() => {
@@ -98,19 +112,6 @@ const ManageApplication = () => {
     }));
   };
 
-  const filterOptions = [
-    {
-      label: "Status",
-      type: "boolean",
-      options: [
-        { id: "true", name: "Disabled" },
-        { id: "false", name: "Active" },
-      ],
-      onChange: (value) => handleFilterChange("isDisabled", value),
-      value: filters.isDisabled,
-    },
-  ];
-
   const handleViewApplication = (applicationData) => {
     setSelectedApplication(applicationData);
     setModalOpen(true);
@@ -127,6 +128,11 @@ const ManageApplication = () => {
 
   const columns = [
     {
+      header: "ID",
+      accessorKey: "id",
+      cell: ({ row }) => <FootTypo footlabel={row.original.accountId} />,
+    },
+    {
       header: "Image",
       accessorKey: "imageUrls",
       cell: ({ row }) => (
@@ -140,7 +146,7 @@ const ManageApplication = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+              <FootTypo footlabel="No image" fontSize="12px" />
             </div>
           )}
         </div>
@@ -149,39 +155,39 @@ const ManageApplication = () => {
     {
       header: "Email",
       accessorKey: "email",
+      cell: ({ row }) => (
+        <FootTypo footlabel={row.original.email} fontWeight="bold" />
+      ),
     },
     {
       header: "Bussiness Name",
       accessorKey: "businessName",
+      cell: ({ row }) => (
+        <FootTypo footlabel={row.original.businessName} fontWeight="bold" />
+      ),
     },
     {
       header: "Phone Number",
       accessorKey: "phone",
-    },
-    {
-      header: "Status",
-      accessorKey: "isDisable",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded-full text-white text-sm text-center font-bold ${
-              row.original.isDisable ? "bg-red" : "bg-green"
-            }`}
-          >
-            {row.original.isDisable ? "Disabled" : "Active"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      header: "Role",
-      accessorKey: "roleId",
-      cell: ({ row }) => <RoleChip status={row.original.roleId} />,
+      cell: ({ row }) => <FootTypo footlabel={row.original.phone} />,
     },
     {
       header: "Address",
       accessorKey: "businessAddress",
+      cell: ({ row }) => <FootTypo footlabel={row.original.businessAddress} />,
     },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <Chip
+          icon={<IoCheckmarkCircle />}
+          label="Verified"
+          color="success"
+        />
+      ),
+    },
+
     {
       header: "Actions",
       cell: ({ row }) => (
@@ -206,62 +212,10 @@ const ManageApplication = () => {
         pageIndex: newPagination.pageIndex,
         pageSize: newPagination.pageSize,
       };
-      console.log("Updated pagination state:", updated);
+      //console.log("Updated pagination state:", updated);
       return updated;
     });
   }, []);
-
-  // Filter selection component
-  const FilterSelectors = () => (
-    <div className="mb-6 flex items-center gap-5 p-4 w-full">
-      <div className="font-medium mr-2 flex items-center gap-2">
-        <IoFilterOutline size={18} />
-        Filters
-      </div>
-
-      {filterOptions.map((filter) => (
-        <FormControl
-          key={filter.label}
-          variant="outlined"
-          size="small"
-          className="w-full max-w-[200px] dark:text-white"
-        >
-          <InputLabel id={`${filter.label}-label`} className="dark:text-white">
-            {filter.label}
-          </InputLabel>
-          <Select
-            MenuProps={{
-              disableScrollLock: true,
-            }}
-            labelId={`${filter.label}-label`}
-            value={filter.value}
-            onChange={(e) => filter.onChange(e.target.value)}
-            label={filter.label}
-            className="bg-white dark:bg-gray-700 dark:text-white"
-          >
-            {filter.options.map((option) => (
-              <MenuItem key={option.id} value={option.id}>
-                {option.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      ))}
-
-      <Button
-        label="Reset Filters"
-        onClick={() =>
-          setFilters({
-            status: 0,
-            gender: "",
-            isVerified: "",
-            isDisabled: "",
-          })
-        }
-        className="ml-auto"
-      />
-    </div>
-  );
 
   // Application modal component
   const ApplicationModal = () => {
@@ -277,22 +231,19 @@ const ManageApplication = () => {
       businessAddress,
       bio,
       skillName,
-      decorationStyleName,
       yearsOfExperience,
       pastWorkPlaces,
       pastProjects,
       certificateImageUrls,
-      isVerified,
       isDisable,
+      providerVerified,
+      decorationStyleName,
     } = selectedApplication;
-
-    console.log(accountId);
 
     const handleApprove = () => {
       // Set processing ID
       setProcessingId(accountId);
 
-      
       // Call approve API
       approveApplication(accountId, {
         onSuccess: () => {
@@ -300,7 +251,7 @@ const ManageApplication = () => {
         },
         onError: () => {
           setProcessingId(null);
-        }
+        },
       });
     };
 
@@ -352,6 +303,22 @@ const ManageApplication = () => {
           </Box>
           <Divider sx={{ mb: 3 }} />
 
+          {/* Status Chips */}
+          <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
+            <Chip
+              icon={
+                providerVerified ? <IoCheckmarkCircle /> : <IoCloseCircle />
+              }
+              label="Provider Verification"
+              color={providerVerified ? "success" : "warning"}
+            />
+            <Chip
+              icon={isDisable ? <IoCloseCircle /> : <IoCheckmarkCircle />}
+              label={isDisable ? "Disabled" : "Active"}
+              color={isDisable ? "error" : "success"}
+            />
+          </Box>
+
           {/* Tabs for different sections */}
           <Tabs
             value={activeTab}
@@ -397,22 +364,6 @@ const ManageApplication = () => {
                       </Paper>
                     )}
                   </Box>
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <Chip
-                      icon={
-                        isVerified ? <IoCheckmarkCircle /> : <IoCloseCircle />
-                      }
-                      label={isVerified ? "Verified" : "Unverified"}
-                      color={isVerified ? "success" : "warning"}
-                    />
-                    <Chip
-                      icon={
-                        isDisable ? <IoCloseCircle /> : <IoCheckmarkCircle />
-                      }
-                      label={isDisable ? "Disabled" : "Active"}
-                      color={isDisable ? "error" : "success"}
-                    />
-                  </Box>
                 </Box>
                 <Box sx={{ width: { xs: "100%", md: "67%" } }}>
                   <Paper
@@ -433,7 +384,7 @@ const ManageApplication = () => {
                             gap: 1,
                           }}
                         >
-                          <FaUser style={{ marginRight: 8 }} />
+                          <FaUser />
                           <Typography variant="body1" fontWeight="bold">
                             {fullName || "N/A"}
                           </Typography>
@@ -483,26 +434,16 @@ const ManageApplication = () => {
                         >
                           Skills
                         </Typography>
-                        <Chip
-                          label={skillName || "N/A"}
-                          size="small"
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      </Box>
-
-                      <Box>
-                        <Typography
-                          variant="subtitle2"
-                          color="text.secondary"
-                          gutterBottom
-                        >
-                          Decoration Style
-                        </Typography>
-                        <Chip
-                          label={decorationStyleName || "N/A"}
-                          size="small"
-                          sx={{ mr: 1, mb: 1 }}
-                        />
+                        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                          <Chip label={skillName || "N/A"} size="small" />
+                          {decorationStyleName && (
+                            <Chip
+                              label={decorationStyleName}
+                              size="small"
+                              color="primary"
+                            />
+                          )}
+                        </Box>
                       </Box>
 
                       <Box>
@@ -516,7 +457,6 @@ const ManageApplication = () => {
                         <Chip
                           label={`${yearsOfExperience || "0"} years`}
                           size="small"
-                          sx={{ mr: 1, mb: 1 }}
                         />
                       </Box>
 
@@ -552,11 +492,13 @@ const ManageApplication = () => {
 
                 <Stack spacing={2}>
                   <Box>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
                       <FaBuilding style={{ marginRight: 8 }} />
-                      <Typography variant="body1" fontWeight="medium" marginRight={1}>
+                      <Typography
+                        variant="body1"
+                        fontWeight="medium"
+                        marginRight={1}
+                      >
                         Business Name
                       </Typography>
                       <Typography variant="body1" fontWeight="bold">
@@ -566,11 +508,13 @@ const ManageApplication = () => {
                   </Box>
 
                   <Box>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
                       <FaMapMarkerAlt style={{ marginRight: 8 }} />
-                      <Typography variant="body2" fontWeight="medium" marginRight={1}>
+                      <Typography
+                        variant="body2"
+                        fontWeight="medium"
+                        marginRight={1}
+                      >
                         Business Address
                       </Typography>
                       <Typography variant="body2" fontWeight="bold">
@@ -619,7 +563,7 @@ const ManageApplication = () => {
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 Certificates
               </Typography>
-              
+
               {certificateImageUrls && certificateImageUrls.length > 0 ? (
                 <>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
@@ -627,7 +571,11 @@ const ManageApplication = () => {
                       <Box
                         key={index}
                         sx={{
-                          width: { xs: "100%", sm: "calc(50% - 8px)", md: "calc(33.33% - 10.67px)" },
+                          width: {
+                            xs: "100%",
+                            sm: "calc(50% - 8px)",
+                            md: "calc(33.33% - 10.67px)",
+                          },
                           height: 200,
                           borderRadius: 2,
                           overflow: "hidden",
@@ -668,10 +616,10 @@ const ManageApplication = () => {
                   </Box>
                 </>
               ) : (
-                <Paper 
-                  elevation={0} 
-                  sx={{ 
-                    p: 3, 
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
                     bgcolor: "grey.50",
                     borderRadius: 2,
                     display: "flex",
@@ -688,23 +636,38 @@ const ManageApplication = () => {
             </Box>
           )}
 
-          {/* Action buttons */}
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}
-          >
-            <Button
-              label="Reject"
-              onClick={handleReject}
-              className="bg-red text-white"
-              disabled={processingId === accountId && (rejectModalOpen || isRejecting)}
-            />
-            <Button
-              label={processingId === accountId && isApproving ? "Approving..." : "Approve"}
-              onClick={handleApprove}
-              className="bg-green text-white"
-              disabled={processingId === accountId && (isApproving || rejectModalOpen)}
-            />
-          </Box>
+          {/* Action buttons - Only show for pending applications */}
+          {!isViewingVerified && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mt: 4,
+                gap: 2,
+              }}
+            >
+              <Button
+                label="Reject"
+                onClick={handleReject}
+                className="bg-red text-white"
+                disabled={
+                  processingId === accountId && (rejectModalOpen || isRejecting)
+                }
+              />
+              <Button
+                label={
+                  processingId === accountId && isApproving
+                    ? "Approving..."
+                    : "Approve"
+                }
+                onClick={handleApprove}
+                className="bg-green text-white"
+                disabled={
+                  processingId === accountId && (isApproving || rejectModalOpen)
+                }
+              />
+            </Box>
+          )}
         </Box>
       </Modal>
     );
@@ -712,7 +675,7 @@ const ManageApplication = () => {
 
   const CertificateModal = () => {
     if (!selectedCertificate) return null;
-    
+
     return (
       <Modal
         open={showCertificateModal}
@@ -778,19 +741,19 @@ const ManageApplication = () => {
   // Rejection confirmation modal
   const RejectConfirmationModal = () => {
     const formRef = React.useRef(null);
-    
+
     const handleSubmitReject = (e) => {
       e.preventDefault();
-      
+
       // Create FormData from the form
       const formData = new FormData(formRef.current);
-      const reason = formData.get('reason');
-      
-      if (!reason || reason.trim() === '') {
+      const reason = formData.get("reason");
+
+      if (!reason || reason.trim() === "") {
         alert("Please provide a reason for rejection");
         return;
       }
-      
+
       // Call reject API with ID and reason
       rejectApplication(
         { accountId: processingId, reason: reason.trim() },
@@ -799,7 +762,7 @@ const ManageApplication = () => {
             // Close modals
             setRejectModalOpen(false);
             handleCloseModal();
-            
+
             // Reset form
             if (formRef.current) {
               formRef.current.reset();
@@ -810,11 +773,11 @@ const ManageApplication = () => {
           },
           onSettled: () => {
             setProcessingId(null);
-          }
+          },
         }
       );
     };
-    
+
     return (
       <Modal
         open={rejectModalOpen}
@@ -844,11 +807,11 @@ const ManageApplication = () => {
           <Typography variant="h6" component="h2" fontWeight="bold" mb={2}>
             Confirm Rejection
           </Typography>
-          
+
           <Typography variant="body2" mb={3}>
             Please provide a reason for rejecting this application:
           </Typography>
-          
+
           <form ref={formRef} onSubmit={handleSubmitReject} noValidate>
             <Textarea
               id="reject-reason"
@@ -857,7 +820,7 @@ const ManageApplication = () => {
               className="w-full min-h-[120px] p-3 mb-4 rounded border border-gray-300 bg-gray-50 resize-vertical focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
-            
+
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
               <Button
                 label="Cancel"
@@ -885,9 +848,23 @@ const ManageApplication = () => {
 
   return (
     <AdminWrapper>
-      <div className="w-full">
-        <FilterSelectors />
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={4}
+      >
+        <h1 className="text-2xl font-bold">
+          {isViewingVerified ? "Verified Applications" : "Pending Applications"}
+        </h1>
+        <Button
+          label={isViewingVerified ? "View Pending" : "View Verified"}
+          onClick={() => setIsViewingVerified(!isViewingVerified)}
+          className={isViewingVerified ? "bg-blue-500" : "bg-green-500"}
+        />
+      </Box>
 
+      <>
         <div className="w-full">
           {isLoading ? (
             <Skeleton
@@ -898,12 +875,13 @@ const ManageApplication = () => {
             />
           ) : error ? (
             <div className="bg-red-100 text-red-700 p-4 rounded">
-              Error loading accounts: {error.message}
+              Error loading applications: {error.message}
             </div>
-          ) : applicationList.length === 0 && !isLoading ? (
+          ) : applicationList?.length === 0 ? (
             <div>
               <h2 className="text-xl font-semibold mb-4">
-                No Applications Found
+                No {isViewingVerified ? "Verified" : "Pending"} Applications
+                Found
               </h2>
               <p>
                 No applications match your filter criteria. Try adjusting your
@@ -929,13 +907,13 @@ const ManageApplication = () => {
 
         {/* Render the application details modal */}
         <ApplicationModal />
-        
+
         {/* Render certificate modal */}
         <CertificateModal />
-        
+
         {/* Render rejection confirmation modal */}
         <RejectConfirmationModal />
-      </div>
+      </>
     </AdminWrapper>
   );
 };

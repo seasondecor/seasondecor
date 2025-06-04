@@ -1,26 +1,31 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useLocationModal } from "@/app/hooks/useLocationModal";
-import Modal from "../Modal";
-import Heading from "./components/Heading";
-import { FootTypo } from "../Typography";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  CircularProgress,
+  Typography,
+  Box,
+  FormControl,
+  Select,
+  MenuItem,
+  FormHelperText,
+} from "@mui/material";
 import { getProvinces } from "vn-provinces";
-import { IoIosArrowDown } from "react-icons/io";
 import { useUpdateUserLocation } from "@/app/queries/user/user.query";
 import { IoLocation } from "react-icons/io5";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 
-const LocationModal = () => {
-  const locationModal = useLocationModal();
+const LocationModal = ({ isOpen, onClose, onSuccessUpdate }) => {
   const [provinces, setProvinces] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
 
   const {
-    register,
+    control,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -28,9 +33,6 @@ const LocationModal = () => {
       code: "",
     },
   });
-
-  // Get the current location value from form
-  const selectedLocation = watch("location");
 
   // Use the update location API hook
   const { mutate: updateLocation, isPending: loading } =
@@ -41,25 +43,6 @@ const LocationModal = () => {
     const allProvinces = getProvinces();
     setProvinces(allProvinces);
   }, []);
-
-  useEffect(() => {
-    // Set force open when modal is opened
-    if (locationModal.isOpen) {
-      locationModal.setForceOpen(true);
-    }
-  }, [locationModal.isOpen]);
-
-  const handleProvinceSelect = (province) => {
-    setValue("location", province.name, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setValue("code", province.code, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setIsOpen(false);
-  };
 
   const onSubmit = (data) => {
     // Find the selected province object to get its code
@@ -73,10 +56,10 @@ const LocationModal = () => {
       },
       {
         onSuccess: (response) => {
-          //console.log("Location updated successfully:", response);
           localStorage.setItem("userProvince", selectedProvince.name);
           localStorage.setItem("userProvinceCode", selectedProvince.code);
-          locationModal.onSuccessUpdate();
+          onSuccessUpdate && onSuccessUpdate();
+          onClose();
         },
         onError: (error) => {
           console.error("Error updating location:", error);
@@ -85,77 +68,142 @@ const LocationModal = () => {
     );
   };
 
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const bodyContent = (
-    <div className="flex flex-col gap-6">
-      <Heading title="Welcome to SeasonDecor" center={true} />
-      <FootTypo footlabel="In order to continue, please select your province" />
-
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-        <div className="mt-4 relative">
-          <div
-            className="flex justify-between items-center p-3 border border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition"
-            onClick={toggleDropdown}
-          >
-            <span
-              className={`${selectedLocation && "flex items-center gap-2"} ${
-                !selectedLocation && "text-gray-500"
-              }`}
-            >
-              {selectedLocation && <IoLocation className="w-4 h-4" />}
-              {selectedLocation || "Choose your location"}
-            </span>
-            <IoIosArrowDown
-              className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-            />
-          </div>
-
-          {isOpen && (
-            <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto bg-white border border-gray-300 rounded-md shadow-lg">
-              {provinces.map((p) => (
-                <div
-                  key={p.code}
-                  className="p-3 hover:bg-gray-100 cursor-pointer transition"
-                  onClick={() => handleProvinceSelect(p)}
-                >
-                  {p.name}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {errors.location && (
-            <p className="text-red-500 text-sm mt-2">
-              {errors.location.message}
-            </p>
-          )}
-        </div>
-
-        <input
-          type="hidden"
-          {...register("location", {
-            required: "Please select your province",
-          })}
-        />
-      </form>
-    </div>
-  );
-
   return (
-    <Modal
-      disabled={loading}
-      isOpen={locationModal.isOpen}
-      title="Select Your Province"
-      onClose={locationModal.onClose}
-      actionLabel="Update"
-      onSubmit={handleSubmit(onSubmit)}
-      body={bodyContent}
-      forceOpen={locationModal.forceOpen}
-      loading={loading}
-    />
+    <Dialog
+      open={isOpen}
+      onClose={loading ? undefined : onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "8px",
+          maxWidth: "600px",
+          width: "100%",
+          margin: "0 auto",
+        },
+      }}
+    >
+      <DialogTitle
+        align="center"
+        sx={{
+          fontSize: "1.25rem",
+          fontWeight: 600,
+          paddingTop: 3,
+          paddingBottom: 2,
+        }}
+      >
+        Welcome to SeasonDecor !
+      </DialogTitle>
+      <Typography
+        sx={{
+          fontSize: "0.875rem",
+          color: "text.secondary",
+          textAlign: "center",
+          paddingBottom: 2,
+        }}
+      >
+        Please update your location to continue
+      </Typography>
+      <DialogContent sx={{ px: 3, py: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+            <Controller
+              name="location"
+              control={control}
+              rules={{ required: "Please select your province" }}
+              render={({ field }) => (
+                <FormControl fullWidth error={!!errors.location}>
+                  <Select
+                    {...field}
+                    displayEmpty
+                    renderValue={(selected) => {
+                      if (!selected) {
+                        return (
+                          <Typography sx={{ color: "text.secondary" }}>
+                            Choose your location
+                          </Typography>
+                        );
+                      }
+                      return (
+                        <Typography
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <IoLocation size={18} />
+                          {selected}
+                        </Typography>
+                      );
+                    }}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      // Find the selected province and update the code field
+                      const selectedProvince = provinces.find(
+                        (p) => p.name === e.target.value
+                      );
+                      if (selectedProvince) {
+                        control._formValues.code = selectedProvince.code;
+                      }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 240,
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem disabled value="">
+                      <Typography sx={{ color: "text.secondary" }}>
+                        Choose your location
+                      </Typography>
+                    </MenuItem>
+                    {provinces.map((province) => (
+                      <MenuItem key={province.code} value={province.name}>
+                        {province.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.location && (
+                    <FormHelperText>{errors.location.message}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+            />
+            <Controller
+              name="code"
+              control={control}
+              render={({ field }) => <input type="hidden" {...field} />}
+            />
+          </form>
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ padding: "16px 24px 24px" }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          sx={{
+            color: "primary.main",
+            textTransform: "uppercase",
+            fontWeight: 500,
+            minWidth: "80px",
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit(onSubmit)}
+          variant="contained"
+          color="primary"
+          disabled={loading}
+          sx={{
+            textTransform: "uppercase",
+            fontWeight: 500,
+            minWidth: "80px",
+          }}
+        >
+          {loading ? <CircularProgress size={24} /> : "Update"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

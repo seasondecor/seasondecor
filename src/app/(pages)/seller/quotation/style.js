@@ -1,48 +1,48 @@
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Create PDF styles
+// Create more compact PDF styles
 export const styles = StyleSheet.create({
     page: {
       flexDirection: 'column',
       backgroundColor: '#ffffff',
-      padding: 30,
+      padding: 20,
     },
     header: {
-      marginBottom: 20,
-      padding: 10,
+      marginBottom: 10,
+      padding: 8,
       backgroundColor: '#2563eb',
       color: 'white',
       borderRadius: 5,
     },
     title: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: 'bold',
       color: 'white',
-      marginBottom: 5,
+      marginBottom: 3,
     },
     subtitle: {
-      fontSize: 14,
+      fontSize: 12,
       color: 'white',
     },
     content: {
-      margin: 10,
-      padding: 10,
+      margin: 8,
+      padding: 8,
     },
     section: {
-      marginBottom: 15,
+      marginBottom: 10,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: 'bold',
-      marginBottom: 8,
+      marginBottom: 6,
       color: '#333',
-      paddingBottom: 5,
+      paddingBottom: 3,
       borderBottomWidth: 1,
       borderBottomColor: '#eee',
     },
     text: {
-      fontSize: 12,
-      marginBottom: 5,
+      fontSize: 10,
+      marginBottom: 3,
       color: '#333',
     },
     table: {
@@ -53,22 +53,23 @@ export const styles = StyleSheet.create({
       borderWidth: 1,
       borderRightWidth: 0,
       borderBottomWidth: 0,
-      marginVertical: 10,
+      marginVertical: 8,
     },
     tableRow: {
       flexDirection: 'row',
       borderBottomWidth: 1,
       borderBottomColor: '#bfbfbf',
+      minHeight: 18,
     },
     tableHeader: {
       backgroundColor: '#f0f0f0',
     },
     tableCell: {
       flex: 1,
-      padding: 5,
+      padding: 3,
       borderRightWidth: 1,
       borderRightColor: '#bfbfbf',
-      fontSize: 10,
+      fontSize: 8,
     },
     tableCellDescription: {
       flex: 3,
@@ -85,30 +86,30 @@ export const styles = StyleSheet.create({
     total: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
-      marginTop: 15,
-      paddingTop: 10,
+      marginTop: 10,
+      paddingTop: 8,
       borderTopWidth: 1,
       borderTopColor: '#eee',
     },
     totalLabel: {
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: 'bold',
-      marginRight: 10,
+      marginRight: 8,
     },
     totalValue: {
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: 'bold',
     },
     footer: {
       position: 'absolute',
-      bottom: 30,
-      left: 30,
-      right: 30,
+      bottom: 20,
+      left: 20,
+      right: 20,
       textAlign: 'center',
-      paddingTop: 10,
+      paddingTop: 8,
       borderTopWidth: 1,
       borderTopColor: '#eee',
-      fontSize: 10,
+      fontSize: 8,
       color: '#666',
     },
   });

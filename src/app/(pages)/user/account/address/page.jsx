@@ -2,7 +2,7 @@
 
 import React from "react";
 import Button from "@/app/components/ui/Buttons/Button";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { BodyTypo } from "@/app/components/ui/Typography";
 import { UserWrapper } from "../../components/UserWrapper";
 import { FaPlus } from "react-icons/fa6";
 import useAddressModal from "@/app/hooks/useAddressModal";
@@ -10,6 +10,7 @@ import AddressBox from "../../components/AddressBox";
 import { useGetAllAddress } from "@/app/queries/user/address.query";
 import DataMapper from "@/app/components/DataMapper";
 import EmptyState from "@/app/components/EmptyState";
+import { Box } from "@mui/material";
 
 const UserAddress = () => {
   const addressModal = useAddressModal();
@@ -27,37 +28,41 @@ const UserAddress = () => {
 
   return (
     <UserWrapper>
-      <div className="flex-grow ml-6 relative ">
-        <div className="flex flex-col relative ">
-          <div className="pb-9 border-b-[1px]">
-            <div className="flex flex-row justify-between items-center ">
+      <Box
+        display="flex"
+        flexDirection="column"
+        flexGrow={1}
+        gap={2}
+        position="relative"
+        p={2}
+      >
+        <Box display="flex" flexDirection="column" flexGrow={1} gap={2}>
+          <Box display="flex" flexDirection="column" gap={2}>
+            <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center">
               <span>
-                <FootTypo
-                  footlabel="My Addresses"
-                  className="!m-0 text-lg font-semibold"
-                />
-              </span>
+                  <BodyTypo bodylabel="My Addresses" />
+                </span>
 
-              {canAddMoreAddresses && (
-                <Button
-                  label="Add address"
-                  icon={<FaPlus size={20} />}
-                  onClick={addressModal.onOpen}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <DataMapper
-          data={sortedAddresses}
-          Component={AddressBox}
-          emptyStateComponent={<EmptyState title="You saved no addresses" />}
-          loading={isFetching}
-          getKey={(address) => address.id}
-        />
-      </div>
+                {canAddMoreAddresses && (
+                  <Button
+                    label="Add address"
+                    icon={<FaPlus size={20} />}
+                    onClick={addressModal.onOpen}
+                  />
+                )}
+            </Box>
+          </Box>
+        </Box>
+        <Box display="flex" flexDirection="column" gap={1}>
+          <DataMapper
+            data={sortedAddresses}
+            Component={AddressBox}
+            emptyStateComponent={<EmptyState title="You saved no addresses" />}
+            loading={isFetching}
+            getKey={(address) => address.id}
+          />
+        </Box>
+      </Box>
     </UserWrapper>
   );
 };

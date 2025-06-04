@@ -19,6 +19,8 @@ import {
   MenuItem,
   Box,
   Paper,
+  Alert,
+  Button as MuiButton,
 } from "@mui/material";
 import Image from "next/image";
 import DataTable from "@/app/components/ui/table/DataTable";
@@ -31,8 +33,9 @@ import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { toast } from "sonner";
 import { FootTypo } from "@/app/components/ui/Typography";
-import { IoFilterOutline, IoSearch } from "react-icons/io5";
+import { IoFilterOutline, IoSearch, IoEyeOutline } from "react-icons/io5";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
+import { MdFilterListOff } from "react-icons/md";
 
 // Skeleton loader for the service table
 const ServiceTableSkeleton = () => {
@@ -226,7 +229,7 @@ const SellerServiceManage = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+              <FootTypo footlabel="No image" fontSize="12px" />
             </div>
           )}
         </div>
@@ -236,22 +239,22 @@ const SellerServiceManage = () => {
       header: "Service Name",
       accessorKey: "style",
       cell: ({ row }) => (
-        <span className="font-bold">{row.original.style}</span>
+        <FootTypo footlabel={row.original.style} fontWeight="bold" />
       ),
     },
     {
       header: "Created At",
       accessorKey: "createAt",
-      cell: ({ row }) => formatDate(row.original.createAt),
+      cell: ({ row }) => (
+        <FootTypo footlabel={formatDate(row.original.createAt)} />
+      ),
     },
     {
       header: "Start Date",
       accessorKey: "startDate",
-      cell: ({ row }) => formatDate(row.original.startDate),
-    },
-    {
-      header: "Favorite Count",
-      accessorKey: "favoriteCount",
+      cell: ({ row }) => (
+        <FootTypo footlabel={formatDate(row.original.startDate)} />
+      ),
     },
     {
       header: "Status",
@@ -266,32 +269,57 @@ const SellerServiceManage = () => {
         <>
           {row.original.status === 1 &&
             (row.original.isBooked ? (
-              <FootTypo
-                footlabel="On-going Service"
-                className="text-primary font-medium"
-              />
+              <Alert
+                severity="info"
+                sx={{ width: "fit-content", borderRadius: "16px" }}
+              >
+                On-going Service
+              </Alert>
             ) : (
-              <div className="flex gap-2">
-                <Button
-                  label="Reopen"
-                  onClick={() => handleOpenReopenDialog(row.original.id)}
-                  className="p-2 bg-action text-white"
-                  icon={<VscIssueReopened size={20} />}
-                />
-                <Button
-                  label="Modify"
-                  onClick={() => handleOpenModifyDialog(row.original.id)}
-                  className="p-2 bg-action text-white"
-                  icon={<VscIssueReopened size={20} />}
-                />
-              </div>
+              <Alert
+                severity="success"
+                sx={{ width: "fit-content", borderRadius: "16px" }}
+                action={
+                  <MuiButton
+                    color="inherit"
+                    size="small"
+                    onClick={() => handleOpenReopenDialog(row.original.id)}
+                  >
+                    REOPEN
+                  </MuiButton>
+                }
+              >
+                Finished Service
+              </Alert>
             ))}
 
+          {row.original.status === 0 && (
+            <Alert
+              severity="info"
+              color="success"
+              sx={{ width: "fit-content", borderRadius: "16px" }}
+              action={
+                <MuiButton
+                  color="inherit"
+                  size="small"
+                  onClick={() => router.push(`/seller/service/${row.original.id}`)}
+                >
+                  VIEW
+                </MuiButton>
+              }
+            >
+              Available Service
+            </Alert>
+          )}
+
           {row.original.status === 2 && (
-            <FootTypo
-              footlabel="Incoming service"
-              className="text-yellow font-medium"
-            />
+            <Alert
+              severity="info"
+              color="warning"
+              sx={{ width: "fit-content", borderRadius: "16px" }}
+            >
+              Incoming Service
+            </Alert>
           )}
         </>
       ),
@@ -311,7 +339,7 @@ const SellerServiceManage = () => {
 
   // Filter and search component
   const FilterSelectors = () => (
-    <div className="mb-6 flex items-center gap-5 p-2 w-full">
+    <Box display="flex" flexDirection="row" gap={2} alignItems="center" mb={2}>
       <div className="font-medium mr-2 flex items-center gap-2">
         <IoFilterOutline size={18} />
         Filters
@@ -343,7 +371,14 @@ const SellerServiceManage = () => {
         </Select>
       </FormControl>
 
-      <div className="flex items-center gap-2 max-w-[350px] w-full">
+      <Box
+        display="flex"
+        flexDirection="row"
+        gap={2}
+        alignItems="center"
+        maxWidth="350px"
+        width="100%"
+      >
         <form
           className="flex items-center w-full"
           onSubmit={(e) => {
@@ -367,9 +402,10 @@ const SellerServiceManage = () => {
             Search
           </button>
         </form>
-      </div>
+      </Box>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filters"
         onClick={() => {
           setFilters({
@@ -382,7 +418,7 @@ const SellerServiceManage = () => {
         }}
         className="ml-auto"
       />
-    </div>
+    </Box>
   );
 
   const tablePageIndex =
@@ -391,22 +427,28 @@ const SellerServiceManage = () => {
   return (
     <SellerWrapper>
       <>
-        <div className="flex justify-between items-center mb-6">
+        <Box
+          display="flex"
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
           <h1 className="text-2xl font-bold">Service Management</h1>
-          <div className="flex gap-3 px-5">
+          <Box display="flex" gap={3} px={5}>
             <Button
               onClick={() => router.push("/seller/service/create")}
-              label="Create service"
-              className="bg-primary"
+              label="Upload Service"
+              className="bg-action text-white"
               icon={<MdOutlineFileUpload size={20} />}
             />
             <RefreshButton
               onRefresh={refetch}
               isLoading={isLoading}
-              tooltip="Refresh product list"
+              tooltip="Refresh service list"
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         <FilterSelectors />
 
@@ -417,8 +459,8 @@ const SellerServiceManage = () => {
             Error loading services: {error.message}
           </div>
         ) : services.length === 0 && !isLoading ? (
-          <div className="p-4 bg-white rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">No Services Found</h2>
+          <div className="p-4">
+            <FootTypo footlabel="No Services Found" fontWeight="bold" />
             <p>
               {filters.status || filters.productName
                 ? "No services match your filter criteria. Try adjusting your filters."
@@ -444,7 +486,7 @@ const SellerServiceManage = () => {
         {/* Reopen Dialog with Calendar */}
         <Dialog open={reopenDialogOpen} maxWidth="sm" fullWidth>
           <DialogTitle>
-            <Typography variant="h4" component="div">
+            <Typography variant="h5" component="div">
               Reopen Service
             </Typography>
           </DialogTitle>
@@ -468,7 +510,7 @@ const SellerServiceManage = () => {
               label={isReopening ? "Reopening..." : "Confirm Reopen"}
               onClick={handleReopenService}
               isLoading={isReopening}
-              className="bg-primary text-white"
+              className="bg-action text-white"
               disabled={isReopening}
             />
           </DialogActions>

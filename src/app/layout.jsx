@@ -1,4 +1,4 @@
-import { Montserrat } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "./providers/providers";
 import HeaderWrapper from "./components/layouts/header/HeaderWrapper";
@@ -13,7 +13,11 @@ import InformationModal from "./components/ui/Modals/InformationModal";
 import LocationModal from "./components/ui/Modals/LocationModal";
 import ScrollToTop from "./components/ui/Buttons/ScrollToTopBtn";
 
-const montserrat = Montserrat({ subsets: ["latin"] });
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+});
 
 export const metadata = {
   title: {
@@ -21,7 +25,7 @@ export const metadata = {
     default: "SeasonDecor - A platform for seasonal decoration services",
   },
   description: "Find seasonal decoration services for your home",
-  metadataBase: new URL("https://www.seasondecor.com"),
+  metadataBase: new URL("https://www.sondecor.netlify.app"),
   icons: {
     icon: "/logo.svg",
   },
@@ -31,10 +35,10 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`!scroll-smooth ${montserrat.className}`}
+      className={`!scroll-smooth ${roboto.className}`}
       suppressHydrationWarning
-    >
-      <body className="antialiased overflow-auto">
+    > 
+      <body className="antialiased">
         {/* Zoom Meeting DOM elements - keep these outside the main app structure */}
         <div id="zmmtg-root"></div>
         <div id="aria-notify-area"></div>
@@ -50,7 +54,7 @@ export default function RootLayout({ children }) {
             <AdressModal />
             <LocationModal />
             <ScrollToTop />
-            <main className="flex-1">{children}</main>
+            <main>{children}</main>
             <Footer />
           </ClientOnly>
         </AppProviders>

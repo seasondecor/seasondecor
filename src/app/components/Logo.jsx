@@ -19,7 +19,7 @@ const Logo = ({ outsideStyle, insideStyle }) => {
     <div className={clsx("center-wrapper hidden md:flex mr-4", outsideStyle)}>
       <div
         className={clsx(
-          "flex items-center justify-center space-x-2 text-2xl font-bold py-6 text-center text-neutral-600 dark:text-gray-100 selection:bg-emerald-500 mr-10",
+          "flex items-center justify-center space-x-2 text-2xl font-bold py-4 text-center text-neutral-600 dark:text-gray-100 selection:bg-emerald-500 mr-10",
           insideStyle
         )}
       >

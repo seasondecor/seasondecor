@@ -8,8 +8,9 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useState, useEffect, useRef } from "react";
-import Button from "../Buttons/Button";
-import { Skeleton } from "@mui/material";
+import { Button, Skeleton, Box } from "@mui/material";
+import { MdNavigateNext, MdNavigateBefore, MdSkipNext, MdSkipPrevious } from "react-icons/md";
+
 
 const DataTable = ({
   data,
@@ -165,7 +166,15 @@ const DataTable = ({
                 className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4">
+                  <td 
+                    key={cell.id} 
+                    className="px-6 py-4 whitespace-nowrap"
+                    style={{
+                      maxWidth: '200px', // Set maximum width
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -175,53 +184,89 @@ const DataTable = ({
         </tbody>
       </table>
       {shouldShowPagination && (
-        <div className="flex items-center justify-between p-4 border-t">
-          <div className="flex gap-2">
+        <Box display="flex" justifyContent="space-between" alignItems="center" p={2} mt={2} >
+          <Box display="flex" gap={2}>
             <Button
+              variant="outlined"
+              size="small"
+              startIcon={<MdSkipPrevious />}
               onClick={() => handlePageChange("first")}
               disabled={!table.getCanPreviousPage() || isLoading}
-              className=" disabled:opacity-50"
-              label="First"
-            />
+              sx={{
+                borderColor: 'primary.main',
+                '&:hover': {
+                  borderColor: 'primary.dark',
+                },
+              }}
+            >
+              First
+            </Button>
             <Button
+              variant="outlined"
+              size="small"
+              startIcon={<MdNavigateBefore />}
               onClick={() => handlePageChange("previous")}
               disabled={!table.getCanPreviousPage() || isLoading}
-              className=" disabled:opacity-50"
-              label="Previous"
-            />
+              sx={{
+                borderColor: 'primary.main',
+                '&:hover': {
+                  borderColor: 'primary.dark',
+                },
+              }}
+            >
+              Previous
+            </Button>
             <Button
+              variant="outlined"
+              size="small"
+              endIcon={<MdNavigateNext />}
               onClick={() => handlePageChange("next")}
               disabled={!table.getCanNextPage() || isLoading}
-              className=" disabled:opacity-50"
-              label="Next"
-            />
+              sx={{
+                borderColor: 'primary.main',
+                '&:hover': {
+                  borderColor: 'primary.dark',
+                },
+              }}
+            >
+              Next
+            </Button>
             <Button
+              variant="outlined"
+              size="small"
+              endIcon={<MdSkipNext />}
               onClick={() => handlePageChange("last")}
               disabled={!table.getCanNextPage() || isLoading}
-              className=" disabled:opacity-50"
-              label="Last"
-            />
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
+              sx={{
+                borderColor: 'primary.main',
+                '&:hover': {
+                  borderColor: 'primary.dark',
+                },
+              }}
+            >
+              Last
+            </Button>
+          </Box>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Box display="flex" alignItems="center" gap={1}>
               <div>Page</div>
               <strong>
                 {table.getState().pagination.pageIndex + 1} of{" "}
                 {manualPagination ? pageCount : table.getPageCount()}
               </strong>
-            </span>
+            </Box>
             {totalCount > 0 && (
-              <span className="flex items-center gap-1">
+              <Box display="flex" alignItems="center" gap={1}>
                 <div>Total:</div>
                 <strong>{totalCount} items</strong>
-              </span>
+              </Box>
             )}
             <select
               value={table.getState().pagination.pageSize}
               onChange={(e) => {
                 table.setPageSize(Number(e.target.value));
               }}
-              className="border rounded px-2 py-1"
+              className="border rounded px-2 py-1 dark:bg-gray-700 dark:text-white"
               disabled={isLoading}
             >
               {[1, 2, 3, 5, 10, 20, 30, 50].map((pageSize) => (
@@ -230,8 +275,8 @@ const DataTable = ({
                 </option>
               ))}
             </select>
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
     </div>
   );

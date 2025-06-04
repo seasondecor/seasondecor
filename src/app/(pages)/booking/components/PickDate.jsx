@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { BorderBox } from "@/app/components/ui/BorderBox";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import { Calendar } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -60,7 +60,7 @@ const PickDate = ({ onDateSelect, title, description, footerLabel }) => {
     // For demonstration, we'll make specific dates unavailable
     const currentDate = new Date();
     const dateToCheck = new Date(date);
-    
+
     // Only make dates before today unavailable
     return dateToCheck >= currentDate;
   };
@@ -85,13 +85,13 @@ const PickDate = ({ onDateSelect, title, description, footerLabel }) => {
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    
+
     // Pass the selected date to parent component
     if (onDateSelect) {
       const formattedDate = format(date, "yyyy-MM-dd");
       onDateSelect({
         date: formattedDate,
-        formattedDate: format(date, "MMMM d, yyyy")
+        formattedDate: format(date, "MMMM d, yyyy"),
       });
     }
   };
@@ -99,14 +99,8 @@ const PickDate = ({ onDateSelect, title, description, footerLabel }) => {
   return (
     <BorderBox className="shadow-xl p-4">
       <div className="flex flex-col gap-2">
-        <FootTypo
-          footlabel={title}
-          className="!m-0 font-bold text-lg"
-        />
-        <FootTypo
-          footlabel={description}
-          className="!m-0 font-normal text-sm"
-        />
+        <BodyTypo bodylabel={title} fontWeight="bold" />
+        <FootTypo footlabel={description} />
 
         {/* Add custom styles to the document */}
         <style jsx global>
@@ -132,7 +126,10 @@ const PickDate = ({ onDateSelect, title, description, footerLabel }) => {
         <div className="mt-6">
           {selectedDate ? (
             <FootTypo
-              footlabel={`Selected date: ${format(selectedDate, "MMMM d, yyyy")}`}
+              footlabel={`Selected date: ${format(
+                selectedDate,
+                "MMMM d, yyyy"
+              )}`}
               className="!m-0 font-semibold text-md mb-3"
             />
           ) : (

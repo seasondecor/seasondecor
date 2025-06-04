@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Header from "./generalHeader/Header";
 import SellerHeader from "./sellerHeader/SellerHeader";
 import MinimalHeader from "./minimalHeader/MinimalHeader";
+import AdminHeader from "./adminHeader/AdminHeader";
 
 const HeaderWrapper = () => {
   const pathname = usePathname();
@@ -14,12 +15,13 @@ const HeaderWrapper = () => {
   }
 
   if (pathname.startsWith("/admin/")) {
-    return <SellerHeader />;
+    return <AdminHeader />;
   }
 
   if (pathname.startsWith("/seller/")) {
     return <SellerHeader />;
   }
+  
 
   if (pathname === "/authen/login" || pathname === "/authen/signup") {
     return <MinimalHeader />;
@@ -34,6 +36,14 @@ const HeaderWrapper = () => {
   }
 
   if (pathname.startsWith("/sign")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/registration")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/review-journey/")) {
     return null;
   }
 

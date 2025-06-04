@@ -8,48 +8,66 @@ import Button from "@/app/components/ui/Buttons/Button";
 import { TbCreditCardPay } from "react-icons/tb";
 import { TbCancel } from "react-icons/tb";
 import ReviewButton from "../Buttons/ReviewButton";
+import { Box } from "@mui/material";
 
-const OrderCard = ({  code, price, status, orderDate, isPending, detailClick, cancelClick, procceedClick, isPaid, rateClick }) => {
+const OrderCard = ({
+  code,
+  price,
+  status,
+  orderDate,
+  isPending,
+  detailClick,
+  cancelClick,
+  procceedClick,
+  isPaid,
+  rateClick,
+}) => {
   return (
     <div className="bg-transparent rounded-lg shadow-lg p-5 border dark:border-gray-50">
-      <div className="flex items-center gap-4 justify-between">
-        <div className="flex flex-col justify-between gap-3 font-semibold ">
-          <div className="inline-flex items-center gap-2">
-            <FootTypo footlabel="Order Code" className="!m-0 text-sm" />
-            <FootTypo
-              footlabel={code}
-              className="!m-0 text-sm bg-primary p-1 rounded-md"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <FootTypo footlabel="Total Price" className="!m-0 text-sm" />
-            <FootTypo
-              footlabel={formatCurrency(price)}
-              className="!m-0 text-sm underline"
-            />
-          </div>
+      <Box
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="between"
+          gap={2}
+          fontWeight="semibold"
+        >
+          <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
+            <FootTypo footlabel="Order Code" fontWeight="bold" />
+            <FootTypo footlabel={code} className="bg-primary p-1 rounded-md" />
+          </Box>
+          <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
+            <FootTypo footlabel="Total Price" fontWeight="bold" />
+            <FootTypo footlabel={formatCurrency(price)} className="underline" />
+          </Box>
 
-          <div className="flex items-center gap-2">
-            <FootTypo footlabel="Order Date" className="!m-0 text-sm" />
-            <FootTypo
-              footlabel={formatDateVN(orderDate)}
-              className="!m-0 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <FootTypo footlabel="Status" className="!m-0 text-sm" />
-            <StatusChip status={status} />
-          </div>
+          <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
+            <FootTypo footlabel="Order Date" fontWeight="bold" />
+            <FootTypo footlabel={formatDateVN(orderDate)} />
+          </Box>
+          <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
+            <FootTypo footlabel="Status" fontWeight="bold" />
+            <StatusChip status={status} isOrder={true} />
+          </Box>
 
-          <button className="text-sm underline self-start" onClick={detailClick}>
+          <button
+            className="text-sm underline self-start"
+            onClick={detailClick}
+          >
             View Details
           </button>
-        </div>
+        </Box>
 
         {isPending && (
-          <div className="flex items-center gap-2">
+          <Box display="flex" flexDirection="row" alignItems="center" gap={1}>
             <Button
               label="Procceed"
+              className="bg-action text-white"
               onClick={procceedClick}
               icon={<TbCreditCardPay size={20} />}
             />
@@ -59,13 +77,11 @@ const OrderCard = ({  code, price, status, orderDate, isPending, detailClick, ca
               className="bg-red text-white"
               icon={<TbCancel size={20} />}
             />
-          </div>
+          </Box>
         )}
 
-        {isPaid && (
-          <ReviewButton onClick={rateClick} />
-        )}
-      </div>
+        {isPaid && <ReviewButton onClick={rateClick} />}
+      </Box>
     </div>
   );
 };

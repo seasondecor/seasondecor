@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import Container from "@/app/components/layouts/Container";
 import { GlowingCard } from "@/app/components/ui/animated/GlowingEffect";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
@@ -26,12 +26,71 @@ import { useGetFollowing } from "@/app/queries/list/follow.list.query";
 import { useAddContact } from "@/app/queries/contact/contact.query";
 import useChatBox from "@/app/hooks/useChatBox";
 import useChat from "@/app/hooks/useChat";
+import { motion } from "framer-motion";
 
 const tabs = [
   { icon: IoMdHome, name: "Home", component: HomeTab },
   { icon: GoPackage, name: "Products", component: ProductsTab },
   { icon: MdMiscellaneousServices, name: "Services", component: ServicesTab },
 ];
+
+const cardVariants = {
+  hidden: { x: -100, opacity: 0 },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      damping: 20,
+      stiffness: 100,
+    },
+  },
+};
+
+const boxVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15,
+    },
+  },
+};
+
+const StatItem = ({ icon, label, value }) => (
+  <motion.div
+    variants={boxVariants}
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className="bg-white/5 dark:bg-black/5 backdrop-blur-md rounded-2xl p-3 shadow-lg border border-white/10 hover:border-white/20 transition-colors"
+  >
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-xl bg-gray-100/10">
+          {React.cloneElement(icon, {
+            className: "w-6 h-6 text-gray-700 dark:text-gray-300",
+          })}
+        </div>
+        <FootTypo
+          footlabel={label}
+          className="text-base font-medium text-gray-600 dark:text-gray-300"
+        />
+      </div>
+      <FootTypo
+        footlabel={value ?? "N/A"}
+        className="text-red text-xl font-bold pl-2"
+      />
+    </div>
+  </motion.div>
+);
 
 const ProviderDetailPage = () => {
   const { slug } = useParams();
@@ -122,37 +181,60 @@ const ProviderDetailPage = () => {
 
   return (
     <Container>
-      <div className="my-7">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="my-7"
+      >
         <MuiBreadcrumbs />
-      </div>
-      <div className="seller-info py-5">
+      </motion.div>
+      <div className="seller-info py-5 mb-4">
         <section className="pt-5 flex items-start">
-          <GlowingCard
-            icon={
-              <Avatar
-                userImg={provider.avatar || ""}
-                w={72}
-                h={72}
-                className="cursor-pointer"
-                isProvider={true}
-                status={provider.providerStatus}
-              />
-            }
-            slug={slug}
-            userDetails={provider.businessName}
-            className="w-[24rem]"
-            onFollowClick={() => handleFollowToggle(provider.id)}
-            onChatClick={() => handleChatClick(provider)}
-            isFollowed={isProviderFollowed(provider.id)}
-            isLoading={
-              followMutation.isLoading ||
-              unfollowMutation.isLoading ||
-              followingLoading
-            }
-          />
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <GlowingCard
+              icon={
+                <Avatar
+                  userImg={provider.avatar || ""}
+                  w={72}
+                  h={72}
+                  className="cursor-pointer"
+                  isProvider={true}
+                  status={provider.providerStatus}
+                />
+              }
+              slug={slug}
+              userDetails={provider.businessName}
+              className="w-[24rem]"
+              onFollowClick={() => handleFollowToggle(provider.id)}
+              onChatClick={() => handleChatClick(provider)}
+              isFollowed={isProviderFollowed(provider.id)}
+              isLoading={
+                followMutation.isLoading ||
+                unfollowMutation.isLoading ||
+                followingLoading
+              }
+            />
+          </motion.div>
           <section className="pl-7 w-full">
-            <div className="grid grid-cols-[repeat(2,auto)] gap-9">
-              <StatItem icon={<BsBoxSeam />} label="Products" value="100" />
+            <motion.div
+              className="grid grid-cols-2 gap-4"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1,
+                  },
+                },
+              }}
+              initial="hidden"
+              animate="visible"
+            >
               <StatItem
                 icon={<GiShadowFollower />}
                 label="Followers"
@@ -163,23 +245,24 @@ const ProviderDetailPage = () => {
                 label="Following"
                 value={provider.followingsCount}
               />
-              <StatItem icon={<FaRegStar />} label="Rating" value="4" />
-              <StatItem
-                icon={<IoChatboxEllipsesOutline />}
-                label="Chat performance"
-                value="80%"
-              />
+              <StatItem icon={<FaRegStar />} label="Total Rating" value="4" />
+
               <StatItem
                 icon={<LuUsers />}
-                label="Joined"
+                label="Become a provider since"
                 value={provider.joinedDate}
               />
-            </div>
+            </motion.div>
           </section>
         </section>
       </div>
 
-      <div className="tabs-pannel">
+      <motion.div
+        className="tabs-pannel"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
         <TabGroup>
           <TabList className="flex gap-base border-b-[1px] pb-9 justify-center">
             {tabs.map(({ name, icon: Icon }) => (
@@ -204,6 +287,10 @@ const ProviderDetailPage = () => {
                     phone={provider.phone}
                     address={provider.address}
                     bio={provider.bio}
+                    skill={provider.skillName}
+                    pastWorkPlaces={provider.pastWorkPlaces}
+                    pastProjects={provider.pastProjects}
+                    certificateImageUrls={provider.certificateImageUrls}
                   />
                 ) : (
                   <Component providerId={provider.id} />
@@ -212,23 +299,9 @@ const ProviderDetailPage = () => {
             ))}
           </TabPanels>
         </TabGroup>
-      </div>
+      </motion.div>
     </Container>
   );
 };
-
-// Reusable Component for Stats
-const StatItem = ({ icon, label, value }) => (
-  <div className="flex justify-between outline-none overflow-visible relative">
-    <span className="inline-flex items-center gap-2">
-      {icon}
-      <FootTypo footlabel={label} className="text-sm !mx-0" />
-    </span>
-    <FootTypo
-      footlabel={value ?? "N/A"}
-      className="text-sm !mx-0 text-red font-semibold"
-    />
-  </div>
-);
 
 export default ProviderDetailPage;

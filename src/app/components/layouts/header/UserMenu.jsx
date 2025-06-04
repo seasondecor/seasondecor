@@ -12,7 +12,6 @@ import { PiSignOutBold } from "react-icons/pi";
 import { FaRegSmileBeam } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/providers/userprovider";
-import { useChangeStatus } from "@/app/queries/user/provider.query";
 import { MdFavorite } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoVideocamOutline } from "react-icons/io5";
@@ -23,22 +22,9 @@ export const UserMenu = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const router = useRouter();
 
-  const mutationChangeStatus = useChangeStatus();
-
-  const onChangeStatus = React.useCallback(async () => {
-    if (user?.roleId === 1) {
-      await signOut({ callbackUrl: "/authen/login" });
-    } else {
-      mutationChangeStatus.mutate(false, {
-        onSuccess: () => {
-          router.push("/");
-        },
-        onError: () => {
-          console.log("error");
-        },
-      });
-    }
-  }, [mutationChangeStatus, router, user?.roleId]);
+  const onLogout = React.useCallback(async () => {
+    await signOut({ callbackUrl: "/authen/login" });
+  }, [router]);
 
   const ToggleOpen = React.useCallback(() => {
     setIsOpen((value) => !value);
@@ -90,9 +76,8 @@ export const UserMenu = () => {
                 <span className="flex flex-row items-center gap-2">
                   Hello <FaRegSmileBeam />
                 </span>
-                {user?.lastName}
+                {user?.firstName} {user?.lastName}
               </div>
-
 
               {!user?.isProvider && user?.roleId !== 1 ? (
                 <>
@@ -114,7 +99,7 @@ export const UserMenu = () => {
                     label="My favorite"
                     icon={<MdFavorite />}
                   />
-                   <MenuItem
+                  <MenuItem
                     onClick={() => router.push("/meeting")}
                     closeMenu={closeMenu}
                     label="My meeting"
@@ -130,7 +115,7 @@ export const UserMenu = () => {
               ) : (
                 <>
                   <MenuItem
-                    onClick={onChangeStatus}
+                    onClick={onLogout}
                     closeMenu={closeMenu}
                     label="Sign Out"
                     icon={<PiSignOutBold />}

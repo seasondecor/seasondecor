@@ -11,23 +11,26 @@ import {
   IconChartBarPopular,
   IconWorldDollar,
   IconPackage,
-  IconPackageExport
+  IconPackageExport,
+  IconUserCircle,
 } from "@tabler/icons-react";
 import { cn } from "@/app/utils/Utils";
 import ScrollToTop from "@/app/components/ScrollToTop";
 import { RiFolderSettingsLine } from "react-icons/ri";
 import { usePathname } from "next/navigation";
+import { Box } from "@mui/material";
 
 // Custom SidebarLinkWithActiveState component to handle active route highlighting
 const SidebarLinkWithActiveState = ({ link }) => {
   const pathname = usePathname();
   const isActive = pathname.startsWith(link.href);
-  
+
   return (
-    <SidebarLink 
-      link={link} 
+    <SidebarLink
+      link={link}
       className={cn(
-        isActive && "font-bold text-primary bg-primary/10 border-r-2 border-primary"
+        isActive &&
+          "font-bold text-primary bg-primary/10 border-r-2 border-primary"
       )}
     />
   );
@@ -70,6 +73,11 @@ export default function SellerWrapper({ children }) {
       href: "/seller/service",
       icon: <RiFolderSettingsLine className=" h-5 w-5 flex-shrink-0" />,
     },
+    {
+      label: "My Account",
+      href: "/seller/account",
+      icon: <IconUserCircle className=" h-5 w-5 flex-shrink-0" />,
+    },
   ];
   const [open, setOpen] = useState(false);
   return (
@@ -80,13 +88,21 @@ export default function SellerWrapper({ children }) {
     >
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="mt-8 flex flex-col gap-4">
+          <Box
+            display="flex"
+            flexDirection="column"
+            flex={1}
+            sx={{
+              overflowX: "hidden",
+              overflowY: "auto",
+            }}
+          >
+            <Box display="flex" flexDirection="column" gap={2} mt={2}>
               {links.map((link, idx) => (
                 <SidebarLinkWithActiveState key={idx} link={link} />
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         </SidebarBody>
       </Sidebar>
       <ScrollToTop />
@@ -98,12 +114,17 @@ export default function SellerWrapper({ children }) {
 // Dummy dashboard component with content
 const Dashboard = ({ props }) => {
   return (
-    <div className="flex flex-1">
-      <div className="flex h-full w-full flex-col gap-2 rounded-tl-2xl border border-neutral-200 p-2 md:p-10">
-        <div className="flex flex-grow flex-col items-start justify-start ">
-          {props}
-        </div>
-      </div>
-    </div>
+    <Box display="flex" flex={1}>
+      <Box
+        display="flex"
+        flexDirection="column"
+        width="100%"
+        borderLeft="1px solid #e0e0e0"
+        borderRadius={2}
+        p={4}
+      >
+        {props}
+      </Box>
+    </Box>
   );
 };

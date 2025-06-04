@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BaseRequest from "@/app/lib/api/config/Axios-config";
 import nProgress from "nprogress";
 import "nprogress/nprogress.css";
@@ -34,7 +34,8 @@ export function useGetContractFile(quotationCode) {
       nProgress.start();
       try {
         const res = await BaseRequest.Get(
-          `/${SUB_URL}/getContractFile/${quotationCode}`, false
+          `/${SUB_URL}/getContractFile/${quotationCode}`,
+          false
         );
         return res;
       } finally {
@@ -44,13 +45,14 @@ export function useGetContractFile(quotationCode) {
   });
 }
 
-
 export function useSignContract() {
   return useMutation({
     mutationFn: async (contractCode) => {
       nProgress.start();
       try {
-        const res = await BaseRequest.Post(`/${SUB_URL}/requestSignature/${contractCode}`);
+        const res = await BaseRequest.Post(
+          `/${SUB_URL}/requestSignature/${contractCode}`
+        );
         return res;
       } finally {
         nProgress.done();
@@ -64,11 +66,40 @@ export function useVerifySignature() {
     mutationFn: async (token) => {
       nProgress.start();
       try {
-        const res = await BaseRequest.Post(`/${SUB_URL}/verifySignature`, token, false);
+        const res = await BaseRequest.Post(
+          `/${SUB_URL}/verifySignature`,
+          token,
+          false
+        );
         return res;
       } finally {
         nProgress.done();
       }
+    },
+  });
+}
+
+export function useRequestTerminationOtp() {
+  return useMutation({
+    mutationFn: async (contractCode) => {
+      return await BaseRequest.Post(
+        `/${SUB_URL}/requestTerminationOtp/${contractCode}`
+      );
+    },
+  });
+}
+
+export function useTerminateContract() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const { contractCode, otp } = data;
+      return await BaseRequest.Put(
+        `/${SUB_URL}/terminateContract/${contractCode}?otp=${otp}`
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get_contract_file"] });
     },
   });
 }

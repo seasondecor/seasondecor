@@ -28,11 +28,11 @@ const PaymentItemCard = ({
             alt={productName}
             fill
             className="object-cover"
-            unoptimized={productImage?.includes("http")}
+            unoptimized
           />
         </div>
 
-        <div className="group-hover:z-[5] duration-300 group-hover:text-white flex flex-col items-start gap-2 text-sm ">
+        <div className="group-hover:z-[5] duration-300 group-hover:text-white flex flex-col items-start gap-1 text-sm ">
           <FootTypo
             footlabel={productName}
             className="font-medium text-lg truncate"
@@ -48,7 +48,7 @@ const PaymentItemCard = ({
             <div className="flex items-center gap-2 text-xs group-hover:text-white/80 mt-1">
               <MdStorefront size={20} />
               {provider.avatar && (
-                <div className="relative w-4 h-4 rounded-full overflow-hidden">
+                <div className="relative w-6 h-6 rounded-full overflow-hidden">
                   <Image
                     src={provider.avatar}
                     alt={provider.businessName}

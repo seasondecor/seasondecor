@@ -1,4 +1,5 @@
 import { Skeleton } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import React from "react";
 import Button2 from "@/app/components/ui/Buttons/Button2";
 
@@ -18,6 +19,9 @@ const DataMapper = ({
   hasMoreData = false,
   // Mode control
   accumulativeMode = false, // When true, displays all items from multiple pages
+  // Layout control
+  useGrid = true, // Whether to use grid layout
+  gridProps = { xs: 12, sm: 6, md: 4, lg: 3, xl: 3 }, // Custom grid props
 }) => {
   // Check for loading from either prop
   const isLoadingData = loading || isLoading;
@@ -49,14 +53,23 @@ const DataMapper = ({
     itemsToRender = data.slice(startIndex, endIndex);
   }
 
-  // In accumulative mode, use all data provided (no client-side pagination)
-  // This assumes the parent component is managing the accumulated data
+  const renderItems = () => {
+    if (useGrid) {
+      return itemsToRender.map((item) => (
+        <Grid item key={getKey(item)} size={gridProps}>
+          <Component {...item} {...componentProps(item)} />
+        </Grid>
+      ));
+    }
+
+    return itemsToRender.map((item) => (
+      <Component key={getKey(item)} {...item} {...componentProps(item)} />
+    ));
+  };
 
   return (
     <>
-      {itemsToRender.map((item) => (
-        <Component key={getKey(item)} {...item} {...componentProps(item)} />
-      ))}
+      {useGrid ? <>{renderItems()}</> : renderItems()}
 
       {/* Load More Button */}
       {enforcePagination && hasMoreData && (

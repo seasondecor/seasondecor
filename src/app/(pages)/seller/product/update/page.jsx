@@ -3,7 +3,7 @@
 import * as React from "react";
 import SellerWrapper from "../../components/SellerWrapper";
 import Stepper, { Step } from "@/app/components/ui/animated/Stepper";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
 import Input from "@/app/components/ui/Inputs/Input";
 import { TbCurrencyDong } from "react-icons/tb";
@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useGetProductById } from "@/app/queries/product/product.query";
 import { useUpdateProduct } from "@/app/queries/product/product.query";
 import { toast } from "sonner";
+import { Divider } from "@mui/material";
 
 const ProductUpdate = () => {
   const { user } = useUser();
@@ -28,10 +29,11 @@ const ProductUpdate = () => {
 
   console.log("Product ID:", productId);
 
-  const { data: productDetails, isLoading: isLoadingProduct } = useGetProductById(productId);
+  const { data: productDetails, isLoading: isLoadingProduct } =
+    useGetProductById(productId);
   const { data: dataCategory } = useGetListProductCategory();
   const { data: dataProvider } = useGetProviderBySlug(user?.slug);
-  
+
   const [images, setImages] = React.useState([]);
   const [existingImages, setExistingImages] = React.useState([]);
   const [selectedCategory, setSelectedCategory] = React.useState(null);
@@ -58,7 +60,7 @@ const ProductUpdate = () => {
       madein: "",
       shipForm: dataProvider?.address,
       categoryId: "",
-      providerId: ""
+      providerId: "",
     },
   });
 
@@ -77,21 +79,25 @@ const ProductUpdate = () => {
 
       // Set existing images
       if (productDetails.imageUrls && productDetails.imageUrls.length > 0) {
-        setExistingImages(productDetails.imageUrls.map((url, index) => ({
-          id: `existing-${index}`,
-          url: url,
-          isExisting: true
-        })));
+        setExistingImages(
+          productDetails.imageUrls.map((url, index) => ({
+            id: `existing-${index}`,
+            url: url,
+            isExisting: true,
+          }))
+        );
       }
 
       console.log("Existing images:", existingImages);
 
       // Set selected category
-      const category = dataCategory?.find(cat => cat.id === productDetails.categoryId);
+      const category = dataCategory?.find(
+        (cat) => cat.id === productDetails.categoryId
+      );
       if (category) {
         const categoryOption = {
           value: category.id,
-          label: category.categoryName
+          label: category.categoryName,
         };
         setSelectedCategory(categoryOption);
         setSelectedCategoryId(category.id);
@@ -144,10 +150,10 @@ const ProductUpdate = () => {
       formData.append("ShipFrom", data.shipForm);
       formData.append("CategoryId", selectedCategoryId);
 
-      existingImages.forEach(img => {
+      existingImages.forEach((img) => {
         formData.append("Images", img.url);
       });
-      
+
       images.forEach((img) => {
         formData.append("Images", img);
       });
@@ -165,11 +171,22 @@ const ProductUpdate = () => {
         },
         onError: (error) => {
           console.error("Error updating product:", error);
-          toast.error("Error updating product: " + (error.message || "Unknown error"));
+          toast.error(
+            "Error updating product: " + (error.message || "Unknown error")
+          );
         },
       });
     },
-    [selectedCategoryId, images, existingImages, mutationUpdate, productId, providerId, user?.id, router]
+    [
+      selectedCategoryId,
+      images,
+      existingImages,
+      mutationUpdate,
+      productId,
+      providerId,
+      user?.id,
+      router,
+    ]
   );
 
   const productName = watch("name");
@@ -182,13 +199,8 @@ const ProductUpdate = () => {
   // Validation function for Step 1
   const validateStep = (step) => {
     if (step === 1) {
-      if (
-        !productName?.trim() ||
-        !price?.trim() ||
-        !description?.trim() ||
-        (images.length === 0 && existingImages.length === 0)
-      ) {
-        toast.error("Please fill in all fields before proceeding.");
+      if (!productName?.trim() || !price?.trim() || !description?.trim()) {
+        toast.warning("Please fill in all fields before proceeding.");
         return false;
       }
     }
@@ -198,9 +210,10 @@ const ProductUpdate = () => {
         !quantity ||
         !madein?.trim() ||
         !shipForm?.trim() ||
-        !selectedCategoryId
+        !selectedCategoryId ||
+        (images.length === 0 && existingImages.length === 0)
       ) {
-        toast.error("Please fill in all fields before proceeding.");
+        toast.warning("Please fill in all fields before proceeding.");
         return false;
       }
     }
@@ -223,8 +236,10 @@ const ProductUpdate = () => {
         <div className="flex justify-center items-center min-h-[60vh] w-full">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Product Not Found</h2>
-            <p className="mb-6">The product you are trying to update could not be found.</p>
-            <Button2 
+            <p className="mb-6">
+              The product you are trying to update could not be found.
+            </p>
+            <Button2
               onClick={() => router.push("/seller/product")}
               label="Back to Products"
               btnClass="mt-4"
@@ -237,10 +252,7 @@ const ProductUpdate = () => {
 
   return (
     <SellerWrapper>
-      <FootTypo
-        footlabel="Update product details"
-        className="text-lg font-semibold"
-      />
+      <BodyTypo bodylabel="Update product details" fontWeight="bold" />
       <Stepper
         initialStep={1}
         onStepChange={(step) => {
@@ -252,60 +264,48 @@ const ProductUpdate = () => {
       >
         <Step validateStep={validateStep}>
           <div className="step-1 form-detail">
-            <FootTypo
-              footlabel="Basic information"
-              className="text-2xl font-semibold pt-10 pb-5"
-            />
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Product Images :"
-                className="!m-0 text-lg font-semibold"
-              />
-              <ImageUpload 
-                onImageChange={handleImageUpload} 
-                existingImages={existingImages}
-                onExistingImagesChange={setExistingImages}
-              />
-            </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Product Name :"
-                className="!m-0 text-lg font-semibold w-40"
-              />
-              <Input
-                id="name"
-                placeholder="Product name"
-                required
-                className=""
-                register={register}
-              />
-            </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Product Price :"
-                className="!m-0 text-lg font-semibold w-40"
-              />
-              <Input
-                id="price"
-                placeholder="Price"
-                required
-                icon={<TbCurrencyDong size={20} />}
-                formatPrice
-                control={control}
-                register={register}
-              />
-            </div>
-            <div className="form inline-flex items-start w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Descriptions :"
-                className="!m-0 text-lg font-semibold w-40"
-              />
-              <div className="w-full">
-                <Field>
-                  <Textarea
-                    {...register("description", { required: true })}
-                    placeholder="descriptions"
-                    className={`
+            <BodyTypo bodylabel="Basic information" fontWeight="bold" />
+            <div className="space-y-10 mt-3">
+              <div className="form flex items-center gap-5">
+                <FootTypo footlabel="Product Name" className="w-auto" />
+                <Input
+                  id="name"
+                  placeholder="Product name"
+                  required
+                  className="pl-3"
+                  register={register}
+                />
+              </div>
+              <Divider
+                textAlign="left"
+                sx={{
+                  "&::before, &::after": {
+                    borderColor: "primary.main",
+                  },
+                }}
+              >
+                <FootTypo footlabel="Price & Description" fontWeight="bold" />
+              </Divider>
+              <div className="form flex items-center gap-5">
+                <FootTypo footlabel="Product Price" className="w-auto" />
+                <Input
+                  id="price"
+                  placeholder="Price"
+                  required
+                  icon={<TbCurrencyDong size={20} />}
+                  formatPrice
+                  control={control}
+                  register={register}
+                />
+              </div>
+              <div className="form flex items-start gap-5">
+                <FootTypo footlabel="Descriptions" className="w-auto" />
+                <div className="w-full">
+                  <Field>
+                    <Textarea
+                      {...register("description", { required: true })}
+                      placeholder="descriptions"
+                      className={`
       mt-3 block w-full resize-none rounded-lg border-[1px] 
       border-black dark:border-gray-600 py-1.5 px-3 text-sm/6 
       bg-white dark:bg-gray-800 text-black dark:text-white
@@ -313,47 +313,46 @@ const ProductUpdate = () => {
       focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
       transition duration-200
     `}
-                    rows={10}
-                  />
-                </Field>
+                      rows={10}
+                    />
+                  </Field>
+                </div>
               </div>
             </div>
           </div>
         </Step>
         <Step>
-          <div className="step-2 form min-h-screen">
-            <FootTypo
-              footlabel="Product specifications"
-              className="text-2xl font-semibold border-b-[1px] pt-10 pb-5"
-            />
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Product Quantity :"
-                className="!m-0 text-lg font-semibold"
-              />
+          <div className="step-2 form space-y-10">
+            <Divider
+              textAlign="left"
+              sx={{
+                "&::before, &::after": {
+                  borderColor: "primary.main",
+                },
+              }}
+            >
+              <FootTypo footlabel="Additional information" fontWeight="bold" />
+            </Divider>
+            <div className="form flex items-center gap-5">
+              <FootTypo footlabel="Product Quantity" className="w-auto" />
               <ExampleNumberField
                 onChange={(value) => setValue("quantity", value)}
                 value={watch("quantity")}
               />
             </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Product Origin :"
-                className="!m-0 text-lg font-semibold"
-              />
+            <div className="form flex items-center gap-5">
+              <FootTypo footlabel="Product Origin" className="w-auto" />
               <Input
                 id="madein"
                 placeholder="Made in"
                 type="text"
                 required
                 register={register}
+                className="pl-3"
               />
             </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Ship From :"
-                className="!m-0 text-lg font-semibold"
-              />
+            <div className="form flex items-center gap-5">
+              <FootTypo footlabel="Ship From" className="w-auto" />
               <Input
                 id="shipForm"
                 placeholder=""
@@ -363,15 +362,13 @@ const ProductUpdate = () => {
                 register={register}
               />
               <FootTypo
-                footlabel="Note : If this not your address, please update your profile"
-                className="!m-0 text-sm font-semibold"
+                footlabel="Note: If this is not your address, please update your profile"
+                className=" text-gray-500"
+                fontStyle="italic"
               />
             </div>
-            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
-              <FootTypo
-                footlabel="Category :"
-                className="!m-0 text-lg font-semibold"
-              />
+            <div className="form flex items-center gap-5">
+              <FootTypo footlabel="Category" className="w-auto" />
               <DropdownSelectReturnObj
                 options={CategoryOptions}
                 value={selectedCategory}
@@ -380,6 +377,17 @@ const ProductUpdate = () => {
                 valueKey="value"
                 returnObject={true}
                 lisboxClassName="mt-10"
+              />
+            </div>
+            <div className="form inline-flex items-center w-full h-full gap-5 my-5">
+              <FootTypo
+                footlabel="Product Images :"
+                className="!m-0 text-lg font-semibold"
+              />
+              <ImageUpload
+                onImageChange={handleImageUpload}
+                existingImages={existingImages}
+                onExistingImagesChange={setExistingImages}
               />
             </div>
           </div>
@@ -392,7 +400,9 @@ const ProductUpdate = () => {
             />
 
             <div className="bg-transparent p-5 rounded-lg w-full shadow-md space-y-5">
-              <h3 className="text-lg font-semibold mb-2">Update Confirmation</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Update Confirmation
+              </h3>
               <p className="text-sm">
                 Before updating your product, please confirm that:
               </p>
@@ -400,7 +410,9 @@ const ProductUpdate = () => {
                 <li>All changes comply with the marketplace guidelines.</li>
                 <li>The updated information is accurate and up to date.</li>
                 <li>You are authorized to make these changes.</li>
-                <li>Changes will be immediately reflected on your product listing.</li>
+                <li>
+                  Changes will be immediately reflected on your product listing.
+                </li>
               </ul>
             </div>
 

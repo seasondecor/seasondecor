@@ -14,7 +14,6 @@ import { usePayOrder } from "@/app/queries/order/order.query";
 import { useGetWallet } from "@/app/queries/wallet/wallet.query";
 import { FaWallet, FaRegCalendarAlt } from "react-icons/fa";
 import {
-  MdErrorOutline,
   MdOutlinePayment,
   MdOutlineReceiptLong,
   MdOutlineShoppingCart,
@@ -34,6 +33,8 @@ import ResultModal from "@/app/components/ui/Modals/ResultModal";
 import SuccessView from "../components/SuccessView";
 import PaymentItemCard from "@/app/components/ui/card/PaymentItemCard";
 import { generateSlug } from "@/app/helpers";
+import { Box, Alert } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 
 const PaymentDetailPage = () => {
   const router = useRouter();
@@ -119,29 +120,59 @@ const PaymentDetailPage = () => {
     const fullAddress = addressParts.join(", ");
     return fullAddress || "No address provided";
   };
-  
 
   // Helper function to get payment type title
   const getPaymentTitle = () => {
     switch (paymentType) {
       case "deposit":
-        return "Deposit Payment";
+        return `Deposit Payment for Contract ${paymentData?.contractCode}`;
       case "final":
-        return "Final Payment";
+        return `Final Payment for Contract ${paymentData?.contractCode}`;
       case "order":
       default:
-        return "Order Payment";
+        return `Order Payment for Order ${paymentData?.orderCode}`;
     }
   };
 
   const handleSuccess = (result, type) => {
+    // Extract data based on payment type and response structure
+    const paymentData = result?.data;
+
+    // Safely extract provider information
+    const providerInfo = type === "order" 
+      ? (paymentData?.provider || {})
+      : paymentData || {};
+
+    // Calculate amount based on payment type
+    let amount = 0;
+    if (type === "order") {
+      amount = paymentData?.totalPrice || 0;
+    } else if (type === "deposit") {
+      amount = paymentData?.depositAmount || 0;
+    } else if (type === "final") {
+      // For final payment, it's the remaining amount after deposit
+      amount = (paymentData?.totalPrice || 0) - (paymentData?.depositAmount || 0);
+    }
+
     const data = {
       paymentType: type,
-      amount: result?.amount || 0,
-      orderCode: result?.order?.code,
-      bookingCode: result?.booking?.code,
-      customerName: result?.customerName || "Customer",
-      redirectPath: "/user/orders/completed",
+      amount: amount,
+      orderCode: type === "order" ? paymentData?.orderCode : undefined,
+      bookingCode: (type === "deposit" || type === "final") ? paymentData?.bookingCode : undefined,
+      providerName: type === "order" 
+        ? providerInfo?.businessName 
+        : paymentData?.providerName,
+      providerEmail: type === "order"
+        ? providerInfo?.email
+        : paymentData?.providerEmail,
+      providerPhone: type === "order"
+        ? providerInfo?.phone
+        : paymentData?.providerPhone,
+      paymentDate: new Date().toISOString(),
+      paymentStatus: "Completed",
+      redirectPath: type === "order" 
+        ? "/user/orders/completed" 
+        : "/booking/request",
       actionLabel: "Return to Home",
       handleRedirect: () => router.push("/"),
     };
@@ -149,7 +180,7 @@ const PaymentDetailPage = () => {
     setSuccessData(data);
     setResultModalData({
       title: "Payment successful",
-      message: "Your payment has been processed successfully!",
+      message: result?.message || "Your payment has been processed successfully!",
       type: "success",
     });
     setResultModalOpen(true);
@@ -311,98 +342,98 @@ const PaymentDetailPage = () => {
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-            <div className="flex items-center gap-4">
-              <div
-                className={`p-2 rounded-lg ${
-                  paymentType === "deposit" || paymentType === "final"
-                    ? "bg-blue-50 dark:bg-blue-900/20"
-                    : "bg-blue-50 dark:bg-blue-900/20"
-                }`}
-              >
-                <MdOutlineShoppingCart
-                  className="text-blue-600 dark:text-blue-400"
-                  size={24}
-                />
-              </div>
-              <div>
-                <FootTypo
-                  footlabel={
-                    paymentType === "deposit" || paymentType === "final"
-                      ? "Contract Code"
-                      : "Order Code"
-                  }
-                  className="text-slate-500 dark:text-slate-400 mr-2"
-                />
-                <FootTypo
-                  footlabel={
-                    paymentData?.orderCode || paymentData?.bookingCode || id
-                  }
-                  className="font-medium text-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 6}}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg">
+                  <MdOutlineShoppingCart
+                    className="text-blue-600 dark:text-blue-400"
+                    size={24}
+                  />
+                </div>
+                <div>
+                  <FootTypo
+                    footlabel={
+                      paymentType === "deposit" || paymentType === "final"
+                        ? "Contract Code"
+                        : "Order Code"
+                    }
+                    className="text-slate-500 dark:text-slate-400 mr-2"
+                  />
+                  <FootTypo
+                    footlabel={
+                      paymentData?.orderCode || paymentData?.bookingCode || id
+                    }
+                    className="text-slate-900 dark:text-white"
+                  />
+                </div>
+              </Box>
+            </Grid>
 
-            <div className="flex items-center gap-4">
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-lg">
-                <FaRegCalendarAlt
-                  className="text-purple-600 dark:text-purple-400"
-                  size={24}
-                />
-              </div>
-              <div>
-                <FootTypo
-                  footlabel={
-                    paymentType === "deposit" || paymentType === "final"
-                      ? "Created Date"
-                      : "Order Date"
-                  }
-                  className="text-slate-500 dark:text-slate-400 mr-2"
-                />
-                <FootTypo
-                  footlabel={formatDateVN(
-                    paymentData?.orderDate ||
-                      paymentData?.bookingDate ||
-                      new Date()
-                  )}
-                  className="text-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
+            <Grid size={{ xs: 12, md: 6}}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-lg">
+                  <FaRegCalendarAlt
+                    className="text-purple-600 dark:text-purple-400"
+                    size={24}
+                  />
+                </div>
+                <div>
+                  <FootTypo
+                    footlabel={
+                      paymentType === "deposit" || paymentType === "final"
+                        ? "Created Date"
+                        : "Order Date"
+                    }
+                    className="text-slate-500 dark:text-slate-400 mr-2"
+                  />
+                  <FootTypo
+                    footlabel={formatDateVN(
+                      paymentData?.orderDate ||
+                        paymentData?.bookingDate ||
+                        new Date()
+                    )}
+                    className="text-slate-900 dark:text-white"
+                  />
+                </div>
+              </Box>
+            </Grid>
 
-            <div className="flex items-center gap-4">
-              <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
-                <LuBanknote
-                  className="text-amber-600 dark:text-amber-400"
-                  size={24}
-                />
-              </div>
-              <div>
-                <FootTypo
-                  footlabel={
-                    paymentType === "deposit"
-                      ? "Deposit Amount"
-                      : paymentType === "final"
-                      ? "Final Payment"
-                      : "Total Amount"
-                  }
-                  className="text-slate-500 dark:text-slate-400 mr-2"
-                />
-                <FootTypo
-                  footlabel={formatCurrency(
-                    paymentData?.totalPrice ||
-                      paymentData?.depositAmount ||
-                      paymentData?.finalPaymentAmount ||
-                      0
-                  )}
-                  className="text-slate-900 dark:text-white text-lg"
-                />
-              </div>
-            </div>
+            <Grid size={{ xs: 12, md: 6}}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
+                  <LuBanknote
+                    className="text-amber-600 dark:text-amber-400"
+                    size={24}
+                  />
+                </div>
+                <div>
+                  <FootTypo
+                    footlabel={
+                      paymentType === "deposit"
+                        ? "Deposit Amount"
+                        : paymentType === "final"
+                        ? "Final Payment"
+                        : "Total Amount"
+                    }
+                    className="text-slate-500 dark:text-slate-400 mr-2"
+                  />
+                  <FootTypo
+                    footlabel={formatCurrency(
+                      paymentData?.totalPrice ||
+                        paymentData?.depositAmount ||
+                        paymentData?.finalPaymentAmount ||
+                        0
+                    )}
+                    className="text-slate-900 dark:text-white text-lg font-bold"
+                  />
+                </div>
+              </Box>
+            </Grid>
 
             {paymentType === "deposit" && (
-              <>
-                <div className="flex items-center gap-4">
+              <Grid size={{ xs: 12, md: 6}}>
+                <Box display="flex" alignItems="center" gap={1}>
                   <div className="bg-teal-50 dark:bg-teal-900/20 p-2 rounded-lg">
                     <MdLocationOn
                       className="text-teal-600 dark:text-teal-400"
@@ -421,78 +452,84 @@ const PaymentDetailPage = () => {
                       className="text-slate-900 dark:text-white"
                     />
                   </div>
-                </div>
-              </>
+                </Box>
+              </Grid>
             )}
 
             {/* Payment Status - For final payments */}
             {paymentType === "final" && depositPayment && (
-              <div className="flex items-start gap-4 col-span-1 md:col-span-2">
-                <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
-                  <FaWallet
-                    className="text-green-600 dark:text-green-400"
-                    size={24}
-                  />
-                </div>
-                <div className="flex-1">
-                  <FootTypo
-                    footlabel="Previous Payment"
-                    className="text-slate-500 dark:text-slate-400"
-                  />
-                  <div className="flex gap-4 mt-2">
-                    <div>
-                      <FootTypo
-                        footlabel="Deposit Paid"
-                        className="text-sm text-slate-500 dark:text-slate-400"
-                      />
-                      <FootTypo
-                        footlabel={formatCurrency(depositPayment?.amount || 0)}
-                        className="font-medium text-green-600 dark:text-green-400"
-                      />
-                    </div>
-                    <div>
-                      <FootTypo
-                        footlabel="Remaining Balance"
-                        className="text-sm text-slate-500 dark:text-slate-400"
-                      />
-                      <FootTypo
-                        footlabel={formatCurrency(finalPayment?.amount || 0)}
-                        className="font-medium text-amber-600 dark:text-amber-400"
-                      />
+              <Grid size={{ xs: 12, md: 12 }}>
+                <div className="flex items-start gap-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
+                    <FaWallet
+                      className="text-green-600 dark:text-green-400"
+                      size={24}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <FootTypo
+                      footlabel="Previous Payment"
+                      className="text-slate-500 dark:text-slate-400"
+                    />
+                    <div className="flex gap-4 mt-2">
+                      <div>
+                        <FootTypo
+                          footlabel="Deposit Paid"
+                          className="text-sm text-slate-500 dark:text-slate-400"
+                        />
+                        <FootTypo
+                          footlabel={formatCurrency(
+                            depositPayment?.amount || 0
+                          )}
+                          className="font-medium text-green-600 dark:text-green-400"
+                        />
+                      </div>
+                      <div>
+                        <FootTypo
+                          footlabel="Remaining Balance"
+                          className="text-sm text-slate-500 dark:text-slate-400"
+                        />
+                        <FootTypo
+                          footlabel={formatCurrency(finalPayment?.amount || 0)}
+                          className="font-medium text-amber-600 dark:text-amber-400"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Grid>
             )}
 
             {/* Address */}
             {paymentData?.address && (
-              <div className="flex items-start gap-4 col-span-1 md:col-span-2">
-                <div className="bg-teal-50 dark:bg-teal-900/20 p-2 rounded-lg">
-                  <MdLocationOn
-                    className="text-teal-600 dark:text-teal-400"
-                    size={24}
-                  />
+              <Grid size={{ xs: 12, md: 12 }}>
+                <div className="flex items-start gap-4">
+                  <div className="bg-teal-50 dark:bg-teal-900/20 p-2 rounded-lg">
+                    <MdLocationOn
+                      className="text-teal-600 dark:text-teal-400"
+                      size={24}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <FootTypo
+                      footlabel={`Address ${
+                        paymentData?.address?.addressType &&
+                        `(${paymentData.address.addressType})`
+                      }`}
+                      className="text-slate-500 dark:text-slate-400"
+                    />
+                    <p className="font-medium text-slate-900 dark:text-white mt-1">
+                      {paymentData?.address?.fullName || ""}
+                    </p>
+                    <FootTypo
+                      footlabel={formatFullAddress(paymentData)}
+                      className="text-slate-700 dark:text-slate-300 text-sm mt-1"
+                    />
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <FootTypo
-                    footlabel={`Address ${
-                      paymentData?.address?.addressType &&
-                      `(${paymentData.address.addressType})`
-                    }`}
-                    className="text-slate-500 dark:text-slate-400"
-                  />
-                  <p className="font-medium text-slate-900 dark:text-white mt-1">
-                    {paymentData?.address?.fullName || ""}
-                  </p>
-                  <FootTypo
-                    footlabel={formatFullAddress(paymentData)}
-                    className="text-slate-700 dark:text-slate-300 text-sm mt-1"
-                  />
-                </div>
-              </div>
+              </Grid>
             )}
-          </div>
+          </Grid>
         </div>
       </Paper>
 
@@ -557,48 +594,46 @@ const PaymentDetailPage = () => {
 
         <div className="p-6">
           {/* Wallet Payment Option */}
-          <div className={`flex items-start p-4 mb-4 rounded-lg border-2`}>
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg mr-4">
+          <div className="flex items-start p-5 mb-6 rounded-lg border-2 border-blue-100 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 shadow-sm hover:shadow-md">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-full mr-4">
               <FaWallet
                 className="text-blue-600 dark:text-blue-400"
-                size={20}
+                size={24}
               />
             </div>
 
             <div className="flex-1">
-              <div className="flex justify-between items-start">
+              <Box display="flex" flexDirection="row" justifyContent="space-between">
                 <FootTypo
                   footlabel="Wallet Balance"
-                  className="font-medium text-slate-900 dark:text-white"
                 />
                 <FootTypo
                   footlabel="Pay using your wallet balance"
-                  className="text-sm text-slate-500 dark:text-slate-400"
+                  className="text-sm text-slate-500 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full"
                 />
-              </div>
+              </Box>
 
               {walletLoading ? (
                 <Skeleton animation="wave" width={100} height={24} />
               ) : (
-                <div className="mt-2">
-                  <p
-                    className={`font-bold text-lg ${
-                      hasInsufficientFunds ? "text-red" : ""
+                <>
+                  <FootTypo
+                    footlabel={formatCurrency(wallet?.balance)}
+                    fontWeight="bold"
+                    fontSize="1.2rem"
+                    className={`${
+                      hasInsufficientFunds
+                        ? "text-red-500"
+                        : "text-blue-600 dark:text-blue-400"
                     }`}
-                  >
-                    {formatCurrency(wallet?.balance)}
-                  </p>
+                  />
 
                   {hasInsufficientFunds && (
-                    <div className="flex items-center gap-2 text-red-500 bg-red-50 dark:bg-red-900/10 py-2 rounded-md mt-2 underline text-rose-500">
-                      <MdErrorOutline size={20} />
-                      <FootTypo
-                        footlabel="Insufficient funds. Please top up your wallet."
-                        className="!m-0 text-sm"
-                      />
-                    </div>
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                      Insufficient funds. Please top up your wallet.
+                    </Alert>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
@@ -625,8 +660,8 @@ const PaymentDetailPage = () => {
             <div className="p-6">
               <div className="relative">
                 {/* From Customer */}
-                <div className="flex flex-col sm:flex-row items-start gap-4 p-4 mb-8 border rounded-lg">
-                  <div className="bg-rose-50 dark:bg-rose-900/20 p-3 rounded-lg">
+                <div className="flex flex-col sm:flex-row items-start gap-4 p-5 mb-12 border border-rose-200 dark:border-rose-800 rounded-lg bg-rose-50/50 dark:bg-rose-900/10 shadow-sm">
+                  <div className="bg-rose-100 dark:bg-rose-900/30 p-3 rounded-full flex-shrink-0">
                     <LuUser
                       className="text-rose-600 dark:text-rose-400"
                       size={28}
@@ -636,29 +671,29 @@ const PaymentDetailPage = () => {
                   <div className="flex-1">
                     <FootTypo
                       footlabel="From"
-                      className="text-slate-500 dark:text-slate-400 mb-2"
+                      className="text-rose-600 dark:text-rose-400 font-medium mb-2"
                     />
                     <div className="space-y-1">
-                      <p className="font-medium text-slate-900 dark:text-white">
+                      <p className="font-medium text-slate-900 dark:text-white text-lg">
                         {paymentData?.address?.fullName ||
                           paymentData?.customerName ||
                           "Customer"}
                       </p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                      <p className="text-slate-700 dark:text-slate-300">
                         {paymentData?.customerEmail || "N/A"}
                       </p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                      <p className="text-slate-700 dark:text-slate-300">
                         Phone: {paymentData?.address?.phone || "N/A"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="sm:text-right mt-2 sm:mt-0">
+                  <div className="sm:text-right mt-2 sm:mt-0 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
                     <FootTypo
-                      footlabel="Ammout to transfer"
+                      footlabel="Amount to transfer"
                       className="text-slate-500 dark:text-slate-400 mb-2"
                     />
-                    <p className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                    <p className="font-bold text-xl text-amber-600 dark:text-amber-400">
                       {formatCurrency(
                         paymentData?.totalPrice ||
                           paymentData?.depositAmount ||
@@ -670,16 +705,13 @@ const PaymentDetailPage = () => {
                 </div>
 
                 {/* Arrow indicator */}
-                <div className="absolute left-1/2 top-[calc(50%-12px)] transform -translate-x-1/2 -translate-y-1/2 hidden sm:block">
-                  <LuArrowDown
-                    className="bg-primary rounded-full p-2"
-                    size={40}
-                  />
+                <div className="absolute left-1/2 top-[calc(50%-12px)] transform -translate-x-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-12 h-12 bg-primary rounded-full shadow-lg z-10">
+                  <LuArrowDown className="text-white" size={24} />
                 </div>
 
                 {/* To Provider */}
-                <div className="flex flex-col sm:flex-row items-start gap-4 p-4 border rounded-lg">
-                  <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg">
+                <div className="flex flex-col sm:flex-row items-start gap-4 p-5 border border-indigo-200 dark:border-indigo-800 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm">
+                  <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-full flex-shrink-0">
                     <LuBuilding
                       className="text-indigo-600 dark:text-indigo-400"
                       size={28}
@@ -689,29 +721,29 @@ const PaymentDetailPage = () => {
                   <div className="flex-1">
                     <FootTypo
                       footlabel="To"
-                      className="text-slate-500 dark:text-slate-400 mb-2"
+                      className="text-indigo-600 dark:text-indigo-400 font-medium mb-2"
                     />
                     <div className="space-y-1">
-                      <p className="font-medium text-slate-900 dark:text-white">
+                      <p className="font-medium text-slate-900 dark:text-white text-lg">
                         {paymentData?.providerName ||
                           paymentData?.orderDetails?.provider?.businessName ||
                           "Service Provider"}
                       </p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                      <p className="text-slate-700 dark:text-slate-300">
                         {paymentData?.providerEmail || "N/A"}
                       </p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                      <p className="text-slate-700 dark:text-slate-300">
                         Phone: {paymentData?.providerPhone || "N/A"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="sm:text-right mt-2 sm:mt-0">
+                  <div className="sm:text-right mt-2 sm:mt-0 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
                     <FootTypo
                       footlabel="Receiving"
                       className="text-slate-500 dark:text-slate-400 mb-2"
                     />
-                    <p className="font-bold text-lg text-green-600 dark:text-green-400">
+                    <p className="font-bold text-xl text-green-600 dark:text-green-400">
                       {formatCurrency(
                         paymentData?.totalPrice ||
                           paymentData?.depositAmount ||
@@ -725,9 +757,9 @@ const PaymentDetailPage = () => {
             </div>
           </Paper>
         )}
-        <div className="p-6 flex flex-col items-center">
-          <div className="flex items-center gap-2 mb-4 text-gray-500">
-            <FootTypo footlabel="Total to pay:" className="m-0 text-sm" />
+        <div className="p-6 flex flex-col items-center bg-gradient-to-b from-transparent to-blue-50 dark:to-blue-900/10 rounded-b-lg">
+          <Box display="flex" alignItems="center" gap={1} mb={2} className="rounded-lg shadow-lg p-2">
+            <FootTypo footlabel="Total to pay:"/>
             <FootTypo
               footlabel={formatCurrency(
                 paymentData?.totalPrice ||
@@ -737,7 +769,7 @@ const PaymentDetailPage = () => {
               )}
               className="m-0 font-bold text-lg text-slate-900 dark:text-white"
             />
-          </div>
+          </Box>
 
           <Button
             label={
@@ -745,13 +777,17 @@ const PaymentDetailPage = () => {
             }
             icon={
               hasInsufficientFunds ? (
-                <FaWallet size={20} />
+                <FaWallet size={15} />
               ) : (
-                <TbCreditCardPay size={20} />
+                <TbCreditCardPay size={15} />
               )
             }
             onClick={handlePayment}
-            className="text-base"
+            className={`${
+              hasInsufficientFunds
+                ? "bg-blue-500 hover:bg-blue-600"
+                : "bg-green text-white"
+            } transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`}
             isLoading={
               payOrderLoading || depositBookingLoading || paymentBookingLoading
             }
@@ -762,7 +798,7 @@ const PaymentDetailPage = () => {
 
           <FootTypo
             footlabel="By completing this payment, you agree to the terms and conditions of our service."
-            className="text-xs text-gray-500 mt-4 text-center max-w-sm"
+            className="pt-2 text-center max-w-sm"
           />
         </div>
       </Paper>

@@ -43,7 +43,7 @@ export const CardContainer = ({
       <div
         onClick={onClick}
         className={cn(
-          "flex items-center justify-center w-fit",
+          "flex items-center justify-center ",
           containerClassName
         )}
         style={{

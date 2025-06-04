@@ -11,6 +11,8 @@ import { useGetProductByCategoryId } from "@/app/queries/list/product.list.query
 import EmptyState from "../../EmptyState";
 import { Skeleton } from "@mui/material";
 import { useSearchParams } from "next/navigation";
+import Grid from "@mui/material/Grid2";
+import Image from "next/image";
 
 const ProductSection = () => {
   const params = useSearchParams();
@@ -27,11 +29,7 @@ const ProductSection = () => {
     maxPrice: "",
   });
 
-  const {
-    data: productList,
-    isLoading,
-    isError,
-  } = selectedCategoryId
+  const { data: productList, isLoading } = selectedCategoryId
     ? useGetProductByCategoryId(selectedCategoryId, pagination)
     : useGetListProduct(pagination);
 
@@ -42,14 +40,12 @@ const ProductSection = () => {
       .replace(/^-+|-+$/g, "");
   };
 
-
   const products = Array.isArray(productList?.data) ? productList.data : [];
-
 
   return (
     <Container>
       <Categories />
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-12 mt-10  relative">
+      <Grid container spacing={4} mt={4} position="relative">
         <DataMapper
           data={products}
           Component={ProductCard}
@@ -63,11 +59,14 @@ const ProductSection = () => {
             price: product.productPrice,
             totalSold: product.totalSold,
             id: product.id,
-            href: `/products/${product.id}-${generateSlug(product.productName)}`,
+            href: `/products/${product.id}-${generateSlug(
+              product.productName
+            )}`,
           })}
+          useGrid={true}
         />
         <div className="absolute inset-x-0 bottom-0 z-30 h-80 bg-gradient-to-t from-white to-transparent dark:from-black opacity-90 rounded-2xl"></div>
-      </div>
+      </Grid>
       <div className="flex justify-center w-full">
         <BlackBgButton blackBtnlable="Browse products" href={"/products"} />
       </div>

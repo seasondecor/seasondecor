@@ -9,6 +9,7 @@ import EmptyState from "@/app/components/EmptyState";
 import { generateSlug } from "@/app/helpers";
 import { Skeleton } from "@mui/material";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import Grid from "@mui/material/Grid2";
 
 const ProductsTab = () => {
   const [pagination, setPagination] = React.useState({
@@ -40,7 +41,7 @@ const ProductsTab = () => {
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-12 mt-10">
+      <Grid container spacing={5} mt={2}>
         <DataMapper
           data={products}
           Component={ProductCard}
@@ -52,10 +53,11 @@ const ProductsTab = () => {
             productName: product.productName,
             rate: product.rate,
             price: product.productPrice,
+            designStyle: product.designs,
             href: `/products/${product.id}-${generateSlug(product.productName)}`,
           })}
         />
-      </div>
+      </Grid>
 
       {totalCount > 0 && (
         <div className="flex justify-center mt-8 gap-4">

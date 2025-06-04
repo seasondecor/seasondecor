@@ -6,7 +6,7 @@ import {
   useGetFollower,
   useGetFollowCount,
 } from "@/app/queries/list/follow.list.query";
-import { FootTypo } from "@/app/components/ui/Typography";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import ProviderCard from "@/app/components/ui/card/ProviderCard";
 import DataMapper from "@/app/components/DataMapper";
 import EmptyState from "@/app/components/EmptyState";
@@ -72,10 +72,7 @@ const UserFollowers = () => {
           <div className="pb-11 border-b-[1px]">
             <div className="flex flex-row justify-between items-center ">
               <span>
-                <FootTypo
-                  footlabel={`${followCount?.followersCount} followers`}
-                  className="!m-0 text-lg font-semibold"
-                />
+                <BodyTypo bodylabel={`${followCount?.followersCount} followers`} />
               </span>
             </div>
           </div>

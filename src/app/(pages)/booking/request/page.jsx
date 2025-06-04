@@ -40,7 +40,12 @@ import useDeleteConfirmModal from "@/app/hooks/useDeleteConfirmModal";
 import { generateSlug } from "@/app/helpers";
 import { toast } from "sonner";
 import { FaStar } from "react-icons/fa";
-import { MdClose, MdUploadFile, MdCalendarToday } from "react-icons/md";
+import {
+  MdClose,
+  MdUploadFile,
+  MdCalendarToday,
+  MdFilterListOff,
+} from "react-icons/md";
 import Image from "next/image";
 import { useReviewService } from "@/app/queries/review/review.query";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
@@ -330,6 +335,7 @@ const BookingRequestPage = () => {
       </FormControl>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filter"
         onClick={() =>
           setFilters({
@@ -466,8 +472,14 @@ const BookingRequestPage = () => {
   return (
     <Container>
       <MuiBreadcrumbs />
-      <section className="flex flex-row justify-between items-center my-5">
-        <div className="flex flex-row gap-4">
+      <Box
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-between"
+        alignItems="center"
+        my={2}
+      >
+        <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
           <BodyTypo bodylabel="Booking Request" />
           <RefreshButton
             onRefresh={() => {
@@ -477,9 +489,9 @@ const BookingRequestPage = () => {
             isLoading={isInitialLoading || isQuotationsLoading}
             tooltip="Refresh booking request list"
           />
-        </div>
+        </Box>
 
-        <div className="flex flex-row gap-4">
+        <Box className="flex flex-row gap-4">
           <PopoverComponent
             buttonLabel="Pending Quotations"
             itemCount={quotationItemCount}
@@ -508,8 +520,8 @@ const BookingRequestPage = () => {
             <IoIosArrowForward size={20} />
             All Quotations
           </button>
-        </div>
-      </section>
+        </Box>
+      </Box>
 
       <FilterSelectors />
 
@@ -524,15 +536,15 @@ const BookingRequestPage = () => {
           <h2 className="text-xl font-semibold mb-4">
             No Booking Requests Found
           </h2>
-          <p>
+          <span>
             {filters.status
               ? "No booking requests match your filter criteria. Try adjusting your filters."
               : "You don't have any booking requests at the moment."}
-          </p>
+          </span>
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-4">
+          <Box display="flex" flexDirection="column" gap={2}>
             <DataMapper
               data={bookings}
               Component={BookingCard}
@@ -541,9 +553,11 @@ const BookingRequestPage = () => {
               }
               loading={isInitialLoading}
               getKey={(item) => item.bookingId}
+              useGrid={false}
               componentProps={(booking) => ({
                 bookingCode: booking.bookingCode,
                 status: booking.status,
+                surveyDate: booking.surveyDate,
                 createdDate: booking.createdAt,
                 isPending: booking.status === 0,
                 isPlanning: booking.status === 1,
@@ -560,6 +574,8 @@ const BookingRequestPage = () => {
                 isTracked: booking.isTracked,
                 isSigned: booking.isContractSigned,
                 address: booking.address,
+                hasTerminated: booking.hasTerminated,
+                completeDate: booking.completeDate,
                 isReviewed: booking.isReviewed,
                 providerAvatar: booking.provider.avatar,
                 providerName: booking.provider.businessName,
@@ -590,8 +606,25 @@ const BookingRequestPage = () => {
                     ),
                     serviceName: booking.decorService.style,
                     serviceSeason: booking.decorService.seasons,
+                    serviceThemeColors: booking.themeColors,
                     providerImage: booking.provider.avatar,
+                    serviceDesignStyle: booking.designs,
                     providerName: booking.provider.businessName,
+                    surveyDate: booking.surveyDate,
+                    bookingFormInfo: {
+                      spaceStyle: booking.bookingForm.spaceStyle,
+                      roomSize: booking.bookingForm.roomSize,
+                      primaryUser: booking.bookingForm.primaryUser,
+                      estimatedBudget: booking.bookingForm.estimatedBudget,
+                      images:
+                        booking.bookingForm.images?.map(
+                          (img) => img.imageUrl
+                        ) || [],
+                    },
+                    designStyle: {
+                      id: booking.design?.id,
+                      name: booking.design?.name,
+                    },
                     profileClick: () => {
                       router.push(`/provider/${booking.provider.slug}`);
                       onClose();
@@ -605,10 +638,16 @@ const BookingRequestPage = () => {
                   ),
               })}
             />
-          </div>
+          </Box>
 
           {totalCount > 0 && (
-            <div className="flex justify-center mt-4 gap-4">
+            <Box
+              display="flex"
+              flexDirection="row"
+              justifyContent="center"
+              my={3}
+              gap={2}
+            >
               <button
                 onClick={() =>
                   pagination.pageIndex > 1 &&
@@ -632,7 +671,7 @@ const BookingRequestPage = () => {
               >
                 <IoIosArrowForward size={20} />
               </button>
-            </div>
+            </Box>
           )}
         </>
       )}
@@ -809,8 +848,8 @@ const BookingRequestPage = () => {
             </div>
 
             {walletData && walletData.balance < DEPOSIT_AMOUNT && (
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                <Typography variant="body2" color="error">
+              <div className="p-4 rounded-lg border border-red">
+                <Typography variant="body2" color="error" component="div">
                   Your wallet balance is insufficient for this deposit. Please
                   top up your wallet with at least{" "}
                   {formatCurrency(DEPOSIT_AMOUNT - walletData.balance)} more.
@@ -823,6 +862,7 @@ const BookingRequestPage = () => {
               <Typography
                 variant="subtitle2"
                 className="font-semibold mb-2 text-blue-700 dark:text-blue-300"
+                component="div"
               >
                 Deposit Regulation:
               </Typography>
@@ -880,6 +920,7 @@ const BookingRequestPage = () => {
         onClose={handleCloseMeetingDialog}
         maxWidth="md"
         fullWidth
+        disableScrollLock
       >
         <DialogTitle>
           <div className="flex justify-between items-center">
@@ -894,14 +935,16 @@ const BookingRequestPage = () => {
             </IconButton>
           </div>
         </DialogTitle>
-        <DialogContent dividers>
-          <div className="space-y-6 py-2">
+        <DialogContent>
+          <div className="py-2">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800 mb-6">
               <Typography
                 variant="h6"
                 className="flex items-center gap-2 text-blue-700 dark:text-blue-300 mb-1"
               >
-                <span>Booking: {currentBookingForMeeting?.bookingCode}</span>
+                <span>
+                  Booking Code : {currentBookingForMeeting?.bookingCode}
+                </span>
               </Typography>
               <Typography
                 variant="body1"
@@ -1089,7 +1132,7 @@ const BookingRequestPage = () => {
           <Button
             label="Request Meeting"
             onClick={handleMeetingRequest}
-            className="bg-blue-600 text-white"
+            className="bg-action text-white"
             isLoading={isCreatingMeeting}
             disabled={
               !selectedMeetingDate || !selectedMeetingTime || isCreatingMeeting

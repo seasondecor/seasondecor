@@ -20,7 +20,7 @@ export function useGetPaginatedBookingsForCustomer(paginationParams = {}) {
     ...paginationParams,
   };
   return useQuery({
-    queryKey: ["booking-list-for-customer", params],
+    queryKey: ["booking_list_for_customer", params],
     queryFn: async () => {
       nProgress.start();
       try {
@@ -72,7 +72,7 @@ export function useGetPaginatedBookingsForProvider(paginationParams = {}) {
     ...paginationParams,
   };
   return useQuery({
-    queryKey: ["booking-list-for-provider", params],
+    queryKey: ["booking_list_for_provider", params],
     queryFn: async () => {
       nProgress.start();
       try {
@@ -121,7 +121,7 @@ export function useGetPaginatedBookingsForProvider(paginationParams = {}) {
 
 export function useGetPendingCancelBookingDetail(bookingCode) {
   return useQuery({
-    queryKey: ["pending-cancel-booking-detail", bookingCode],
+    queryKey: ["pending_cancel_booking_detail", bookingCode],
     queryFn: async () => {
       nProgress.start();
       try {

@@ -475,11 +475,11 @@ const ChatBox = () => {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[99998]"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[1000]"
           onClick={onClose}
         />
       )}
-      <div className="fixed bottom-4 right-14 z-[99999] dark:text-black">
+      <div className="fixed bottom-4 right-14 z-[1200] dark:text-black">
         {!isOpen && (
           <button
             onClick={() => handleChatClick(null)}

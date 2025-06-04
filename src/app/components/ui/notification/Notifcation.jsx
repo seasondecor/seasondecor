@@ -6,7 +6,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import { createMarkup } from "@/app/helpers";
 import Typography from "@mui/material/Typography";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/app/helpers";
 import {
   IoNotificationsSharp,
   IoCheckmarkDoneSharp,
@@ -20,7 +20,13 @@ import {
 import { useUser } from "@/app/providers/userprovider";
 import { useGetNotifications } from "@/app/queries/list/notification.list.query";
 import { notificationService } from "@/app/services/notificationService";
-import { CircularProgress, Paper, Divider, Badge, Tooltip } from "@mui/material";
+import {
+  CircularProgress,
+  Paper,
+  Divider,
+  Badge,
+  Tooltip,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Button from "../Buttons/Button";
@@ -37,7 +43,7 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
   React.useEffect(() => {
     const initializeConnection = async () => {
       if (!user?.id || notificationService.isConnected()) return;
-      
+
       try {
         setIsConnecting(true);
         await notificationService.startConnection(user.id);
@@ -122,10 +128,10 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
   const markAsRead = async (notificationId) => {
     try {
       if (!user?.id) return; // Skip if not logged in
-      
+
       // Prevent duplicate calls if already marking this notification as read
       if (readingId === notificationId) return;
-      
+
       setReadingId(notificationId);
 
       // Ensure connection before attempting to use SignalR
@@ -134,13 +140,13 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
       if (isConnected) {
         // Use the new SignalR method to mark as read
         await notificationService.markAsRead(notificationId);
-        
+
         // Let the SignalR event handlers update the cache
         // No need to invalidate queries here
       } else {
         // Fallback to REST API if SignalR connection failed
         await notificationService.markNotificationAsRead(notificationId);
-        
+
         // Only if using REST API directly, invalidate queries
         queryClient.invalidateQueries(["notifications"], { exact: true });
       }
@@ -164,10 +170,10 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
   const markAllAsRead = async () => {
     try {
       if (!user?.id) return; // Skip if not logged in
-      
+
       // Prevent duplicate calls if already marking all as read
       if (readingId === "all") return;
-      
+
       setReadingId("all");
 
       // Ensure connection before attempting to use SignalR
@@ -176,13 +182,13 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
       if (isConnected) {
         // Use the new SignalR method to mark all as read
         await notificationService.markAllAsRead();
-        
+
         // Let the SignalR event handlers update the cache
         // No need to invalidate queries here
       } else {
         // Fallback to REST API if SignalR connection failed
         await notificationService.markAllNotificationsAsRead();
-        
+
         // Only if using REST API directly, invalidate queries
         queryClient.invalidateQueries(["notifications"], { exact: true });
       }
@@ -226,18 +232,9 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
     if (notification.isRead) {
       return;
     }
-    
+
     // Mark notification as read when clicking on a link
     markAsRead(notification.id);
-  };
-
-  const formatTimeAgo = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return formatDistanceToNow(date, { addSuffix: true });
-    } catch (error) {
-      return "some time ago";
-    }
   };
 
   // Function to get appropriate icon for notification based on content
@@ -259,7 +256,10 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
   const guestContent = (
     <Box sx={{ width: 550 }} role="presentation">
       <Box className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
-        <Typography variant="h6" className="font-semibold text-indigo-700 dark:text-indigo-300">
+        <Typography
+          variant="h6"
+          className="font-semibold text-indigo-700 dark:text-indigo-300"
+        >
           Notifications
         </Typography>
       </Box>
@@ -283,7 +283,8 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
           component="div"
           className="text-gray-500 dark:text-gray-400 max-w-xs"
         >
-          Please log in to view your notifications and stay informed about your account activities
+          Please log in to view your notifications and stay informed about your
+          account activities
         </Typography>
         <Button
           icon={<IoLogInOutline />}
@@ -300,17 +301,19 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
 
   // Function to render the notification content that will be used in both Link and ListItemButton
   const renderNotificationContent = (notification) => (
-    <div className="flex items-start w-full">
-      <div className="flex-shrink-0 mr-4 mt-1">
+    <div className="flex items-start w-full gap-3">
+      <div className="flex-shrink-0 mt-1">
         {getNotificationIcon(notification)}
       </div>
-      <div className="flex-grow">
+      <div className="flex-grow min-w-0">
         <Typography
           variant="body1"
           component="div"
           className={`${
-            notification.isRead ? "font-normal text-gray-700" : "font-semibold text-gray-900"
-          } mb-1 dark:text-gray-100`}
+            notification.isRead
+              ? "font-normal text-gray-700"
+              : "font-semibold text-gray-900"
+          } mb-1.5 dark:text-gray-100 line-clamp-2`}
         >
           {notification.title}
         </Typography>
@@ -318,22 +321,22 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
         <div
           className={`${
             notification.isRead ? "text-gray-500" : "text-gray-600"
-          } dark:text-gray-300 text-sm mb-2`}
+          } dark:text-gray-300 text-sm mb-2 line-clamp-2 break-words`}
           dangerouslySetInnerHTML={createMarkup(notification.content)}
         />
 
         <div className="flex items-center text-xs text-gray-400 dark:text-gray-500">
-          <IoTimeOutline className="mr-1" />
+          <IoTimeOutline className="mr-1" size={14} />
           {formatTimeAgo(notification.notifiedAt)}
         </div>
       </div>
 
       {!notification.isRead && (
-        <div className="ml-2 flex-shrink-0">
+        <div className="ml-2 flex-shrink-0 pt-2">
           {readingId === notification.id ? (
-            <CircularProgress size={10} className="text-indigo-600" />
+            <CircularProgress size={8} className="text-primary" />
           ) : (
-            <div className="h-3 w-3 rounded-full bg-indigo-600 animate-pulse"></div>
+            <div className="h-2 w-2 rounded-full bg-primary"></div>
           )}
         </div>
       )}
@@ -341,15 +344,26 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
   );
 
   const notificationsList = (
-    <Box sx={{ width: 550 }} role="presentation" className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <Paper elevation={2} className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-sm">
-        <Box className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
-          <Typography variant="h6" className="font-semibold flex items-center text-indigo-700 dark:text-indigo-300">
-            <Badge badgeContent={notifications?.filter(n => !n.isRead).length || 0} color="primary" className="mr-3">
-              <IoNotificationsSharp size={24} />
+    <Box sx={{ width: 550 }} role="presentation" className="dark:bg-gray-800">
+      <Paper
+        elevation={2}
+        className="sticky top-0 z-10 bg-transparent dark:bg-gray-800"
+      >
+        <Box className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+          <Typography
+            variant="h6"
+            className="font-semibold flex items-center gap-3"
+          >
+            <Badge
+              badgeContent={notifications?.filter((n) => !n.isRead).length || 0}
+              color="primary"
+            >
+              <IoNotificationsSharp size={22} />
             </Badge>
             Notifications
-            {isConnecting && <CircularProgress size={16} className="ml-3 text-indigo-500" />}
+            {isConnecting && (
+              <CircularProgress size={16} className="text-primary" />
+            )}
           </Typography>
           {notifications?.length > 0 && (
             <Tooltip title="Mark all as read">
@@ -357,12 +371,12 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
                 label="Mark all as read"
                 onClick={markAllAsRead}
                 disabled={readingId === "all" || isConnecting}
-                className="text-sm bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 rounded-full px-4"
+                className="text-sm bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-3 py-1.5"
                 icon={
                   readingId === "all" ? (
-                    <CircularProgress size={16} className="text-indigo-600" />
+                    <CircularProgress size={14} className="text-primary" />
                   ) : (
-                    <IoCheckmarkDoneSharp />
+                    <IoCheckmarkDoneSharp size={16} />
                   )
                 }
               />
@@ -372,14 +386,20 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
       </Paper>
 
       {isLoading || isConnecting ? (
-        <Box className="flex flex-col justify-center items-center p-12 min-h-[300px] bg-white dark:bg-gray-900">
-          <CircularProgress size={40} className="text-indigo-600 mb-4" />
-          <Typography variant="body2" className="text-gray-500 dark:text-gray-400">
+        <Box className="flex flex-col justify-center items-center p-8 min-h-[200px]">
+          <CircularProgress size={32} className="text-primary mb-3" />
+          <Typography
+            variant="body2"
+            className="text-gray-500 dark:text-gray-400"
+          >
             Loading notifications...
           </Typography>
         </Box>
       ) : notifications?.length > 0 ? (
-        <List sx={{ pt: 0 }} className="max-h-[80vh] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+        <List
+          sx={{ pt: 0 }}
+          className="overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800"
+        >
           {notifications.map((notification) => (
             <ListItem
               key={notification.id}
@@ -387,34 +407,31 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
               component="div"
               className={
                 notification.isRead
-                  ? "bg-white/80 dark:bg-gray-800/50"
-                  : "bg-white dark:bg-gray-800 shadow-sm"
+                  ? "bg-white dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-800"
               }
             >
               {notification.url ? (
-                // For notifications with URL, use a div wrapper with onClick handler
                 <div
                   className="w-full cursor-pointer"
                   onClick={(e) => {
-                    // Only mark as read if not already read
                     if (!notification.isRead) {
                       handleLinkClick(e, notification);
                     }
                     toggleDrawer(false)();
-                    // Mark as read and close drawer first, then navigate
                     setTimeout(() => {
                       router.push(notification.url);
                     }, 100);
                   }}
                 >
-                  <ListItemButton className="transition-all hover:bg-indigo-50 dark:hover:bg-indigo-900/20 py-5 px-4 w-full">
+                  <ListItemButton className="transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50 py-4 px-4 w-full">
                     {renderNotificationContent(notification)}
                   </ListItemButton>
                 </div>
               ) : (
                 <ListItemButton
                   onClick={() => handleNotificationClick(notification)}
-                  className="transition-all hover:bg-indigo-50 dark:hover:bg-indigo-900/20 py-5 px-4"
+                  className="transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50 py-4 px-4"
                 >
                   {renderNotificationContent(notification)}
                 </ListItemButton>
@@ -459,7 +476,7 @@ export default function Notifcation({ isOpen, toggleDrawer }) {
           sx: {
             boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
             borderRadius: { xs: "0", sm: "16px 0 0 16px" },
-            background: "transparent",
+            backgroundColor: "white",
           },
         },
       }}

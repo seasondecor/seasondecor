@@ -7,8 +7,8 @@ import ImageUploading from "react-images-uploading";
 
 const ImageUpload = ({ 
   onImageChange, 
+  onImageDelete,
   existingImages = [], 
-  onExistingImagesChange, 
   className 
 }) => {
   const [images, setImages] = useState([]);
@@ -20,13 +20,10 @@ const ImageUpload = ({
   // Initialize images with existingImages if provided
   useEffect(() => {
     if (existingImages && existingImages.length > 0) {
-      const formattedExistingImages = existingImages.map(img => ({
-        dataURL: img.url || img.preview || "",
-        file: null,
-        isExisting: true,
-        id: img.id
-      }));
-      setImages(formattedExistingImages);
+      setImages(existingImages.map(img => ({
+        dataURL: img.dataURL || img.preview || "",
+        file: img.file,
+      })));
     }
   }, [existingImages]);
 
@@ -37,16 +34,27 @@ const ImageUpload = ({
     
     // Extract file objects for parent component
     const files = imageList
-      .filter(img => !img.isExisting && img.file)
+      .filter(img => img.file)
       .map(img => img.file);
     
     // Notify parent component
     onImageChange(files);
+  };
+
+  const handleImageRemove = (index) => {
+    const newImageList = [...images];
+    newImageList.splice(index, 1);
+    setImages(newImageList);
     
-    // If we have a callback for existing images, filter those out
-    if (onExistingImagesChange) {
-      const existingImgs = imageList.filter(img => img.isExisting);
-      onExistingImagesChange(existingImgs);
+    // Extract remaining files
+    const remainingFiles = newImageList
+      .filter(img => img.file)
+      .map(img => img.file);
+    
+    // Notify parent components
+    onImageChange(remainingFiles);
+    if (onImageDelete) {
+      onImageDelete(index);
     }
   };
 
@@ -77,7 +85,6 @@ const ImageUpload = ({
           onImageUpload,
           onImageRemoveAll,
           onImageUpdate,
-          onImageRemove,
           isDragging,
           dragProps,
           errors
@@ -96,7 +103,7 @@ const ImageUpload = ({
                 >
                   <MdOutlineFileUpload size={30} className="text-primary mb-2" />
                   <button className="bg-primary text-white rounded-md font-medium cursor-pointer py-2 px-4 hover:bg-indigo-600 transition duration-200">
-                    Select Images (0/{maxNumber})
+                    Select Images ({imageList.length}/{maxNumber})
                   </button>
                   <p className="text-gray-500 text-sm mt-2 text-center">
                     Drag & drop or click to upload. Max {maxNumber} images (PNG, JPG)
@@ -141,7 +148,7 @@ const ImageUpload = ({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onImageRemove(index);
+                              handleImageRemove(index);
                             }}
                             className="bg-red text-white p-1 rounded-full w-6 h-6 flex items-center justify-center"
                           >

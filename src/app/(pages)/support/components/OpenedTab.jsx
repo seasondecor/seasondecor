@@ -16,6 +16,7 @@ import {
 import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import { TbTicket } from "react-icons/tb";
 import CloseIcon from "@mui/icons-material/Close";
+import Grid from "@mui/material/Grid2";
 
 const OpenedTab = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -156,14 +157,14 @@ const OpenedTab = () => {
   };
 
   return (
-    <div className="flex flex-col gap-5 p-4 overflow-y-auto h-full">
+    <Box display="flex" flexDirection="column" gap={2} overflow="y-auto" height="100%">
       {ticketList.length > 0 && (
-        <div className="flex justify-between items-center mb-4">
+        <Box display="flex" justifyContent="between" alignItems="center">
           <span className="text-sm bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
             Total: {ticketList.length}
             {ticketList.length >= 3 ? " (Maximum reached)" : ""}
           </span>
-        </div>
+        </Box>
       )}
 
       <DataMapper
@@ -256,54 +257,58 @@ const OpenedTab = () => {
                     alignItems: "center",
                   }}
                 >
-                  <FootTypo footlabel="Status" className="font-medium" />
+                  <FootTypo footlabel="Status" fontWeight="bold" />
                   <Chip
                     label={selectedTicket.isSolved ? "Closed" : "Open"}
                     sx={{
+                      color: "white",
                       bgcolor: selectedTicket.isSolved ? "red" : "green",
                     }}
                   />
                 </Box>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="flex flex-col">
+                <Grid container spacing={2} mb={4}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FootTypo
                       footlabel="Created on"
-                      className="font-medium mb-1"
+                      fontWeight="bold"
+                      mb={1}
                     />
                     <FootTypo
                       footlabel={`${
                         formatDateTime(selectedTicket.createAt).date
                       } at ${formatDateTime(selectedTicket.createAt).time}`}
                     />
-                  </div>
+                  </Grid>
 
                   {selectedTicket.bookingCode && (
-                    <div className="flex flex-col">
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <FootTypo
                         footlabel="Booking Code"
-                        className="font-medium mb-1"
+                        fontWeight="bold"
+                        mb={1}
                       />
                       <FootTypo footlabel={selectedTicket.bookingCode} />
-                    </div>
+                    </Grid>
                   )}
 
                   {selectedTicket.ticketType && (
-                    <div className="flex flex-col">
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <FootTypo
                         footlabel="Ticket Type"
-                        className="font-medium mb-1"
+                        fontWeight="bold"
+                        mb={1}
                       />
                       <div className="flex items-center gap-2">
                         <TbTicket size={16} className="text-primary" />
                         <FootTypo footlabel={selectedTicket.ticketType} />
                       </div>
-                    </div>
+                    </Grid>
                   )}
-                </div>
+                </Grid>
 
-                <div className="mb-6">
-                  <FootTypo footlabel="Subject" className="font-medium mb-1" />
+                <Grid size={{ xs: 12, md: 6 }} mb={4}>
+                  <FootTypo footlabel="Subject" fontWeight="bold" mb={1} />
                   <div className="border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800">
                     <FootTypo
                       footlabel={
@@ -312,12 +317,13 @@ const OpenedTab = () => {
                       className="text-gray-800 dark:text-gray-200"
                     />
                   </div>
-                </div>
+                </Grid>
 
-                <div className="mb-6">
+                <Grid size={{ xs: 12, md: 6 }} mb={4}>
                   <FootTypo
                     footlabel="Description"
-                    className="font-medium mb-1"
+                    fontWeight="bold"
+                    mb={1}
                   />
                   <div className="border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800 min-h-[100px]">
                     <FootTypo
@@ -327,29 +333,31 @@ const OpenedTab = () => {
                       className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"
                     />
                   </div>
-                </div>
+                </Grid>
 
                 {selectedTicket.attachmentUrls &&
                   selectedTicket.attachmentUrls.length > 0 && (
-                    <div className="mb-6">
+                    <Grid size={{ xs: 12, md: 6 }} mb={4}>
                       <FootTypo
                         footlabel="Attachments"
-                        className="font-medium mb-2"
+                        fontWeight="bold"
+                        mb={1}
                       />
                       <div className="flex flex-wrap gap-3 border border-gray-200 dark:border-gray-700 p-3 rounded-md bg-gray-50 dark:bg-gray-800">
                         {selectedTicket.attachmentUrls.map((url, index) =>
                           renderAttachment(url, index)
                         )}
                       </div>
-                    </div>
+                    </Grid>
                   )}
 
                 {selectedTicket.replies &&
                   selectedTicket.replies.length > 0 && (
-                    <div className="mb-4">
+                    <Grid size={{ xs: 12, md: 6 }} mb={4}>
                       <FootTypo
                         footlabel="Conversation"
-                        className="font-medium mb-2"
+                        fontWeight="bold"
+                        mb={1}
                       />
                       <div className="flex flex-col gap-3">
                         {selectedTicket.replies.map((reply, index) => (
@@ -391,14 +399,14 @@ const OpenedTab = () => {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </Grid>
                   )}
               </>
             )
           )}
         </Box>
       </Modal>
-    </div>
+    </Box>
   );
 };
 

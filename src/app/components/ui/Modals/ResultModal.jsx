@@ -1,14 +1,12 @@
 import * as React from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import { FootTypo } from "../Typography";
 import { IoCheckmarkCircle, IoCloseCircle } from "react-icons/io5";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Box } from "@mui/material";
 
 const SuccessCheckmark = () => (
   <motion.div
@@ -18,16 +16,12 @@ const SuccessCheckmark = () => (
       type: "spring",
       stiffness: 260,
       damping: 20,
-      delay: 0.2,
     }}
   >
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.3 }}
-    >
-      <IoCheckmarkCircle size={40} color="green" />
-    </motion.div>
+    <IoCheckmarkCircle 
+      size={40} 
+      className="text-emerald-500"
+    />
   </motion.div>
 );
 
@@ -39,16 +33,12 @@ const ErrorIcon = () => (
       type: "spring",
       stiffness: 260,
       damping: 20,
-      delay: 0.2,
     }}
   >
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.3 }}
-    >
-      <IoCloseCircle size={40} color="red" />
-    </motion.div>
+    <IoCloseCircle 
+      size={40} 
+      className="text-red-500" 
+    />
   </motion.div>
 );
 
@@ -59,9 +49,7 @@ const ResultModal = ({
   message,
   type = "success",
   confirmText = "Okay",
-  cancelText = "Close",
   onConfirm,
-  onCancel,
   showActions = true,
 }) => {
   const theme = useTheme();
@@ -76,79 +64,89 @@ const ResultModal = ({
     handleClose();
   };
 
-  const handleCancel = () => {
-    onCancel?.();
-    handleClose();
-  };
-
   return (
-    <Dialog
-      fullScreen={fullScreen}
-      suppressHydrationWarning
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="responsive-dialog-title"
-      component={'div'}
-      PaperProps={{
-        className: "rounded-lg h-[19vh]",
-        component: motion.div,
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: 20 },
-        transition: { duration: 0.3 },
-      }}
-    >
-      <motion.div
-        className="relative"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        <DialogTitle
-          id="responsive-dialog-title"
-          className="text-center pt-8 pb-2"
+    <AnimatePresence>
+      {open && (
+        <Dialog
+          fullScreen={fullScreen}
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="result-dialog-title"
+          PaperProps={{
+            className: "rounded-lg",
+            sx: {
+              minWidth: { xs: '90%', sm: '400px' },
+              maxWidth: '400px',
+              bgcolor: 'background.paper',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              p: 3,
+            },
+            component: motion.div,
+            initial: { opacity: 0, y: 20, scale: 0.95 },
+            animate: { opacity: 1, y: 0, scale: 1 },
+            exit: { opacity: 0, y: 20, scale: 0.95 },
+            transition: { duration: 0.2 },
+          }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-          >
-            <div className="flex flex-row items-center justify-center gap-2">
-              {type === "success" ? <SuccessCheckmark /> : <ErrorIcon />}
-              <FootTypo
-                footlabel={title}
-                className="!m-0 text-xl font-semibold"
-              />
-            </div>
-          </motion.div>
-        </DialogTitle>
+          <DialogContent>
+            <Box className="flex flex-col items-center text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="mb-4"
+              >
+                {type === "success" ? <SuccessCheckmark /> : <ErrorIcon />}
+              </motion.div>
 
-        <DialogContent>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-            className="text-center"
-          >
-            <span className="text-gray-600">{message}</span>
-          </motion.div>
-        </DialogContent>
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-lg font-medium text-gray-900 mb-2"
+              >
+                {title}
+              </motion.h2>
 
-        {showActions && (
-          <DialogActions className="!justify-center pb-6">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.6 }}
-            >
-              <Button onClick={handleConfirm} variant="contained">
-                {confirmText}
-              </Button>
-            </motion.div>
-          </DialogActions>
-        )}
-      </motion.div>
-    </Dialog>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-gray-600 mb-6"
+              >
+                {message}
+              </motion.p>
+
+              {showActions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="w-full"
+                >
+                  <Button
+                    onClick={handleConfirm}
+                    fullWidth
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      py: 1,
+                      bgcolor: 'rgb(16 185 129)',
+                      '&:hover': {
+                        bgcolor: 'rgb(4 120 87)',
+                      },
+                    }}
+                    variant="contained"
+                  >
+                    {confirmText}
+                  </Button>
+                </motion.div>
+              )}
+            </Box>
+          </DialogContent>
+        </Dialog>
+      )}
+    </AnimatePresence>
   );
 };
 

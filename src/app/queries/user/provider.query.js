@@ -118,6 +118,11 @@ export function useGetProviderBySlug(slug) {
         nProgress.done();
       }
     },
+    enabled: !!slug,
+    staleTime: 300000, // Data stays fresh for 5 minutes
+    cacheTime: 3600000, // Cache is kept for 1 hour
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false, // Don't refetch on component mount if data exists
   });
 }
 
@@ -152,7 +157,9 @@ export function useApproveApplication() {
   return useMutation({
     mutationKey: ["approve_application"],
     mutationFn: async (accountId) => {
-      return await BaseRequest.Put(`/${SUB_URL}/approveApplication/${accountId}`);
+      return await BaseRequest.Put(
+        `/${SUB_URL}/approveApplication/${accountId}`
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending_application_list"] });
@@ -165,10 +172,40 @@ export function useRejectApplication() {
   return useMutation({
     mutationKey: ["reject_application"],
     mutationFn: async ({ accountId, reason }) => {
-      return await BaseRequest.Put(`/${SUB_URL}/rejectApplication/${accountId}?reason=${encodeURIComponent(reason)}`);
+      return await BaseRequest.Put(
+        `/${SUB_URL}/rejectApplication/${accountId}?reason=${encodeURIComponent(
+          reason
+        )}`
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending_application_list"] });
+    },
+  });
+}
+
+export function useUpdateProviderProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["update_provider_profile"],
+    mutationFn: async (data) => {
+      return await BaseRequest.Put(`/${SUB_URL}/update-profile`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get_provider_by_slug"] });
+    },
+  });
+}
+
+export function useGetVerifiedApplicationList() {
+  return useQuery({
+    queryKey: ["verified_application_list"],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getVerifiedApplicationList`,
+        false
+      );
+      return res.data;
     },
   });
 }
