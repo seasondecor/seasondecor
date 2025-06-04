@@ -71,7 +71,7 @@ const Footer = () => {
               <Link href="#" className="transition-colors hover:text-[#38bdf8]">
                 Pricing
               </Link>
-              <Link href="/providers" className="transition-colors hover:text-[#38bdf8]">
+              <Link href="/provider" className="transition-colors hover:text-[#38bdf8]">
                 Providers
               </Link>
               <Link href="#" className="transition-colors hover:text-[#38bdf8]">
