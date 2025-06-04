@@ -4,7 +4,6 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import SellerWrapper from "../components/SellerWrapper";
 import DataTable from "@/app/components/ui/table/DataTable";
 import { useGetPaginatedProviderTransactions } from "@/app/queries/dashboard/dashboard.provider.query";
-import { useRouter } from "next/navigation";
 import {
   Skeleton,
   FormControl,
@@ -20,9 +19,8 @@ import { FaMoneyBillWave } from "react-icons/fa";
 import { IoFilterOutline } from "react-icons/io5";
 import { formatCurrency, formatDateTime } from "@/app/helpers";
 import { FootTypo } from "@/app/components/ui/Typography";
-import { BsClock } from "react-icons/bs";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
-
+import { MdFilterListOff } from "react-icons/md";
 // Skeleton loader for the transaction table
 const TransactionTableSkeleton = () => {
   return (
@@ -106,7 +104,6 @@ const TransactionTableSkeleton = () => {
 };
 
 const TransactionPage = () => {
-  const router = useRouter();
   const searchInputRef = useRef(null);
   const [filters, setFilters] = useState({
     status: "",
@@ -146,8 +143,8 @@ const TransactionPage = () => {
     { id: "", name: "All Types" },
     { id: "2", name: "Deposite Payment" },
     { id: "4", name: "Final Payment" },
-    { id: "5", name: "Revenue" },
     { id: "6", name: "Order Payment" },
+    { id: "7", name: "Compensation" },
   ];
 
   // Transaction type map for display
@@ -156,6 +153,7 @@ const TransactionPage = () => {
     4: { name: "Final Payment", color: "primary" },
     5: { name: "Revenue", color: "info" },
     6: { name: "Order Payment", color: "warning" },
+    7: { name: "Compensation", color: "error" },
   };
 
   const {
@@ -302,6 +300,7 @@ const TransactionPage = () => {
       </FormControl>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filters"
         onClick={() => {
           setFilters({

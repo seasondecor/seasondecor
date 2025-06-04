@@ -10,8 +10,8 @@ import { TextField, Typography, Select, MenuItem } from "@mui/material";
 
 // Define measurement unit options
 const UNIT_OPTIONS = [
-  { value: "m2", label: "Square meters (m²)" },
-  { value: "m", label: "Meters (m)" },
+  { value: "m2", label: "m²", fullLabel: "Square meters (m²)" },
+  { value: "m", label: "m", fullLabel: "Meters (m)" },
 ];
 
 const LabourTab = ({
@@ -79,7 +79,7 @@ const LabourTab = ({
               {constructionTasks.length > 0 ? (
                 constructionTasks.map((task, index) => (
                   <tr key={`task-${index}`}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
                         placeholder="Task name"
@@ -93,18 +93,23 @@ const LabourTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
-                        multiline
-                        rows={3}
                         placeholder="Add detail notes"
                         value={task.note || ""}
                         onChange={(e) =>
@@ -114,14 +119,21 @@ const LabourTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
                         placeholder="0"
@@ -141,14 +153,21 @@ const LabourTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <Select
                         fullWidth
                         value={task.unit || ""}
@@ -158,26 +177,45 @@ const LabourTab = ({
                         error={!task.unit}
                         displayEmpty
                         sx={{
+                          height: "45px",
+                          minWidth: "120px",
+                          maxWidth: "160px",
                           "& .MuiOutlinedInput-root": {
+                            height: "45px",
                             borderRadius: "8px",
                             backgroundColor: "white",
+                          },
+                          "& .MuiSelect-select": {
+                            paddingTop: "10px",
+                            paddingBottom: "10px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
+                        className="dark:bg-white"
                       >
                         <MenuItem value="" disabled>
                           Select unit
                         </MenuItem>
                         {UNIT_OPTIONS.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
+                          <MenuItem 
+                            key={option.value} 
+                            value={option.value}
+                            title={option.fullLabel}
+                          >
                             {option.label}
                           </MenuItem>
                         ))}
                       </Select>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
                         placeholder="0"
@@ -197,23 +235,29 @@ const LabourTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="py-4 align-top whitespace-nowrap">
                       {constructionTasks.length > 1 ? (
                         <Button
-                          label="Remove"
                           onClick={() => onRemoveTask(index)}
                           className="bg-red"
                           icon={<IoIosRemove size={18} />}
                         />
                       ) : (
-                        <AiOutlineStop size={18} />
+                        <AiOutlineStop size={20} className="mt-3" />
                       )}
                     </td>
                   </tr>

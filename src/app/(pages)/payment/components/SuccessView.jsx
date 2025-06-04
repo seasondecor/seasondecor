@@ -7,12 +7,21 @@ import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
 import { TbArrowBack, TbArrowNarrowRight, TbCheck } from "react-icons/tb";
 import { formatCurrency } from "@/app/helpers";
+import { Box } from "@mui/material";
+import { FootTypo } from "@/app/components/ui/Typography";
+import { formatDateTime } from "@/app/helpers";
+import { LuDot } from "react-icons/lu";
 
 const SuccessView = ({
   paymentType = "order",
   amount = 0,
   orderCode,
   bookingCode,
+  providerName,
+  providerEmail,
+  providerPhone,
+  paymentDate,
+  paymentStatus = "Completed",
   redirectPath,
   actionLabel = "Go Home",
   handleRedirect,
@@ -23,7 +32,6 @@ const SuccessView = ({
     height: typeof window !== "undefined" ? window.innerHeight : 0,
   });
   const [showConfetti, setShowConfetti] = useState(true);
-  
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -46,6 +54,35 @@ const SuccessView = ({
       clearTimeout(timer);
     };
   }, []);
+
+  // Debug log the received props
+  React.useEffect(() => {
+    console.log("SuccessView mounted with props:", {
+      paymentType,
+      amount,
+      orderCode,
+      bookingCode,
+      providerName,
+      providerEmail,
+      providerPhone,
+      paymentDate,
+      paymentStatus,
+      redirectPath,
+      actionLabel,
+    });
+  }, [
+    paymentType,
+    amount,
+    orderCode,
+    bookingCode,
+    providerName,
+    providerEmail,
+    providerPhone,
+    paymentDate,
+    paymentStatus,
+    redirectPath,
+    actionLabel,
+  ]);
 
   // Helper functions to dynamically generate content based on payment type
   const getTitle = () => {
@@ -83,7 +120,9 @@ const SuccessView = ({
           },
           secondary: {
             label: actionLabel || "Go Home",
-            action: handleRedirect || (() => router.push(redirectPath || "/booking/request")),
+            action:
+              handleRedirect ||
+              (() => router.push(redirectPath || "/booking/request")),
           },
         };
       case "final":
@@ -95,7 +134,9 @@ const SuccessView = ({
           },
           secondary: {
             label: actionLabel || "Go Home",
-            action: handleRedirect || (() => router.push(redirectPath || "/booking/request")),
+            action:
+              handleRedirect ||
+              (() => router.push(redirectPath || "/booking/request")),
           },
         };
       case "order":
@@ -117,7 +158,7 @@ const SuccessView = ({
   const redirectOptions = getRedirectOptions();
 
   return (
-    <div className="min-h-screen flex justify-center items-center overflow-hidden">
+    <div className="min-h-screen flex justify-center items-center overflow-x-hidden">
       {showConfetti && (
         <Confetti
           width={dimensions.width}
@@ -132,14 +173,14 @@ const SuccessView = ({
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-lg mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden"
+        className="max-w-lg mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lg"
       >
         <div className="p-6 bg-green-50 dark:bg-green-900/30">
-          <div className="flex justify-center">
+          <Box display="flex" justifyContent="center">
             <div className="w-16 h-16 flex items-center justify-center bg-green dark:bg-green rounded-full">
               <TbCheck color="white" size={32} />
             </div>
-          </div>
+          </Box>
           <h1 className="text-2xl font-bold text-center mt-4 text-green dark:text-green">
             {getTitle()}
           </h1>
@@ -150,47 +191,166 @@ const SuccessView = ({
 
         <div className="p-6">
           <div className="space-y-4">
-            {amount > 0 && (
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Amount Paid
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(amount)}
-                </p>
-              </div>
-            )}
+            {/* Payment Information */}
+            <Box className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg space-y-3">
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <FootTypo
+                  footlabel="Amount Paid"
+                  className="text-gray-600 dark:text-gray-300"
+                />
+                <FootTypo
+                  footlabel={formatCurrency(amount || 0)}
+                  fontWeight="bold"
+                  fontSize="20px"
+                  className="text-green-600 dark:text-green-400"
+                />
+              </Box>
 
-            <div className="space-y-3">
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <FootTypo
+                  footlabel="Status"
+                  className="text-gray-600 dark:text-gray-300"
+                />
+                <Box
+                  sx={{
+                    bgcolor: "success.light",
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <TbCheck size={16} className="text-green-600" />
+                  <FootTypo
+                    footlabel={paymentStatus || "Completed"}
+                    className="text-green-600"
+                    fontWeight="medium"
+                  />
+                </Box>
+              </Box>
+
+              {paymentDate && (
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <FootTypo
+                    footlabel="Payment Date"
+                    className="text-gray-600 dark:text-gray-300"
+                  />
+                  <Box display="flex" alignItems="center">
+                    <FootTypo
+                      footlabel={formatDateTime(paymentDate).date}
+                      fontWeight="medium"
+                    />
+                    <LuDot
+                      size={16}
+                      className="text-gray-600 dark:text-gray-300"
+                    />
+                    <FootTypo
+                      footlabel={formatDateTime(paymentDate).time}
+                      fontWeight="medium"
+                    />
+                  </Box>
+                </Box>
+              )}
+            </Box>
+
+            {/* Transaction Details */}
+            <Box className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg space-y-3">
               {orderCode && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Order Code
-                  </span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {orderCode}
-                  </span>
-                </div>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <FootTypo
+                    footlabel="Order Code"
+                    className="text-gray-600 dark:text-gray-300"
+                  />
+                  <FootTypo footlabel={orderCode} fontWeight="medium" />
+                </Box>
               )}
 
               {bookingCode && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Booking Code
-                  </span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {bookingCode}
-                  </span>
-                </div>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <FootTypo
+                    footlabel="Booking Code"
+                    className="text-gray-600 dark:text-gray-300"
+                  />
+                  <FootTypo footlabel={bookingCode} fontWeight="medium" />
+                </Box>
               )}
 
-              <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Date</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {new Date().toLocaleDateString()}
-                </span>
-              </div>
-            </div>
+              {/* Provider Information - Only show section if any provider info exists */}
+              {(providerName || providerEmail || providerPhone) && (
+                <Box className="border-t border-gray-200 dark:border-gray-600 pt-3">
+                  <FootTypo
+                    footlabel="Payment Recipient"
+                    className="text-gray-600 dark:text-gray-300 mb-2"
+                  />
+
+                  {providerName && (
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      mb={1}
+                    >
+                      <FootTypo
+                        footlabel="Provider Name"
+                        className="text-gray-500 dark:text-gray-400"
+                      />
+                      <FootTypo footlabel={providerName} fontWeight="medium" />
+                    </Box>
+                  )}
+
+                  {providerEmail && (
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      mb={1}
+                    >
+                      <FootTypo
+                        footlabel="Email"
+                        className="text-gray-500 dark:text-gray-400"
+                      />
+                      <FootTypo footlabel={providerEmail} fontWeight="medium" />
+                    </Box>
+                  )}
+
+                  {providerPhone && (
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                    >
+                      <FootTypo
+                        footlabel="Phone"
+                        className="text-gray-500 dark:text-gray-400"
+                      />
+                      <FootTypo footlabel={providerPhone} fontWeight="medium" />
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Box>
           </div>
 
           <div className="mt-8 space-y-3">

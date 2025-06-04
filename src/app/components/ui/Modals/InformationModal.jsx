@@ -1,8 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Checkbox, FormControlLabel, Divider } from "@mui/material";
-
+import {
+  Checkbox,
+  FormControlLabel,
+  Divider,
+  Box,
+  Typography,
+} from "@mui/material";
 import Modal from "../Modal";
 import Heading from "./components/Heading";
 import useInfoModal from "@/app/hooks/useInfoModal";
@@ -17,6 +22,7 @@ import Button from "../Buttons/Button";
 import { RiProfileLine } from "react-icons/ri";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
+import ThemePalette from "../themePalette/ThemePalatte";
 
 const InformationModal = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -40,6 +46,8 @@ const InformationModal = () => {
     serviceStyle,
     serviceImage,
     serviceName,
+    serviceDesignStyle,
+    serviceThemeColors,
     serviceSeason,
     providerImage,
     providerName,
@@ -49,6 +57,9 @@ const InformationModal = () => {
     onSubmit,
     viewService,
     contractFilePath,
+    bookingFormInfo,
+    designStyle,
+    surveyDate,
   } = infoModal.data || {};
 
   const handleSubmit = () => {
@@ -60,9 +71,9 @@ const InformationModal = () => {
 
   const bodyContent = (
     <div className="flex flex-col gap-6 max-h-[70vh] py-3 overflow-x-hidden">
-      <div className="flex items-center">
+      <Box display="flex" alignItems="center">
         <Heading title={title} subtitle="" center={false} />
-      </div>
+      </Box>
 
       {isTerms && (
         <div className="mt-2">
@@ -110,67 +121,43 @@ const InformationModal = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Order Code"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
+                  <FootTypo footlabel="Order Code" fontWeight="bold" />
                   <FootTypo
                     footlabel={orderCode}
-                    className="!m-0 text-lg bg-primary text-white px-3 py-1 rounded-lg font-medium"
+                    className="bg-primary text-white px-3 py-1 rounded-lg font-medium"
                   />
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Status"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
+                  <FootTypo footlabel="Status" fontWeight="bold" />
                   <StatusChip status={status} />
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Order Date"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
-                  <FootTypo
-                    footlabel={formatDateVN(orderDate)}
-                    className="!m-0 text-base"
-                  />
+                  <FootTypo footlabel="Order Date" fontWeight="bold" />
+                  <FootTypo footlabel={formatDateVN(orderDate)} />
                 </div>
               </div>
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Phone Number"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
-                  <FootTypo
-                    footlabel={phoneNumber}
-                    className="!m-0 text-base"
-                  />
+                  <FootTypo footlabel="Phone Number" fontWeight="bold" />
+                  <FootTypo footlabel={phoneNumber} className="text-base" />
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Address"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
+                  <FootTypo footlabel="Address" fontWeight="bold" />
                   <FootTypo
                     footlabel={address}
-                    className="!m-0 text-base max-w-[250px] truncate"
+                    className="text-base max-w-[250px] truncate"
                   />
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Total Price"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
+                  <FootTypo footlabel="Total Price" fontWeight="bold" />
                   <FootTypo
                     footlabel={formatCurrency(totalPrice)}
-                    className="!m-0 text-lg font-bold text-primary"
+                    className="text-lg font-bold text-primary"
                   />
                 </div>
               </div>
@@ -193,7 +180,7 @@ const InformationModal = () => {
                     key={index}
                     className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white dark:bg-gray-800"
                   >
-                    <div className="flex items-start gap-4">
+                    <Box display="flex" alignItems="center" gap={2}>
                       {/* Product Image */}
                       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg shadow-sm">
                         <Image
@@ -226,7 +213,7 @@ const InformationModal = () => {
                           />
                         </div>
                       </div>
-                    </div>
+                    </Box>
                   </div>
                 ))
               ) : (
@@ -242,33 +229,43 @@ const InformationModal = () => {
       )}
 
       {isBooking && (
-        <div className="flex flex-col gap-5 font-semibold">
+        <Box
+          display="flex"
+          flexDirection="column"
+          gap={5}
+          fontWeight="semibold"
+        >
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Booking Code"
-                    className="!m-0 text-sm text-gray-500 dark:text-gray-400"
-                  />
+            <Box display="flex" flexDirection="column" gap={4}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Booking Code" fontWeight="bold" />
                   <FootTypo
                     footlabel={bookingCode}
-                    className="!m-0 text-lg bg-primary px-3 py-1 rounded-lg font-medium"
+                    className="bg-primary px-3 py-1 rounded-lg"
                   />
-                </div>
+                </Box>
                 <StatusChip status={status} isBooking={true} />
-              </div>
+              </Box>
+
+              {surveyDate && (
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Survey Date" fontWeight="bold" />
+                  <FootTypo footlabel={formatDateVN(surveyDate)} />
+                </Box>
+              )}
 
               <Divider className="my-1" />
 
-              <div className="flex flex-col items-start gap-3">
-                <FootTypo
-                  footlabel="About the service"
-                  className="!m-0 text-base font-medium"
-                />
+              <Box display="flex" flexDirection="column" gap={3}>
+                <FootTypo footlabel="About the service" fontWeight="bold" />
                 <FootTypo
                   footlabel={serviceStyle}
-                  className="!m-0 text-lg font-bold text-primary bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg self-center"
+                  className="text-primary bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg self-center"
                 />
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full mt-2">
@@ -299,17 +296,14 @@ const InformationModal = () => {
                     </div>
                   ) : null}
                 </div>
-              </div>
-            </div>
+              </Box>
+            </Box>
           </div>
 
           <div className="flex flex-col rounded-xl border border-gray-100 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <FootTypo
-                footlabel="Suitable for"
-                className="!m-0 text-base font-medium"
-              />
-              <div className="flex flex-wrap gap-2">
+            <Box display="flex" alignItems="center" gap={2} mb={3}>
+              <FootTypo footlabel="Suitable for" fontWeight="bold" />
+              <Box display="flex" flexWrap="wrap" gap={2}>
                 {Array.isArray(serviceSeason) && serviceSeason.length > 0 ? (
                   serviceSeason.map((season, index) => {
                     if (!season || !season.seasonName) return null;
@@ -332,11 +326,169 @@ const InformationModal = () => {
                     All seasons
                   </span>
                 )}
-              </div>
-            </div>
+              </Box>
+            </Box>
+
+            <ThemePalette
+              colors={serviceThemeColors}
+              title="Design Color Palette"
+            />
+
+            {/* Booking Form Information */}
+            {bookingFormInfo && (
+              <Box
+                display="flex"
+                flexDirection="column"
+                gap={2}
+                mt={3}
+                className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
+              >
+                <FootTypo footlabel="Your request details" fontWeight="bold" />
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(2, 1fr)"
+                  gap={3}
+                >
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Space Type
+                    </Typography>
+                    <Typography variant="body1" className="font-medium">
+                      {bookingFormInfo.spaceStyle || "Not specified"}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Room Size
+                    </Typography>
+                    <Typography variant="body1" className="font-medium">
+                      {bookingFormInfo.roomSize
+                        ? `${bookingFormInfo.roomSize} m²`
+                        : "Not specified"}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Primary User
+                    </Typography>
+                    <Typography variant="body1" className="font-medium">
+                      {bookingFormInfo.primaryUser || "Not specified"}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Estimated Budget
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      className="font-medium text-primary"
+                    >
+                      {bookingFormInfo.estimatedBudget
+                        ? formatCurrency(bookingFormInfo.estimatedBudget)
+                        : "Not specified"}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Space Images */}
+                {bookingFormInfo.images &&
+                  bookingFormInfo.images.length > 0 && (
+                    <Box mt={2}>
+                      <Typography
+                        variant="subtitle2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        Space Images
+                      </Typography>
+                      <Box
+                        display="grid"
+                        gridTemplateColumns={{
+                          xs: "repeat(2, 1fr)",
+                          sm: "repeat(3, 1fr)",
+                          md: "repeat(4, 1fr)",
+                        }}
+                        gap={2}
+                      >
+                        {bookingFormInfo.images.map((imageUrl, index) => (
+                          <Box
+                            key={index}
+                            className="relative aspect-square rounded-lg overflow-hidden"
+                          >
+                            <Image
+                              src={imageUrl}
+                              alt={`Space image ${index + 1}`}
+                              fill
+                              className="object-cover hover:scale-105 transition-transform duration-300"
+                              sizes="(max-width: 768px) 50vw, 33vw"
+                            />
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+              </Box>
+            )}
+
+            {/* Design Style Information */}
+            {designStyle && (
+              <Box
+                display="flex"
+                flexDirection="column"
+                gap={2}
+                mt={3}
+                className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
+              >
+                <FootTypo footlabel="Design Style" fontWeight="bold" />
+                <Box className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                  <Typography variant="subtitle1" className="font-medium">
+                    {designStyle.name}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Design Styles Section */}
+            {Array.isArray(serviceDesignStyle) &&
+              serviceDesignStyle.length > 0 && (
+                <Box display="flex" flexDirection="column" gap={2} mt={3}>
+                  <FootTypo footlabel="Design Styles" fontWeight="bold" />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {serviceDesignStyle.map((design, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm"
+                      >
+                        <div className="font-medium mb-1">
+                          {design.designName}
+                        </div>
+                        <div className="text-gray-600 dark:text-gray-300 text-xs">
+                          {design.description}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Box>
+              )}
 
             <button
-              className="text-primary text-left mb-3 flex items-center gap-2 hover:translate-x-3 transition-all duration-300 w-fit font-medium bg-indigo-50 dark:bg-indigo-900/30 rounded-full px-4 py-1.5"
+              className="text-primary text-left my-3 flex items-center gap-2 hover:translate-x-3 transition-all duration-300 w-fit font-medium bg-indigo-50 dark:bg-indigo-900/30 rounded-full px-4 py-1.5"
               onClick={viewService}
             >
               <IoIosArrowForward />
@@ -349,19 +501,16 @@ const InformationModal = () => {
               A service from
             </span>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex items-center gap-3 px-2">
+            <Box display="flex" alignItems="center" gap={3}>
+              <Box display="flex" alignItems="center" gap={3}>
                 <Avatar
                   userImg={providerImage}
                   alt={providerName}
                   w={48}
                   h={48}
                 />
-                <FootTypo
-                  footlabel={providerName}
-                  className="text-base font-bold"
-                />
-              </div>
+                <FootTypo footlabel={providerName} fontWeight="bold" />
+              </Box>
 
               <Divider
                 orientation="vertical"
@@ -370,7 +519,13 @@ const InformationModal = () => {
               />
               <Divider className="sm:hidden my-2" />
 
-              <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+              <Box
+                display="flex"
+                flexWrap="wrap"
+                alignItems="center"
+                gap={3}
+                justifyContent="center sm:justify-start"
+              >
                 <Button
                   label="View Profile"
                   onClick={profileClick}
@@ -381,10 +536,10 @@ const InformationModal = () => {
                   onClick={chatClick}
                   icon={<IoChatboxEllipsesOutline size={18} />}
                 />
-              </div>
-            </div>
+              </Box>
+            </Box>
           </div>
-        </div>
+        </Box>
       )}
 
       {isDescription && (

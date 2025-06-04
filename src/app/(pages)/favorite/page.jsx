@@ -11,6 +11,7 @@ import EmptyState from "@/app/components/EmptyState";
 import { generateSlug } from "@/app/helpers";
 import { useRouter } from "next/navigation";
 import Container from "@/app/components/layouts/Container";
+import { Box, Skeleton } from "@mui/material";
 
 const FavoritePage = () => {
   const [activeTab, setActiveTab] = useState("service"); // "service" or "product"
@@ -30,7 +31,7 @@ const FavoritePage = () => {
     <div className="pb-20">
       <Container>
         {/* Tab Navigation */}
-        <div className="flex items-center justify-center mb-4 gap-3">
+        <Box display="flex" justifyContent="center" gap={2} mb={2}>
           <div
             className={
               activeTab === "service" ? activeTabClasses : inactiveTabClasses
@@ -47,7 +48,7 @@ const FavoritePage = () => {
           >
             Products
           </div>
-        </div>
+        </Box>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6 animate-tab-fade-in">
           {/* Tab Content */}

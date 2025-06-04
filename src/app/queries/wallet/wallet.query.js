@@ -7,9 +7,16 @@ export function useGetWallet() {
   return useQuery({
     queryKey: ["get_wallet"],
     queryFn: async () => {
-      const response = await BaseRequest.Get(`/${SUB_URL}/getWalletBalance`, false);
+      const response = await BaseRequest.Get(
+        `/${SUB_URL}/getWalletBalance`,
+        false
+      );
       return response.data;
     },
+    staleTime: 300000, // Data stays fresh for 5 minutes
+    cacheTime: 3600000, // Cache is kept for 1 hour
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false,
   });
 }
 
@@ -23,5 +30,9 @@ export function useGetTransaction() {
       );
       return response.data;
     },
+    staleTime: 300000, // Data stays fresh for 5 minutes
+    cacheTime: 3600000, // Cache is kept for 1 hour
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false,
   });
 }

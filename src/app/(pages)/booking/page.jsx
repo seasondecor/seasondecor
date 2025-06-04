@@ -118,10 +118,10 @@ const BookingPage = () => {
   return (
     <>
       <AuroraBg
-        colorStops={["#5fc1f1", "#5fc1f1", "#5fc1f1"]}
-        blend={1}
-        amplitude={0}
-        speed={0}
+        colorStops={["#3b82f6", "#818cf8", "#38bdf8"]}
+        blend={0.8}
+        amplitude={0.6}
+        speed={0.8}
       >
         <div className="absolute pb-40 pt-10 md:pt-20 px-2 w-full md:px-4 lg:px-8">
           <div className="relative pb-4 md:pb-20 flex flex-col items-center justify-center px-8 md:px-8 w-full">
@@ -145,7 +145,7 @@ const BookingPage = () => {
               <div
                 className={`flex items-center justify-center w-full max-w-[1000px] mx-auto pb-5 transition-all duration-300 ease-in-out ${
                   isSticky
-                    ? "fixed top-1 left-0 right-0 z-[50] max-w-[55vw] !p-0"
+                    ? "fixed top-2 left-0 right-0 z-[70] max-w-[50vw]"
                     : ""
                 }`}
               >
@@ -192,6 +192,7 @@ const BookingPage = () => {
                     <DataMapper
                       data={displayData}
                       Component={ServiceCard}
+                      useGrid={false}
                       getKey={(service) => service.id}
                       componentProps={(service) => ({
                         style: service.style,

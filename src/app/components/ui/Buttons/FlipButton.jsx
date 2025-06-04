@@ -2,12 +2,12 @@
 
 const FlipButton = ({first, second, onClick}) => {
   return (
-    <button onClick={onClick} className="relative cursor-pointer z-[2] bg-gradient-to-b from-indigo-500 to-indigo-600 shadow-[0px_4px_32px_0_rgba(99,102,241,.70)] p-2 rounded-xl border-[1px] border-slate-500 text-white text-sm font-semibold group">
+    <button onClick={onClick} className="group/flip relative cursor-pointer z-[2] bg-gradient-to-b from-indigo-500 to-indigo-600 shadow-[0px_4px_32px_0_rgba(99,102,241,.70)] p-2 rounded-xl border-[1px] border-slate-500 text-white text-sm font-semibold">
       <div className="relative overflow-hidden flex items-center justify-center">
-        <p className="group-hover:-translate-y-7 duration-[1.125s] ease-[cubic-bezier(0.19,1,0.22,1)]">
+        <p className="group-hover/flip:-translate-y-7 duration-[1.125s] ease-[cubic-bezier(0.19,1,0.22,1)]">
           {first}
         </p>
-        <p className="absolute top-7 group-hover:top-0 duration-[1.125s] ease-[cubic-bezier(0.19,1,0.22,1)]">
+        <p className="absolute top-7 group-hover/flip:top-0 duration-[1.125s] ease-[cubic-bezier(0.19,1,0.22,1)]">
           {second}
         </p>
       </div>

@@ -12,7 +12,7 @@ import { BorderBox } from "@/app/components/ui/BorderBox";
 import DescrriptionSection from "../components/sections/DescriptionSection";
 import ExampleNumberField from "@/app/components/ui/Select/NumberField";
 import ReviewSection from "@/app/components/ui/review/ReviewSection";
-import { formatCurrency } from "@/app/helpers";
+import { formatCurrency, getBgColorForSeason } from "@/app/helpers";
 import { BsCartPlus } from "react-icons/bs";
 import { useParams } from "next/navigation";
 import { FcShipped } from "react-icons/fc";
@@ -36,10 +36,12 @@ import { useAddFavoriteDecorProduct } from "@/app/queries/favorite/favorit.query
 import { useGetListFavoriteProduct } from "@/app/queries/list/favorite.list.query";
 import { useGetListReviewByProduct } from "@/app/queries/list/review.list.query";
 import { Box, Skeleton, Stack, Divider } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import OverallRating from "@/app/components/ui/review/OverallRating";
 import ReviewCard from "@/app/components/ui/card/ReviewCard";
 import DataMapper from "@/app/components/DataMapper";
 import EmptyState from "@/app/components/EmptyState";
+import { seasons } from "@/app/constant/season";
 
 const ProductDetailSkeleton = () => {
   return (
@@ -191,7 +193,9 @@ const ProductDetail = () => {
   // Check if the product is already in favorites
   const isInFavorites = React.useMemo(() => {
     if (!favorites || !productId) return false;
-    return favorites.some((fav) => fav.productDetail.id === productId);
+    // Convert both IDs to strings for comparison
+    const currentProductId = String(productId);
+    return favorites.some((fav) => String(fav.productDetail.id) === currentProductId);
   }, [favorites, productId]);
 
   const { data: reviewData, isLoading: isReviewsLoading } =
@@ -215,7 +219,11 @@ const ProductDetail = () => {
       if (idMatch && idMatch[1]) {
         // Set the product ID directly from the URL
         setProductId(idMatch[1]);
-      } else if (productsData && productsData.data && Array.isArray(productsData.data)) {
+      } else if (
+        productsData &&
+        productsData.data &&
+        Array.isArray(productsData.data)
+      ) {
         // Fallback to old method (looking up by name slug) for backward compatibility
         const matchedProduct = productsData.data.find(
           (p) => generateSlug(p.productName) === slug
@@ -237,14 +245,14 @@ const ProductDetail = () => {
 
   if (!productDetail) {
     return (
-      <p className="text-center mt-20">
+      <Box className="flex flex-col items-center justify-center h-screen">
         <BodyTypo bodylabel="Product not found" fontWeight="bold" />
         <Button
           label="Go to home"
           className="bg-primary"
           onClick={() => router.push("/")}
         />
-      </p>
+      </Box>
     );
   }
 
@@ -281,7 +289,6 @@ const ProductDetail = () => {
 
     addFavoriteDecorProduct(productId, {
       onSuccess: () => {
-        // console.log("Added to favorite");
         queryClient.invalidateQueries({
           queryKey: ["get_list_favorite_product"],
         });
@@ -326,7 +333,11 @@ const ProductDetail = () => {
           <MuiBreadcrumbs />
         </div>
         <BorderBox>
-          <div className="flex flex-col lg:flex-row gap-20">
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", md: "row" }}
+            gap={4}
+          >
             <div className="flex flex-col w-full gap-6  h-fit items-center pt-10">
               <ImageSlider
                 img={productDetail.imageUrls || []}
@@ -339,70 +350,78 @@ const ProductDetail = () => {
             </div>
             {/* INFO */}
             <div className="flex-flex-col w-full p-10 dark:text-white">
-              <div className="flex flex-col justify-start">
-                <span className="inline-flex items-center gap-5 my-3">
+              <Box display="flex" flexDirection="column" justifyContent="start">
+                <Box display="flex" justifyContent="start" mb={2}>
                   <BodyTypo
                     bodylabel={productDetail.productName}
                     fontWeight="bold"
                   />
-                </span>
-                <div className="flex text-sm justify-between">
-                  <div className="inline-flex">
-                    <div className="flex gap-2 items-center border-l-[1px] px-5">
-                      <button className="underline" onClick={handleRatingClick}>
-                        {productDetail?.totalCount === 0
-                          ? "No Rating Yet"
-                          : `${reviewData?.totalCount} Ratings`}
-                      </button>
-                    </div>
-                    <div className="flex gap-2 items-center border-l-[1px] px-5">
-                      <span className="underline">
-                        {productDetail?.totalSold
-                          ? `${productDetail?.totalSold} Solds`
-                          : "No product sold"}
-                      </span>
-                    </div>
-                  </div> 
-                </div>
+                </Box>
+                <Box display="flex" justifyContent="start" mb={2}>
+                  <Box
+                    display="flex"
+                    gap={2}
+                    alignItems="center"
+                    borderLeft="1px solid #e0e0e0"
+                    px={2}
+                  >
+                    <button className="underline" onClick={handleRatingClick}>
+                      {productDetail?.totalCount === 0
+                        ? "No Rating Yet"
+                        : `${reviewData?.totalCount} Ratings`}
+                    </button>
+                  </Box>
+                  <Box className="flex gap-2 items-center border-l-[1px] px-5">
+                    <span className="underline">
+                      {productDetail?.totalSold
+                        ? `${productDetail?.totalSold} Solds`
+                        : "No product sold"}
+                    </span>
+                  </Box>
+                </Box>
+              </Box>
 
-                <span className="bg-gray-50 w-full dark:bg-zinc-800 p-5 gap-2 inline-flex text-red">
+              <span className="bg-gray-50 w-full dark:bg-zinc-800 p-5 gap-2 inline-flex text-red">
                 <FootTypo
                   footlabel={formatCurrency(productDetail.productPrice)}
                   fontWeight="bold"
                   fontSize="22px"
                 />
-                </span>
-
-                <span className="inline-flex items-center gap-5 my-3">
-                  <FootTypo
-                    footlabel="Made In"
-                    className="w-40"
-                  />
+              </span>
+              <Box display="flex" flexDirection="column" gap={5} mt={1}>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Made In" className="w-40" />
                   {productDetail.madeIn}
-                </span>
-
-                <span className="inline-flex items-center gap-5 my-3">
-                  <FootTypo
-                    footlabel="Ship From"
-                    className="w-40"
-                  />
+                </Box>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Ship From" className="w-40" />
                   <FcShipped size={20} />
-
                   {productDetail.shipFrom}
-                </span>
-                <span className="inline-flex items-center gap-5 my-3">
-                  <FootTypo
-                    footlabel="Shopping Guarantee"
-                    className="w-40"
-                  />
+                </Box>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Shopping Guarantee" className="w-40" />
                   <FcApproval size={20} />
                   15-Day Free Returns
-                </span>
-                <span className="my-20 max-w-[500px] inline-flex items-center gap-2">
-                  <FootTypo
-                    footlabel="Quantity"
-                    className="w-40"
-                  />
+                </Box>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Decorated for" className="w-40" />
+                  <Box display="flex" gap={2} flexWrap="wrap">
+                    {productDetail.seasons?.map((seasonValue, index) => {
+                      const seasonInfo = seasons.find(s => s.value.toLowerCase() === seasonValue.toLowerCase());
+                      return (
+                        <Box
+                          key={index}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium ${getBgColorForSeason(seasonValue)} inline-flex items-center gap-1.5`}
+                        >
+                          {seasonInfo?.icon}
+                          <span>{seasonInfo?.label || seasonValue}</span>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                </Box>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FootTypo footlabel="Quantity" className="w-40" />
                   {user?.id !== productDetail.provider.id && (
                     <ExampleNumberField
                       value={quantity}
@@ -414,54 +433,75 @@ const ProductDetail = () => {
                     footlabel={`${productDetail.quantity} pieces available`}
                     className="pl-5"
                   />
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-4">
-                {user?.id !== productDetail.provider.id && (
-                  <>
-                    <Button
-                      label="Add to cart"
-                      className="bg-primary"
-                      icon={<BsCartPlus size={20} />}
-                      onClick={handleAddToCart}
-                    />
-                    <Button
-                      label={
-                        isInFavorites ? "In your wishlist" : "Add to Wishlist"
-                      }
-                      className={isInFavorites ? "bg-rose-600" : "bg-rose-500"}
-                      icon={
-                        isInFavorites ? (
-                          <MdFavorite size={20} />
-                        ) : (
-                          <MdFavoriteBorder size={20} />
-                        )
-                      }
-                      onClick={handleAddToFavorites}
-                      disabled={isInFavorites || isPending}
-                    />
-                  </>
-                )}
-              </div>
+                </Box>
+
+                <Box className="inline-flex items-center gap-4">
+                  {user?.id !== productDetail.provider.id && (
+                    <>
+                      <Button
+                        label="Add to cart"
+                        className="bg-primary"
+                        icon={<BsCartPlus size={20} />}
+                        onClick={handleAddToCart}
+                      />
+                      <Button
+                        label={
+                          isInFavorites ? "In your wishlist" : "Add to Wishlist"
+                        }
+                        className={
+                          isInFavorites ? "bg-rose-600" : "bg-rose-500"
+                        }
+                        icon={
+                          isInFavorites ? (
+                            <MdFavorite size={20} />
+                          ) : (
+                            <MdFavoriteBorder size={20} />
+                          )
+                        }
+                        onClick={handleAddToFavorites}
+                        disabled={isInFavorites || isPending}
+                      />
+                    </>
+                  )}
+                </Box>
+              </Box>
             </div>
-          </div>
+          </Box>
         </BorderBox>
 
         <BorderBox className="my-5">
-          <div className="flex flex-col lg:flex-row gap-20  my-7 px-6 py-5 ">
-            <div className="flex flex-row justify-between">
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", md: "row" }}
+            gap={4}
+            className="my-7 px-6 py-5 "
+          >
+            <Box
+              display="flex"
+              flexDirection={{ xs: "column", md: "row" }}
+              alignItems="center"
+              gap={2}
+            >
               <Avatar
                 userImg={productDetail.provider.avatar}
-                w={96}
-                h={96}
-                className="cursor-pointer mr-3"
+                w={70}
+                h={70}
+                className="cursor-pointer"
               />
-              <div className="flex flex-col flex-grow  justify-between items-start">
+              <Box
+                display="flex"
+                flexDirection="column"
+                flexGrow={1}
+                sx={{
+                  xs: { alignItems: "center" },
+                  md: { alignItems: "start" },
+                }}
+              >
                 <BodyTypo
                   bodylabel={productDetail.provider.businessName}
                   fontWeight="bold"
                 />
-                <div className="items-center flex justify-between gap-2">
+                <Box display="flex" justifyContent="space-between" gap={1}>
                   {user?.id === productDetail.provider.id ? (
                     <Button
                       label="Go to your shop"
@@ -490,12 +530,28 @@ const ProductDetail = () => {
                       />
                     </>
                   )}
-                </div>
-              </div>
-            </div>
-            <div className="flex-grow border-l pl-6">
-              <div className="grid grid-cols-[repeat(3,auto)] gap-7">
-                <div className="flex justify-between outline-none overflow-visible relative">
+                </Box>
+              </Box>
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="column"
+              flexGrow={1}
+              borderLeft="1px solid #e0e0e0"
+              pl={6}
+            >
+              <Box
+                display="grid"
+                gridTemplateColumns={["repeat(3,auto)", "repeat(3,auto)"]}
+                gap={7}
+              >
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  outline="none"
+                  overflow="visible"
+                  position="relative"
+                >
                   <FootTypo footlabel="Rating" className="text-sm !mx-0" />
                   <div className="flex items-center text-red font-semibold">
                     <FootTypo
@@ -504,42 +560,54 @@ const ProductDetail = () => {
                     />
                     <IoIosStar />
                   </div>
-                </div>
-                <div className="flex justify-between outline-none overflow-visible relative">
+                </Box>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  outline="none"
+                  overflow="visible"
+                  position="relative"
+                >
                   <FootTypo footlabel="Product" className="text-sm" />
                   <FootTypo
                     footlabel={productDetail.provider.totalProduct}
                     className="text-red"
                   />
-                </div>
-                <div className="flex justify-between outline-none overflow-visible relative">
+                </Box>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  outline="none"
+                  overflow="visible"
+                  position="relative"
+                >
                   <FootTypo footlabel="Followers" className="text-sm" />
                   <FootTypo
                     footlabel={productDetail.provider.followersCount}
                     className="text-red"
                   />
-                </div>
-                <div className="flex justify-between outline-none overflow-visible relative">
-                  <FootTypo
-                    footlabel="Response time"
-                    className="text-sm"
-                  />
-                  <FootTypo
-                    footlabel="80 %"
-                    className="text-red"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+                </Box>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  outline="none"
+                  overflow="visible"
+                  position="relative"
+                >
+                  <FootTypo footlabel="Response time" className="text-sm" />
+                  <FootTypo footlabel="80 %" className="text-red" />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </BorderBox>
         <DescrriptionSection description={productDetail.description} />
 
         {/* Ratings and Reviews Section */}
         <section className="mt-16 border-t pt-8 relative">
-          <FootTypo
-            footlabel="Ratings and Reviews"
-            className="!m-0 text-2xl font-bold mb-8 absolute top-[-25px] left-1/2 -translate-x-1/2 bg-gray-100 dark:bg-black p-2 rounded-xl"
+          <BodyTypo
+            bodylabel="Ratings, reviews, and reliability"
+            className="pb-6"
           />
 
           {/* Ratings Overview */}
@@ -585,31 +653,38 @@ const ProductDetail = () => {
         </div>
 
         {/* Individual Reviews */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-8">
+        <Box
+          display={{ xs: "block", md: "grid" }}
+          gridTemplateColumns={["repeat(1,1fr)", "repeat(2,1fr)"]}
+          mt={8}
+        >
           {isReviewsLoading ? (
             <>
               {[1, 2, 3, 4].map((i) => (
-                <Box key={i} className="mb-6">
-                  <Box className="flex items-center gap-3 mb-3">
-                    <Skeleton variant="circular" width={48} height={48} />
-                    <Box>
-                      <Skeleton variant="text" width={120} />
-                      <Skeleton variant="text" width={80} />
+                <Grid item key={i}>
+                  <Box className="mb-6">
+                    <Box className="flex items-center gap-3 mb-3">
+                      <Skeleton variant="circular" width={40} height={40} />
+                      <Box>
+                        <Skeleton variant="text" width={120} />
+                        <Skeleton variant="text" width={80} />
+                      </Box>
                     </Box>
+                    <Skeleton variant="text" width={100} className="mb-2" />
+                    <Skeleton
+                      variant="rectangular"
+                      height={60}
+                      className="rounded-lg"
+                    />
                   </Box>
-                  <Skeleton variant="text" width={100} className="mb-2" />
-                  <Skeleton
-                    variant="rectangular"
-                    height={80}
-                    className="rounded-lg"
-                  />
-                </Box>
+                </Grid>
               ))}
             </>
           ) : (
             <DataMapper
               data={reviews}
               Component={ReviewCard}
+              useGrid={false}
               emptyStateComponent={<EmptyState title="No reviews yet" />}
               getKey={(review) => review.id}
               componentProps={(review) => ({
@@ -623,7 +698,7 @@ const ProductDetail = () => {
               })}
             />
           )}
-        </div>
+        </Box>
       </Container>
     </>
   );

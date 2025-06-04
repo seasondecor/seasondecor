@@ -10,6 +10,13 @@ import {
   FaStore,
   FaUserEdit,
   FaSave,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaInfoCircle,
+  FaTools,
+  FaBusinessTime,
+  FaBriefcase,
 } from "react-icons/fa";
 import { FootTypo } from "@/app/components/ui/Typography";
 import Button from "@/app/components/ui/Buttons/Button";
@@ -17,10 +24,12 @@ import { EditAvatar } from "@/app/components/logic/EditAvatar";
 import { useUser } from "@/app/providers/userprovider";
 import { Typography, Divider, Box, TextField, Skeleton } from "@mui/material";
 import { useForm } from "react-hook-form";
-import Input from "@/app/components/ui/Inputs/Input";
 import TipTapEditor from "@/app/components/ui/editors/TipTapEditor";
 import { Label } from "@/app/components/ui/Inputs/Label";
 import { useGetProviderBySlug } from "@/app/queries/user/provider.query";
+import Grid from "@mui/material/Grid2";
+import { useUpdateProviderProfile } from "@/app/queries/user/provider.query";
+import WalletTab from "./components/WalletTab";
 
 const SellerAccount = () => {
   const { user } = useUser();
@@ -29,29 +38,35 @@ const SellerAccount = () => {
     isFetching,
     isLoading,
   } = useGetProviderBySlug(user?.slug);
+
+  const { mutate: updateProviderProfile, isPending: isUpdating } =
+    useUpdateProviderProfile();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {},
+  });
+
   const [activeTab, setActiveTab] = useState("profile");
   const [editing, setEditing] = useState(false);
 
   const tabOptions = [
     { id: "profile", label: "My Profile", icon: <FaUser /> },
-    { id: "security", label: "Security", icon: <FaLock /> },
     { id: "wallet", label: "Wallet", icon: <FaCreditCard /> },
     { id: "notifications", label: "Notifications", icon: <FaBell /> },
-    { id: "store", label: "Store Settings", icon: <FaStore /> },
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
         return <ProfileSection editing={editing} setEditing={setEditing} />;
-      case "security":
-        return <SecuritySection />;
       case "wallet":
-        return <WalletSection />;
+        return <WalletTab />;
       case "notifications":
         return <NotificationsSection />;
-      case "store":
-        return <StoreSection />;
       default:
         return <ProfileSection editing={editing} setEditing={setEditing} />;
     }
@@ -113,7 +128,12 @@ const SellerAccount = () => {
           <div className="flex-1">
             <div className="p-4 md:p-6 lg:p-8">
               {/* Page Header */}
-              <div className="flex justify-between items-center mb-6">
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Typography
                   variant="h5"
                   className="font-bold text-gray-900 dark:text-white"
@@ -132,7 +152,7 @@ const SellerAccount = () => {
                       onClick={() => setEditing(true)}
                     />
                   )}
-              </div>
+              </Box>
 
               {renderTabContent()}
             </div>
@@ -150,6 +170,10 @@ const ProfileSection = ({ editing, setEditing }) => {
     isFetching,
     isLoading,
   } = useGetProviderBySlug(user?.slug);
+
+  const { mutate: updateProviderProfile, isPending: isUpdating } =
+    useUpdateProviderProfile();
+
   const {
     register,
     handleSubmit,
@@ -179,28 +203,33 @@ const ProfileSection = ({ editing, setEditing }) => {
     }
   }, [provider, user, reset]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const onSubmit = (data) => {
-    // Here you would call an API to update the profile
-    console.log("Form data to submit:", data);
+  const onSubmit = async (data) => {
+    updateProviderProfile({
+      name: data.name,
+      phone: data.phone,
+      address: data.address,
+      bio: data.bio,
+    });
     setEditing(false);
   };
 
   return (
     <div className="rounded-lg shadow-sm overflow-hidden">
       {editing && (
-        <div className="p-4 flex justify-between">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          p={2}
+          alignItems="center"
+        >
           <Typography variant="body2">Edit your profile information</Typography>
-          <div className="flex space-x-2">
+          <Box display="flex" gap={2}>
             <Button
               label="Cancel"
               btnClass="secondary"
               onClick={() => {
                 setEditing(false);
+                reset();
               }}
             />
             <Button
@@ -208,95 +237,87 @@ const ProfileSection = ({ editing, setEditing }) => {
               onClick={handleSubmit(onSubmit)}
               className="bg-action text-white"
               icon={<FaSave />}
+              disabled={isUpdating}
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
       <div className="pt-6">
-        <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Grid container spacing={2}>
           {isLoading || isFetching ? (
             // Skeleton loading state
             <>
-              <Box className="col-span-1">
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" className="mb-1">
                   <Skeleton width="40%" />
                 </Typography>
                 <Skeleton variant="rectangular" height={40} />
-              </Box>
-              <Box className="col-span-1">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" className="mb-1">
                   <Skeleton width="30%" />
                 </Typography>
                 <Skeleton variant="rectangular" height={40} />
-              </Box>
-              <Box className="col-span-1">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" className="mb-1">
                   <Skeleton width="25%" />
                 </Typography>
                 <Skeleton variant="rectangular" height={40} />
-              </Box>
-              <Box className="col-span-1">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" className="mb-1">
                   <Skeleton width="35%" />
                 </Typography>
                 <Skeleton variant="rectangular" height={40} />
-              </Box>
-              <Box className="col-span-1 md:col-span-2">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" className="mb-1">
                   <Skeleton width="20%" />
                 </Typography>
                 <Skeleton variant="rectangular" height={120} />
-              </Box>
+              </Grid>
             </>
           ) : editing ? (
             <>
-              <Box className="col-span-1">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  register={register}
-                  required
-                  errors={errors}
-                  className="pl-3"
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  {...register("name")}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
                 />
-              </Box>
-              <Box className="col-span-1">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  register={register}
-                  required
-                  errors={errors}
-                  className="pl-3"
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  {...register("email")}
                   disabled
+                  value={user?.email || ""}
                 />
-              </Box>
-              <Box className="col-span-1">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  type="text"
-                  register={register}
-                  required
-                  errors={errors}
-                  className="pl-3"
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  {...register("phone")}
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
                 />
-              </Box>
-              <Box className="col-span-1">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  type="text"
-                  register={register}
-                  required
-                  errors={errors}
-                  className="pl-3"
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  label="Address"
+                  {...register("address")}
+                  error={!!errors.address}
+                  helperText={errors.address?.message}
                 />
-              </Box>
-              <Box className="col-span-1 md:col-span-2">
+              </Grid>
+              <Grid size={{ xs: 12, md: 12 }}>
                 <Label htmlFor="bio">Bio</Label>
                 <TipTapEditor
                   id="bio"
@@ -307,38 +328,38 @@ const ProfileSection = ({ editing, setEditing }) => {
                   required
                   errors={errors}
                 />
-              </Box>
+              </Grid>
             </>
           ) : (
             <>
-              <Box className="col-span-1">
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoItem
                   label="Full Name"
                   value={provider?.businessName || "Not set"}
                 />
-              </Box>
-              <Box className="col-span-1">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoItem label="Email" value={user?.email || "Not set"} />
-              </Box>
-              <Box className="col-span-1">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoItem label="Phone" value={provider?.phone || "Not set"} />
-              </Box>
-              <Box className="col-span-1">
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoItem
                   label="Address"
                   value={provider?.address || "Not set"}
                 />
-              </Box>
-              <Box className="col-span-1 md:col-span-2">
+              </Grid>
+              <Grid size={{ xs: 12, md: 12 }}>
                 <InfoItem
                   label="Bio"
                   value={provider?.bio || "No bio available"}
                   dangerousHtml={true}
                 />
-              </Box>
+              </Grid>
             </>
           )}
-        </Box>
+        </Grid>
       </div>
 
       <Divider
@@ -350,87 +371,63 @@ const ProfileSection = ({ editing, setEditing }) => {
         }}
       ></Divider>
 
-      <Typography
-        variant="h6"
-        className="font-semibold text-gray-900 dark:text-white mb-4"
-      >
+      <Typography variant="h6" fontWeight="bold" mb={2}>
         Professional Information
       </Typography>
-      <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Grid container spacing={2}>
         {isLoading || isFetching ? (
           // Skeleton loading for professional info
           <>
-            <Box className="col-span-1">
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" className="mb-1">
                 <Skeleton width="40%" />
               </Typography>
               <Skeleton variant="text" height={24} />
-            </Box>
-            <Box className="col-span-1">
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" className="mb-1">
                 <Skeleton width="50%" />
               </Typography>
               <Skeleton variant="text" height={24} />
-            </Box>
-            <Box className="col-span-1">
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" className="mb-1">
                 <Skeleton width="45%" />
               </Typography>
               <Skeleton variant="text" height={24} />
-            </Box>
-            <Box className="col-span-1">
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" className="mb-1">
                 <Skeleton width="35%" />
               </Typography>
               <Skeleton variant="text" height={24} />
-            </Box>
+            </Grid>
           </>
         ) : (
           <>
-            <Box className="col-span-1">
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoItem
                 label="Skill"
                 value={provider?.skillName || "Not set"}
               />
-            </Box>
-            <Box className="col-span-1">
-              <InfoItem
-                label="Decoration Style"
-                value={provider?.decorationStyle || "Not set"}
-              />
-            </Box>
-            <Box className="col-span-1">
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoItem
                 label="Years of Experience"
-                value={provider?.yearsOfExperience || "Not specified"}
+                value={
+                  `${provider?.yearsOfExperience} years` || "Not specified"
+                }
               />
-            </Box>
-            <Box className="col-span-1">
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoItem
                 label="Past Work Places"
                 value={provider?.pastWorkPlaces || "Not specified"}
               />
-            </Box>
+            </Grid>
           </>
         )}
-      </Box>
-    </div>
-  );
-};
-
-// Placeholder for other sections - would implement similar to ProfileSection
-const SecuritySection = () => {
-  return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-6">
-      <Typography>Security settings coming soon</Typography>
-    </div>
-  );
-};
-
-const WalletSection = () => {
-  return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-6">
-      <Typography>Wallet settings coming soon</Typography>
+      </Grid>
     </div>
   );
 };
@@ -443,31 +440,50 @@ const NotificationsSection = () => {
   );
 };
 
-const StoreSection = () => {
-  return (
-    <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-6">
-      <Typography>Store settings coming soon</Typography>
-    </div>
-  );
-};
-
 const InfoItem = ({ label, value, dangerousHtml = false }) => {
+  const getIcon = () => {
+    switch (label) {
+      case "Full Name":
+        return <FaUser />;
+      case "Email":
+        return <FaEnvelope />;
+      case "Phone":
+        return <FaPhone />;
+      case "Address":
+        return <FaMapMarkerAlt />;
+      case "Bio":
+        return <FaInfoCircle />;
+      case "Skill":
+        return <FaTools />;
+      case "Years of Experience":
+        return <FaBusinessTime />;
+      case "Past Work Places":
+        return <FaBriefcase />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="mb-4">
+    <Box display="flex" flexDirection="column" alignItems="start" mb={2}>
       <Typography
+        component="div"
         variant="body2"
-        className="text-gray-500 dark:text-gray-400 mb-1"
+        mb={1}
+        className="text-gray-500 dark:text-gray-400 flex items-center gap-2"
       >
+        {getIcon()}
         {label}
       </Typography>
-      <Typography variant="body1" className="text-gray-900 dark:text-white">
+
+      <Typography variant="body1" component="div">
         {dangerousHtml ? (
-          <span dangerouslySetInnerHTML={{ __html: value }} />
+          <div dangerouslySetInnerHTML={{ __html: value }} />
         ) : (
           value
         )}
       </Typography>
-    </div>
+    </Box>
   );
 };
 

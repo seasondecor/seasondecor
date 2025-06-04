@@ -21,7 +21,7 @@ import {
 import { generateSlug } from "@/app/helpers";
 import Container from "@/app/components/layouts/Container";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import Grid from '@mui/material/Grid2';
+import Grid from "@mui/material/Grid2";
 
 // Skeleton component for product card
 const ProductCardSkeleton = () => {
@@ -44,7 +44,6 @@ const ProductCardSkeleton = () => {
 };
 
 const ListProductPage = () => {
-
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 12,
@@ -66,10 +65,10 @@ const ListProductPage = () => {
 
   // Update filterParams when pagination changes
   useEffect(() => {
-    setFilterParams(prev => ({
+    setFilterParams((prev) => ({
       ...prev,
       pageIndex: pagination.pageIndex,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     }));
   }, [pagination]);
 
@@ -77,9 +76,8 @@ const ListProductPage = () => {
   const {
     data: productsData,
     isLoading,
-    refetch: refetchProducts
+    refetch: refetchProducts,
   } = useGetListProduct(filterParams);
-
 
   const products = productsData?.data || [];
   const totalCount = productsData?.totalCount || 0;
@@ -166,7 +164,7 @@ const ListProductPage = () => {
       <div className="min-h-screen pt-5">
         <div className="flex container rounded-lg">
           {/* Sidebar Filters */}
-          <div className="flex-shrink-0 w-[250px] mr-6">
+          <div className="flex-shrink-0 w-[250px] mr-2">
             <Paper
               elevation={0}
               sx={{ p: 2, border: "1px solid #eee", borderRadius: "10px" }}
@@ -329,7 +327,7 @@ const ListProductPage = () => {
                 >
                   Showing {products.length} results
                 </Typography>
-                <Grid container spacing={15}>
+                <Grid container spacing={5}>
                   <DataMapper
                     data={products}
                     Component={ProductCard}
@@ -348,7 +346,9 @@ const ListProductPage = () => {
                       quantity: product.quantity,
                       totalSold: product.totalSold,
                       id: product.id,
-                      href: `/products/${product.id}-${generateSlug(product.productName)}`,
+                      href: `/products/${product.id}-${generateSlug(
+                        product.productName
+                      )}`,
                       isAdditionalProduct: false,
                     })}
                   />

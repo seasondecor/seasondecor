@@ -61,13 +61,17 @@ const MaterialTab = ({
               {materials.length > 0 ? (
                 materials.map((material, index) => (
                   <tr key={`material-${index}`}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
                         placeholder="Material name"
                         value={material.materialName || ""}
                         onChange={(e) =>
-                          onMaterialChange(index, "materialName", e.target.value)
+                          onMaterialChange(
+                            index,
+                            "materialName",
+                            e.target.value
+                          )
                         }
                         error={!material.materialName}
                         helperText={!material.materialName && "Required field"}
@@ -75,18 +79,23 @@ const MaterialTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
-                        multiline
-                        rows={3}
                         placeholder="Add detail notes"
                         value={material.note || ""}
                         onChange={(e) =>
@@ -96,14 +105,21 @@ const MaterialTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
                         placeholder="0"
@@ -112,19 +128,28 @@ const MaterialTab = ({
                           handleNumberInput(index, "quantity", e.target.value)
                         }
                         error={material.quantity <= 0}
-                        helperText={material.quantity <= 0 && "Must be greater than 0"}
+                        helperText={
+                          material.quantity <= 0 && "Must be greater than 0"
+                        }
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 align-top whitespace-nowrap">
                       <TextField
                         fullWidth
                         placeholder="0"
@@ -133,7 +158,10 @@ const MaterialTab = ({
                           handleNumberInput(index, "cost", e.target.value)
                         }
                         error={!material.cost || parseFloat(material.cost) <= 0}
-                        helperText={(!material.cost || parseFloat(material.cost) <= 0) && "Must be greater than 0"}
+                        helperText={
+                          (!material.cost || parseFloat(material.cost) <= 0) &&
+                          "Must be greater than 0"
+                        }
                         InputProps={{
                           inputProps: {
                             inputMode: "numeric",
@@ -144,30 +172,39 @@ const MaterialTab = ({
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px",
                             backgroundColor: "white",
+                            height: "45px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E2E8F0",
                           },
+                          "& .MuiFormHelperText-root": {
+                            position: "absolute",
+                            bottom: "-20px",
+                            marginLeft: 0,
+                          },
+                          marginBottom: "20px",
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="py-4 align-top whitespace-nowrap">
                       {materials.length > 1 ? (
                         <Button
-                          label="Remove"
                           onClick={() => onRemoveMaterial(index)}
                           className="bg-red"
                           icon={<IoIosRemove size={18} />}
                         />
                       ) : (
-                        <AiOutlineStop size={18} />
+                        <AiOutlineStop size={20} className="mt-3" />
                       )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No materials added. Add a new material to get started.
                   </td>
                 </tr>

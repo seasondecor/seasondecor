@@ -12,6 +12,8 @@ import Alert from "@mui/material/Alert";
 const AdminHeader = () => {
   const { data } = useSession();
 
+  //console.log(data)
+
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const toggleDrawer = (open) => () => {
@@ -24,7 +26,7 @@ const AdminHeader = () => {
         <Logo />
 
         <Alert variant="outlined" severity="info">
-          Welcome to Admin Dashboard{" "}
+          Welcome back Administrator !{" "}
           <span className="font-bold">{data?.user?.name}</span>
         </Alert>
 

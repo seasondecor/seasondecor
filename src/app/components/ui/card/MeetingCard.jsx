@@ -5,6 +5,8 @@ import { formatDateTime } from "@/app/helpers";
 import { FaVideo, FaCalendarAlt, FaClock } from "react-icons/fa";
 import Button from "../Buttons/Button";
 import { BiTimeFive } from "react-icons/bi";
+import { Alert, Box } from "@mui/material";
+import { IoIosCheckmark, IoIosClose } from "react-icons/io";
 
 const MeetingCard = ({
   id,
@@ -20,9 +22,7 @@ const MeetingCard = ({
   isRejecting,
   isProvider = false,
   joinMeeting,
-
 }) => {
-  // Use formatDateTime to get formatted date and time separately
   const formattedStartTime = startTime
     ? formatDateTime(startTime)
     : { date: "No date", time: "No time" };
@@ -30,14 +30,13 @@ const MeetingCard = ({
     ? formatDateTime(createAt)
     : { date: "Unknown", time: "" };
 
-  // Function to determine badge style and text based on status
   const getStatusBadge = () => {
     switch (status) {
       case 0:
         return {
           text: `${isProvider ? "Pending" : "Requested"}`,
           bgColor: "bg-yellow",
-          hoverBg: "hover:bg-yellow-600",
+          hoverBg: "hover:bg-warning",
           hoverText: "hover:text-white",
         };
       case 1:
@@ -51,7 +50,7 @@ const MeetingCard = ({
         return {
           text: "Started",
           bgColor: "bg-green",
-          hoverBg: "hover:bg-green-700",
+          hoverBg: "hover:bg-success",
           hoverText: "hover:text-white",
         };
       case 3:
@@ -65,7 +64,7 @@ const MeetingCard = ({
         return {
           text: "Rejected",
           bgColor: "bg-red",
-          hoverBg: "hover:bg-red-700",
+          hoverBg: "hover:bg-rose-700",
           hoverText: "hover:text-white",
         };
       default:
@@ -81,8 +80,15 @@ const MeetingCard = ({
   const statusBadge = getStatusBadge();
 
   return (
-    <div className="flex w-[350px] flex-col items-start justify-between border-4 border-black bg-gradient-to-b from-white via-gray-100 to-gray-200 p-6 shadow-[8px_8px_0_0_#000] duration-500 ease-in-out transform hover:scale-105 hover:bg-gradient-to-b hover:from-gray-200 hover:to-white transition-shadow hover:shadow-[12px_12px_0_0_#000]">
-      <div className="mb-2 flex items-center gap-x-2 text-xs">
+    <div className="w-fit h-full flex flex-col border-4 border-black bg-gradient-to-b from-white via-gray-100 to-gray-200 p-6 shadow-[8px_8px_0_0_#000] duration-500 ease-in-out transform hover:scale-105 hover:bg-gradient-to-b hover:from-gray-200 hover:to-white transition-shadow hover:shadow-[12px_12px_0_0_#000]">
+      {/* Header Section */}
+      <Box
+        display="flex"
+        alignItems="center"
+        gap={1}
+        mb={2}
+        className="text-xs"
+      >
         <span className="relative z-10 border-2 border-black bg-blue-500 px-3 py-1 font-bold text-white transition-all duration-500 ease-in-out hover:bg-blue-700 hover:text-yellow-300">
           Meeting #{id}
         </span>
@@ -91,76 +97,90 @@ const MeetingCard = ({
         >
           {statusBadge.text}
         </span>
-      </div>
-      <div className="group relative w-full">
-        <h3 className="group-hover:text-red-500 mt-3 text-2xl font-black uppercase leading-6 text-black transition-all duration-500 ease-in-out transform hover:scale-105 hover:text-blue-800">
-          <a href="#">
-            <span className="absolute inset-0 max-w-xs" />
-            {topic || "Meeting Topic"}
-          </a>
+      </Box>
+
+      {/* Content Section */}
+      <Box flex={1}>
+        {/* Title */}
+        <h3 className="text-2xl font-black uppercase leading-6 text-black mb-4 line-clamp-2 min-h-[48px] group-hover:text-red-500 transition-all duration-500 ease-in-out hover:text-blue-800">
+          {topic || "Meeting Topic"}
         </h3>
 
-        {/* Meeting Date and Time Section */}
-        <div className="mt-4 bg-gray-100 p-3 rounded-lg border-l-4 border-blue-500 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <FaCalendarAlt color="black" />
+        {/* Date & Time Info */}
+        <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-blue-500 flex flex-col gap-2 mb-4">
+          <Box display="flex" alignItems="center" gap={1}>
+            <FaCalendarAlt className="text-black" />
             <span className="font-bold text-gray-800">
               {formattedStartTime.date}
             </span>
-          </div>
-          <div className="flex items-center gap-2">
+          </Box>
+          <Box display="flex" alignItems="center" gap={1}>
             <BiTimeFive className="text-blue-500" />
             <span className="font-bold text-gray-800">
               {formattedStartTime.time}
             </span>
-          </div>
+          </Box>
         </div>
 
-        <p className="text-md mt-5 border-l-4 border-red-500 pl-4 leading-6 text-gray-800 transition-all duration-500 ease-in-out transform hover:border-blue-500 hover:text-gray-600">
+        {/* Meeting Link */}
+        <div className="border-l-4 border-red-500 pl-4 mb-4">
           {zoomUrl ? (
             <button
               onClick={joinMeeting}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-blue-500 hover:text-blue-700 transition-colors"
             >
-              <FaVideo className="text-blue-500" />
+              <FaVideo />
               Join Meeting
             </button>
           ) : (
-            <span className="flex items-center gap-2">
-              <FaVideo className="text-gray-400" />
+            <span className="flex items-center gap-2 text-gray-500">
+              <FaVideo />
               No meeting link available
             </span>
           )}
-        </p>
-      </div>
-      <div className="relative  w-full border-t pt-4">
-        <div className="flex items-center gap-2 mb-1 text-sm text-gray-600">
-          <FaClock className="text-gray-500" />
-          Created: {formattedCreateAt.date} {formattedCreateAt.time}
         </div>
-        <span className="text-sm leading-6 py-1 text-black">{`Meeting Number: ${
-          meetingNumber || "Not available"
-        }`}</span>
-        {/* Only show accept/reject buttons for requested meetings */}
-        {status === 0 && isProvider && (
-          <div className="text-sm leading-6 flex items-center gap-x-2">
-            <Button
-              label="Accept"
-              onClick={handleAcceptMeetingRequest}
-              isLoading={isAccepting}
-              disabled={isAccepting}
-              className=" bg-action text-white "
-            />
-            <Button
-              label="Reject"
-              onClick={handleRejectMeetingRequest}
-              isLoading={isRejecting}
-              disabled={isRejecting}
-              className=" bg-red text-white "
-            />
+
+        {/* Creation Info */}
+        <div className="text-sm text-gray-600 mb-2">
+          <Box display="flex" alignItems="center" gap={1}>
+            <FaClock className="text-gray-500" />
+            <span>
+              Created: {formattedCreateAt.date} at {formattedCreateAt.time}
+            </span>
+          </Box>
+          <div className="mt-1">
+            Meeting Number: {meetingNumber || "Not available"}
           </div>
-        )}
-      </div>
+        </div>
+      </Box>
+
+      {/* Action Buttons */}
+      {status === 0 && isProvider && (
+        <Box display="flex" gap={2} mt={2}>
+          <Button
+            icon={<IoIosCheckmark size={20} />}
+            label="Accept"
+            onClick={handleAcceptMeetingRequest}
+            isLoading={isAccepting}
+            disabled={isAccepting}
+            className="flex-1 bg-action text-white"
+          />
+          <Button
+            icon={<IoIosClose size={20} />}
+            label="Reject"
+            onClick={handleRejectMeetingRequest}
+            isLoading={isRejecting}
+            disabled={isRejecting}
+            className="flex-1 bg-red text-white"
+          />
+        </Box>
+      )}
+
+      {status === 4 && isProvider && (
+        <Alert severity="info" color="error">
+          Meeting Request Rejected
+        </Alert>
+      )}
     </div>
   );
 };

@@ -27,7 +27,7 @@ export function useCreateQuotation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["get_list_quotation_for_customer"],
+        queryKey: ["booking_list_for_provider"],
       });
     },
   });
@@ -73,6 +73,20 @@ export function useGetQuotationDetailByCustomerId(quotationCode) {
     },
   });
 }
+
+export function useGetQuotationDetailByProvider(quotationCode) {
+  return useQuery({
+    queryKey: ["quotation_detail_for_provider", quotationCode],
+    queryFn: async () => {
+      const res = await BaseRequest.Get(
+        `/${SUB_URL}/getQuotationDetailByProvider/${quotationCode}`,
+        false
+      );
+      return res.data;
+    },
+  });
+}
+
 
 export function useConfirmQuotation() {
   const queryClient = useQueryClient();
@@ -155,7 +169,7 @@ export function useRequestToChangeQuotation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["get_list_quotation_for_customer"],
+        queryKey: ["quotation"],
       });
     },
   });
@@ -176,7 +190,7 @@ export function useApproveToChangeQuotation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["get_list_quotation_for_provider"],
+        queryKey: ["quotation"],
       });
     },
   });

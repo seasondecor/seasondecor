@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import SellerWrapper from "../../components/SellerWrapper";
-import { TbArrowLeft, TbLayoutList, TbCalendarTime } from "react-icons/tb";
-import { FootTypo } from "@/app/components/ui/Typography";
+import {
+  TbArrowLeft,
+  TbLayoutList,
+  TbCalendarTime,
+  TbSortDescending,
+  TbSortAscending,
+} from "react-icons/tb";
+import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import { useRouter } from "next/navigation";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
 import { useParams } from "next/navigation";
@@ -21,6 +27,18 @@ import {
   Box,
   Collapse,
   IconButton,
+  Card,
+  CardContent,
+  CardActions,
+  Stack,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Badge,
+  Button as MuiButton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { formatDate } from "@/app/helpers";
@@ -28,7 +46,6 @@ import { FaBarcode } from "react-icons/fa";
 import { CgCalendarDates } from "react-icons/cg";
 import { RiMailLine, RiMessage2Line } from "react-icons/ri";
 import StatusChip from "@/app/components/ui/statusChip/StatusChip";
-import { BodyTypo } from "@/app/components/ui/Typography";
 import Button from "@/app/components/ui/Buttons/Button";
 import { PiSealWarning } from "react-icons/pi";
 import { BsThreeDots } from "react-icons/bs";
@@ -53,6 +70,10 @@ import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
 import ThemePalette from "@/app/components/ui/themePalette/ThemePalatte";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import Image from "next/image";
+import { useGetTrackingByBookingCode } from "@/app/queries/tracking/tracking.query";
+import ShinyText from "@/app/components/ui/animated/ShinyText";
+import TrackingDialog from "../components/TrackingDialog";
+import { motion } from "framer-motion";
 
 const RequestDetail = () => {
   const router = useRouter();
@@ -63,6 +84,10 @@ const RequestDetail = () => {
     {}
   );
   const [bookingDetailsOpen, setBookingDetailsOpen] = useState(false);
+  const [isDescending, setIsDescending] = useState(true);
+  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [pendingMeetingsCount, setPendingMeetingsCount] = useState(0);
 
   const addContactMutation = useAddContact();
 
@@ -72,11 +97,17 @@ const RequestDetail = () => {
   const { data: bookingsData, isLoading: isBookingLoading } =
     useGetBookingDetailForProvider(id);
 
+  const { data: trackingData, isLoading: isTrackingLoading } =
+    useGetTrackingByBookingCode(id);
+
   const {
     data: meetingList,
     isLoading: isMeetingListLoading,
     refetch: refetchMeetingList,
-  } = useGetMeetingListForProvider(id);
+  } = useGetMeetingListForProvider(id, {
+    descending: isDescending,
+    status: selectedStatus,
+  });
 
   const { mutate: acceptMeetingRequest } = useAcceptMeetingRequest();
 
@@ -91,6 +122,15 @@ const RequestDetail = () => {
       setShouldFetch(true);
     }
   }, [bookingsData]);
+
+  useEffect(() => {
+    if (meetings) {
+      const pendingCount = meetings.filter(
+        (meeting) => meeting.status === 0
+      ).length;
+      setPendingMeetingsCount(pendingCount);
+    }
+  }, [meetings]);
 
   const { data: cancelDetails, isLoading: isCancelDetailsLoading } =
     useGetPendingCancelByBookingCode(id, shouldFetch);
@@ -107,7 +147,91 @@ const RequestDetail = () => {
   if (isBookingLoading || isCancelDetailsLoading) {
     return (
       <SellerWrapper>
-        <Skeleton variant="rectangular" height={600} />
+        <div className="flex items-center gap-1 mb-5">
+          <Skeleton variant="circular" width={20} height={20} />
+          <Skeleton variant="text" width={60} />
+        </div>
+
+        <div className="flex items-center my-6">
+          <Skeleton variant="circular" width={28} height={28} />
+          <Skeleton variant="text" width={150} sx={{ ml: 1 }} />
+        </div>
+
+        {/* Tab Navigation Skeleton */}
+        <div className="flex w-full mb-10">
+          <Skeleton variant="rounded" width="50%" height={40} sx={{ mr: 1 }} />
+          <Skeleton variant="rounded" width="50%" height={40} sx={{ ml: 1 }} />
+        </div>
+
+        {/* Information Grid Skeleton */}
+        <Grid container spacing={3} mb={3}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Skeleton variant="text" width={120} sx={{ mb: 2 }} />
+              <div className="flex flex-col gap-3">
+                {[1, 2, 3, 4].map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <Skeleton variant="circular" width={20} height={20} />
+                    <Skeleton variant="text" width={200} />
+                  </div>
+                ))}
+              </div>
+            </Paper>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Skeleton variant="text" width={160} sx={{ mb: 2 }} />
+              <div className="flex items-center gap-2 mb-3">
+                <Skeleton variant="circular" width={40} height={40} />
+                <Skeleton variant="text" width={150} />
+              </div>
+              {[1, 2].map((item) => (
+                <div key={item} className="flex items-center gap-2 mb-2">
+                  <Skeleton variant="circular" width={20} height={20} />
+                  <Skeleton variant="text" width={180} />
+                </div>
+              ))}
+              <Skeleton
+                variant="rounded"
+                width={120}
+                height={36}
+                sx={{ mt: 2 }}
+              />
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Service Details Skeleton */}
+        <Paper elevation={3} sx={{ p: 2, mt: 3 }}>
+          <Skeleton variant="text" width={140} sx={{ mb: 2 }} />
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="flex flex-col gap-2 mb-4">
+              <div className="flex justify-between items-center">
+                <Skeleton variant="text" width={200} />
+                <Skeleton variant="text" width={100} />
+              </div>
+              <Skeleton variant="rounded" height={60} />
+            </div>
+          ))}
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Theme Colors Skeleton */}
+          <Skeleton variant="text" width={160} sx={{ mb: 2 }} />
+          <div className="flex gap-2 mb-4">
+            {[1, 2, 3, 4].map((item) => (
+              <Skeleton key={item} variant="circular" width={40} height={40} />
+            ))}
+          </div>
+
+          {/* Booking Details Skeleton */}
+          <Skeleton variant="rounded" height={50} sx={{ mb: 2 }} />
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((item) => (
+              <Skeleton key={item} variant="rounded" height={80} />
+            ))}
+          </div>
+        </Paper>
       </SellerWrapper>
     );
   }
@@ -173,22 +297,69 @@ const RequestDetail = () => {
   return (
     <SellerWrapper>
       <button
-        className="flex items-center gap-1 mb-5"
+        className="flex items-center gap-1 mb-5 w-fit"
         onClick={() => router.back()}
       >
         <TbArrowLeft size={20} />
         <FootTypo footlabel="Go Back" />
       </button>
+      <Box display="flex" justifyContent="space-between">
+        <Box display="flex" alignItems="center" gap={1} mb={3}>
+          <TbLayoutList size={28} className="mr-2" />
+          <BodyTypo bodylabel="Request Details" className="text-xl" />
+          <RefreshButton
+            onRefresh={refetchMeetingList}
+            isLoading={isMeetingListLoading}
+            tooltip="Refresh meeting list"
+          />
+        </Box>
 
-      <div className="flex items-center my-6">
-        <TbLayoutList size={28} className="mr-2" />
-        <BodyTypo bodylabel="Request Details" className="text-xl" />
-        <RefreshButton
-          onRefresh={refetchMeetingList}
-          isLoading={isMeetingListLoading}
-          tooltip="Refresh meeting list"
-        />
-      </div>
+        {trackingData && trackingData.length > 0 && (
+          <motion.button
+            onClick={() => setIsTrackingOpen(true)}
+            className="px-2 py-2 h-fit rounded-full border border-primary shadow-lg hover:shadow-xl transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <ShinyText text="Service Tracking Detail" className="text-sm " />
+          </motion.button>
+        )}
+      </Box>
+      {pendingMeetingsCount > 0 && (
+        <Box my={2}>
+          <Alert
+            severity="warning"
+            variant="outlined"
+            action={
+              <MuiButton
+                size="small"
+                variant="contained"
+                onClick={() => {
+                  const tabList = document.querySelectorAll('[role="tab"]');
+                  tabList[1]?.click();
+                }}
+              >
+                View Requests
+              </MuiButton>
+            }
+          >
+            <FootTypo
+              footlabel={`You have ${pendingMeetingsCount} pending meeting request${
+                pendingMeetingsCount > 1 ? "s" : ""
+              }`}
+              fontWeight="bold"
+            />
+          </Alert>
+        </Box>
+      )}
+
+      <TrackingDialog
+        isOpen={isTrackingOpen}
+        onClose={() => setIsTrackingOpen(false)}
+        trackingData={trackingData}
+      />
 
       {/* Tab Navigation - Keeping Headless UI */}
       <TabGroup className="w-full">
@@ -218,14 +389,16 @@ const RequestDetail = () => {
               }`
             }
           >
-            <div className="flex items-center justify-center gap-2 ">
-              <TbCalendarTime size={18} />
+            <div className="flex items-center justify-center gap-2">
+              <Badge badgeContent={pendingMeetingsCount} color="error" max={99}>
+                <TbCalendarTime size={18} />
+              </Badge>
               <FootTypo footlabel="Meeting Request" />
             </div>
           </Tab>
         </TabList>
 
-        <TabPanels className="mt-10 relative overflow-hidden">
+        <TabPanels className="mt-3 relative overflow-hidden p-5">
           <TabPanel className="animate-tab-fade-in">
             {/* Request Details Panel */}
 
@@ -233,28 +406,33 @@ const RequestDetail = () => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <BorderBox className="flex flex-col gap-2 border shadow-xl h-full">
                   <FootTypo footlabel="Information" fontWeight="bold" />
-                  <div className="flex flex-row gap-3 items-center">
+                  <Box display="flex" alignItems="center" gap={1}>
                     <FaBarcode size={20} />
                     <FootTypo footlabel="Booking Code" />
                     <FootTypo footlabel={id} className=" underline" />
-                  </div>
-                  <div className="flex flex-row gap-3 items-center">
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
                     <CgCalendarDates size={20} />
                     <FootTypo footlabel="Requested survey date" />
                     <FootTypo
                       footlabel={formatDate(bookingsData.surveyDate)}
                       className="underline"
                     />
-                  </div>
-                  <div className="flex flex-row gap-2 items-center text-rose-500">
+                  </Box>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    className="text-rose-500"
+                  >
                     <PiSealWarning size={20} />
                     <FootTypo footlabel="Please be aware that the survey date can't exceed than requested date!" />
-                  </div>
-                  <div className="flex flex-row gap-3 items-center">
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
                     <HiOutlineStatusOnline size={20} />
                     <FootTypo footlabel="Status" />
                     <StatusChip status={bookingsData.status} isBooking={true} />
-                  </div>
+                  </Box>
                 </BorderBox>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -263,7 +441,7 @@ const RequestDetail = () => {
                     footlabel="Customer Information"
                     fontWeight="bold"
                   />
-                  <div className="flex flex-row gap-3 items-center">
+                  <Box display="flex" alignItems="center" gap={1}>
                     <Avatar
                       userImg={bookingsData.customer.avatar}
                       alt={bookingsData.customer.fullName}
@@ -271,23 +449,23 @@ const RequestDetail = () => {
                       h={40}
                     />
                     <FootTypo footlabel={bookingsData.customer.fullName} />
-                  </div>
-                  <div className="flex flex-row gap-3 items-center">
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
                     <RiMailLine size={20} />
                     <FootTypo footlabel="Contact" />
                     <FootTypo
                       footlabel={bookingsData.customer.email}
                       className="underline"
                     />
-                  </div>
-                  <div className="flex flex-row gap-3 items-center">
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
                     <IoLocationOutline size={20} />
                     <FootTypo footlabel="Location" />
                     <FootTypo
                       footlabel={bookingsData.address}
                       className="underline"
                     />
-                  </div>
+                  </Box>
                   <Button
                     onClick={() => handleChatClick(bookingsData.customer)}
                     icon={<RiMessage2Line size={20} />}
@@ -301,13 +479,13 @@ const RequestDetail = () => {
             {bookingsData.status === 12 ? (
               <BorderBox className="flex flex-col gap-2 border shadow-xl w-full col-span-2 font-semibold">
                 <FootTypo footlabel="Cancellation Request" fontWeight="bold" />
-                <div className="flex flex-row gap-3 items-center">
+                <Box display="flex" alignItems="center" gap={1}>
                   <FootTypo footlabel="Requested on:" />
                   <FootTypo footlabel={formatDate(cancelDetails?.createdAt)} />
-                </div>
+                </Box>
                 <div className="flex justify-between mt-2 p-4 bg-rose-50 dark:bg-rose-900/10 rounded-lg border border-red font-semibold">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-3 mb-2">
+                  <Box display="flex" flexDirection="column" gap={1}>
+                    <Box display="flex" alignItems="center" gap={1}>
                       <PiSealWarning size={24} />
                       <FootTypo footlabel="Reason for Cancellation" />
                       <FootTypo
@@ -316,7 +494,7 @@ const RequestDetail = () => {
                           "No specific reason provided by the customer."
                         }
                       />
-                    </div>
+                    </Box>
                     <div className="ml-9 py-2 border-t">
                       <FootTypo footlabel="Customer's Explanation" />
                       <Textarea
@@ -334,9 +512,9 @@ const RequestDetail = () => {
                         readOnly
                       />
                     </div>
-                  </div>
+                  </Box>
 
-                  <div className="flex flex-row gap-3 items-center">
+                  <Box display="flex" alignItems="center" gap={1}>
                     <Button
                       label="Approve"
                       onClick={handleApproveCancelRequest}
@@ -348,7 +526,7 @@ const RequestDetail = () => {
                       onClick={handleRevokeCancelRequest}
                       isLoading={isRevokeCancelRequestPending}
                     />
-                  </div>
+                  </Box>
                 </div>
               </BorderBox>
             ) : bookingsData.status === 13 ? (
@@ -362,38 +540,47 @@ const RequestDetail = () => {
             ) : (
               <BorderBox className="flex flex-col gap-2 border shadow-xl w-full col-span-2 font-semibold">
                 <FootTypo footlabel="Service Details" fontWeight="bold" />
-                <div className="flex flex-row gap-3 items-center">
+                <Box display="flex" alignItems="center" gap={1}>
                   <FootTypo footlabel="Service name" />
                   <FootTypo
                     footlabel={bookingsData.decorService.style}
                     className="underline"
                   />
-                </div>
-                <div className="flex flex-row gap-3 items-center">
+                </Box>
+                <Box display="flex" alignItems="center" gap={1}>
                   <FootTypo footlabel="Service Start Date" />
                   <FootTypo
                     footlabel={formatDate(bookingsData.decorService.startDate)}
                     className="underline"
                   />
-                </div>
+                </Box>
 
                 {bookingsData.bookingDetails.length > 0 ? (
-                  <div className="flex flex-col gap-4 ">
+                  <Box display="flex" flexDirection="column" gap={4}>
                     {bookingsData.bookingDetails.map((detail, index) => (
-                      <div
+                      <Box
                         key={detail.id}
-                        className="flex flex-col gap-2 p-4 rounded-lg"
+                        display="flex"
+                        flexDirection="column"
+                        gap={2}
                       >
-                        <div className="flex justify-between items-center">
-                          <FootTypo footlabel={detail.serviceItem} />
-                        </div>
-                        <div className="flex flex-row gap-3 items-center">
-                          <FootTypo footlabel="Cost:" />
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <FootTypo
+                            footlabel={detail.serviceItem}
+                            fontWeight="bold"
+                          />
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <FootTypo footlabel="Total:" />
                           <FootTypo footlabel={formatCurrency(detail.cost)} />
-                        </div>
-                      </div>
+                        </Box>
+                      </Box>
                     ))}
-                  </div>
+                  </Box>
                 ) : (
                   <div className="bg-white/50 w-full h-full z-30 flex gap-2 items-center justify-start animate-pulse overflow-hidden">
                     <FootTypo footlabel="Waiting for proceeding of the quotation" />
@@ -504,9 +691,15 @@ const RequestDetail = () => {
                               >
                                 Room Size
                               </Typography>
-                              <Typography fontWeight="medium">
-                                {bookingsData.bookingForm.roomSize}
-                              </Typography>
+                              {bookingsData.bookingForm.roomSize ? (
+                                <Typography fontWeight="medium">
+                                  {`${bookingsData.bookingForm.roomSize} m²`}
+                                </Typography>
+                              ) : (
+                                <Typography fontWeight="medium">
+                                  No room size provided
+                                </Typography>
+                              )}
                             </Paper>
                           </Grid>
                         )}
@@ -557,7 +750,8 @@ const RequestDetail = () => {
                           </Grid>
                         )}
 
-                        {bookingsData.bookingForm?.accountId !== undefined && (
+                        {bookingsData.bookingForm?.estimatedBudget !==
+                          undefined && (
                           <Grid size={6}>
                             <Paper
                               elevation={0}
@@ -574,7 +768,9 @@ const RequestDetail = () => {
                                 Estimated Budget
                               </Typography>
                               <Typography fontWeight="medium">
-                                {bookingsData.bookingForm.accountId}
+                                {formatCurrency(
+                                  bookingsData.bookingForm.estimatedBudget
+                                )}
                               </Typography>
                             </Paper>
                           </Grid>
@@ -626,7 +822,7 @@ const RequestDetail = () => {
                               fontWeight="bold"
                               gutterBottom
                             >
-                              Uploaded Images (
+                              Customer Uploaded Images (
                               {bookingsData.bookingForm.images.length})
                             </Typography>
                             <Grid container spacing={1}>
@@ -646,9 +842,10 @@ const RequestDetail = () => {
                                       <Image
                                         src={image.imageUrl || image}
                                         alt={`Uploaded image ${index + 1}`}
-                                        width={1000}
-                                        height={1000}
-                                        className="object-contain"
+                                        width={400}
+                                        height={300}
+                                        className="w-full h-full object-cover rounded-lg"
+                                        priority={index < 4}
                                       />
                                     </Paper>
                                   </Grid>
@@ -686,13 +883,221 @@ const RequestDetail = () => {
                     </Box>
                   </Collapse>
                 </Paper>
+
+                <Divider sx={{ my: 2 }} textAlign="center">
+                  Products Add-Ons
+                </Divider>
+
+                {/* Products Add-Ons Section */}
+                {bookingsData.productDetails &&
+                bookingsData.productDetails.length > 0 ? (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography
+                      variant="h6"
+                      fontWeight="bold"
+                      gutterBottom
+                      sx={{ mb: 3 }}
+                    >
+                      Customer Selected Products (
+                      {bookingsData.productDetails.length})
+                    </Typography>
+                    <Grid container spacing={3}>
+                      {bookingsData.productDetails.map((product) => (
+                        <Grid size={3} key={product.id}>
+                          <Card
+                            elevation={2}
+                            sx={{
+                              height: "100%",
+                              display: "flex",
+                              flexDirection: "column",
+                              transition: "transform 0.2s, box-shadow 0.2s",
+                              "&:hover": {
+                                transform: "translateY(-4px)",
+                                boxShadow: 8,
+                              },
+                            }}
+                          >
+                            <div className="relative w-full h-48">
+                              <Image
+                                src={product.image}
+                                alt={product.productName}
+                                fill
+                                objectFit="cover"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              />
+                            </div>
+                            <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                              <Typography
+                                variant="h6"
+                                gutterBottom
+                                sx={{
+                                  fontSize: "1.1rem",
+                                  fontWeight: "600",
+                                  mb: 2,
+                                  height: "2.8em",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                }}
+                              >
+                                {product.productName}
+                              </Typography>
+
+                              <Stack spacing={1.5}>
+                                <Box className="flex justify-between items-center">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ fontWeight: 500 }}
+                                  >
+                                    Quantity
+                                  </Typography>
+                                  <Chip
+                                    label={product.quantity}
+                                    size="small"
+                                    color="primary"
+                                    variant="outlined"
+                                  />
+                                </Box>
+
+                                <Box className="flex justify-between items-center">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ fontWeight: 500 }}
+                                  >
+                                    Price
+                                  </Typography>
+                                  <Typography
+                                    variant="body1"
+                                    color="primary"
+                                    sx={{ fontWeight: 600 }}
+                                  >
+                                    {formatCurrency(product.unitPrice)}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </CardContent>
+                            <CardActions
+                              sx={{
+                                bgcolor: "grey.50",
+                                borderTop: 1,
+                                borderColor: "grey.200",
+                                p: 2,
+                              }}
+                            >
+                              <Box className="flex justify-between items-center w-full">
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  sx={{ fontWeight: 500 }}
+                                >
+                                  Total
+                                </Typography>
+                                <Typography
+                                  variant="body1"
+                                  color="primary.main"
+                                  sx={{ fontWeight: 700 }}
+                                >
+                                  {formatCurrency(
+                                    product.quantity * product.unitPrice
+                                  )}
+                                </Typography>
+                              </Box>
+                            </CardActions>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+
+                    <Card
+                      elevation={2}
+                      sx={{
+                        mt: 3,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <CardContent sx={{ py: 2, "&:last-child": { pb: 2 } }}>
+                        <Box className="flex justify-between items-center">
+                          <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                            Total Products Cost
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                            {formatCurrency(
+                              bookingsData.productDetails.reduce(
+                                (total, product) =>
+                                  total + product.quantity * product.unitPrice,
+                                0
+                              )
+                            )}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      textAlign: "center",
+                      py: 4,
+                      px: 2,
+                      bgcolor: "grey.50",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ fontWeight: 500 }}
+                    >
+                      No products have been added yet.
+                    </Typography>
+                  </Box>
+                )}
               </BorderBox>
             )}
           </TabPanel>
 
           <TabPanel className="animate-tab-slide-right">
             {/* Meeting Request Panel */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+            <Box
+              display="flex"
+              justifyContent="start"
+              alignItems="center"
+              gap={2}
+              mb={3}
+            >
+              <FootTypo footlabel="Filter by" />
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel id="status-filter-label">Status</InputLabel>
+                <Select
+                  labelId="status-filter-label"
+                  value={selectedStatus}
+                  label="Status"
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="bg-white dark:bg-gray-700"
+                >
+                  <MenuItem value="">All Status</MenuItem>
+                  <MenuItem value="0">Pending</MenuItem>
+                  <MenuItem value="1">Scheduled</MenuItem>
+                  <MenuItem value="4">Rejected</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                onClick={() => setIsDescending(!isDescending)}
+                icon={
+                  isDescending ? (
+                    <TbSortDescending size={20} />
+                  ) : (
+                    <TbSortAscending size={20} />
+                  )
+                }
+                label={isDescending ? "Newest" : "Oldest"}
+              />
+            </Box>
+            <Grid container spacing={6}>
               <DataMapper
                 data={meetings}
                 Component={MeetingCard}
@@ -720,7 +1125,7 @@ const RequestDetail = () => {
                   isRejecting: isRejectMeetingRequest[meeting.id],
                 })}
               />
-            </div>
+            </Grid>
           </TabPanel>
         </TabPanels>
       </TabGroup>

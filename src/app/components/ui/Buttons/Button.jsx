@@ -41,7 +41,7 @@ const Button = ({
       {isLoading ? (
         <>
           <ClipLoader
-            size={20}
+            size={15}
             color={resolvedTheme === "dark" ? "#fff" : "#000"}
             className="mr-2"
           />
@@ -50,8 +50,8 @@ const Button = ({
       ) : (
         <>
        
-          {icon && <span className="mr-2">{icon}</span>} 
-          <FootTypo footlabel={label}/>
+          {icon && <span className="md:mr-2">{icon}</span>} 
+          <FootTypo footlabel={label} className="hidden md:block"/>
         </>
       )}
     </button>

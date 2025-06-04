@@ -5,7 +5,6 @@ import SellerWrapper from "../../components/SellerWrapper";
 import Stepper, { Step } from "@/app/components/ui/animated/Stepper";
 import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
-import Input from "@/app/components/ui/Inputs/Input";
 import { useForm } from "react-hook-form";
 import { Field } from "@headlessui/react";
 import { useGetListDecorCategory } from "@/app/queries/list/category.list.query";
@@ -21,7 +20,13 @@ import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import TipTapEditor from "@/app/components/ui/editors/TipTapEditor";
 import { toast } from "sonner";
-import { Divider, TextField, Autocomplete, MenuItem } from "@mui/material";
+import {
+  Divider,
+  TextField,
+  Autocomplete,
+  MenuItem,
+  Alert,
+} from "@mui/material";
 import { FaCheck, FaTrash, FaPlus, FaCircleInfo } from "react-icons/fa6";
 import { HexColorPicker } from "react-colorful";
 import Button from "@/app/components/ui/Buttons/Button";
@@ -70,15 +75,15 @@ const ServiceCreate = () => {
   };
 
   const handleImageUpload = (files) => {
-    const imageFiles = files.map(file => ({
+    const imageFiles = files.map((file) => ({
       file,
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
     }));
     setImages(imageFiles);
   };
 
   const handleImageDelete = (indexToRemove) => {
-    setImages(prevImages => {
+    setImages((prevImages) => {
       // Revoke the URL of the image being removed
       if (prevImages[indexToRemove]?.preview) {
         URL.revokeObjectURL(prevImages[indexToRemove].preview);
@@ -90,7 +95,7 @@ const ServiceCreate = () => {
   // Cleanup URLs when component unmounts
   React.useEffect(() => {
     return () => {
-      images.forEach(image => {
+      images.forEach((image) => {
         if (image.preview) {
           URL.revokeObjectURL(image.preview);
         }
@@ -412,17 +417,30 @@ const ServiceCreate = () => {
         <Step validateStep={validateStep}>
           <div className="step-1 form-detail">
             <BodyTypo bodylabel="Basic service information" fontWeight="bold" />
-            <div className="space-y-10 mt-3">
-              <div className="form flex items-center gap-5">
-                <FootTypo footlabel="Service Title" className="w-auto" />
-                <Input
-                  id="style"
+            <div className="space-y-6 mt-3">
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Service Title" />
+                <TextField
                   placeholder="Service's title"
-                  required
-                  className="pl-3 w-full"
-                  register={register}
+                  size="small"
+                  {...register("style", {
+                    required: "Service title is required",
+                  })}
+                  error={!!errors.style}
+                  helperText={errors.style?.message}
+                  sx={{
+                    width: "100%",
+                    maxWidth: "300px",
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "white",
+                      "&.Mui-focused fieldset": {
+                        borderColor: "primary.main",
+                      },
+                    },
+                  }}
                 />
               </div>
+
               <Divider
                 textAlign="left"
                 sx={{
@@ -433,20 +451,26 @@ const ServiceCreate = () => {
               >
                 <FootTypo footlabel="Description" fontWeight="bold" />
               </Divider>
-              <div className="form inline-flex items-start w-full h-full my-5 gap-5">
-                <FootTypo footlabel="Descriptions " className="w-auto" />
+
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Descriptions" />
                 <div className="w-full">
                   <Field>
                     <TipTapEditor
-                      id="description"
-                      register={register}
                       value={editorContent}
                       onChange={handleEditorChange}
                       placeholder="Service descriptions..."
+                      className="min-h-[250px] border border-black dark:border-gray-600 rounded-lg"
                     />
                   </Field>
+                  {errors.description && (
+                    <p className="text-red text-sm mt-1">
+                      {errors.description.message}
+                    </p>
+                  )}
                 </div>
               </div>
+
               <Divider
                 textAlign="left"
                 sx={{
@@ -458,9 +482,8 @@ const ServiceCreate = () => {
                 <FootTypo footlabel="Location & Category" fontWeight="bold" />
               </Divider>
 
-              <div className="form flex items-center gap-5">
-                <FootTypo footlabel="Available at " className="w-auto" />
-                <div className="w-[300px]">
+              <div className="form flex flex-col gap-2">
+                <div className="w-full max-w-[300px]">
                   <ProvinceDistrictWardSelect
                     setValue={setValue}
                     register={register}
@@ -471,9 +494,10 @@ const ServiceCreate = () => {
                   />
                 </div>
               </div>
-              <div className="form flex items-center w-full my-5 gap-9">
-                <FootTypo footlabel="Category " className="w-auto" />
-                <div className="w-[300px]">
+
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Category" />
+                <div className="w-full max-w-[300px]">
                   <DropdownSelectReturnObj
                     options={CategoryOptions}
                     value={selectedCategory}
@@ -485,6 +509,7 @@ const ServiceCreate = () => {
                   />
                 </div>
               </div>
+
               <Divider
                 textAlign="left"
                 sx={{
@@ -498,71 +523,25 @@ const ServiceCreate = () => {
                   fontWeight="bold"
                 />
               </Divider>
-              <div>
+
+              <div className="space-y-4">
                 <FootTypo
                   footlabel="✅ Select all the features, amenities, and services available at your property. These help guests know what to expect and filter listings that match their needs.."
                   fontWeight="bold"
                 />
-                <Autocomplete
-                  sx={{ my: 3, width: 500 }}
-                  multiple
-                  options={offerings || []}
-                  value={selectedServiceOffers}
-                  onChange={handleServiceOffersChange}
-                  getOptionLabel={(option) =>
-                    typeof option === "string" ? option : option.name
-                  }
-                  isOptionEqualToValue={(option, value) =>
-                    (option.id && value.id && option.id === value.id) ||
-                    option === value ||
-                    option.name === value.name
-                  }
-                  disableCloseOnSelect
-                  className="dark:bg-white"
-                  loading={isFetchingOfferingNStyle}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      variant="outlined"
-                      label="Service Offerings"
-                      placeholder="Select offerings"
-                    />
-                  )}
-                  renderOption={(props, option, { selected }) => {
-                    const OfferingIcon = getOfferingIcon(option.name);
-                    const { key, ...rest } = props;
-                    return (
-                      <MenuItem
-                        key={key}
-                        {...rest}
-                        value={option.id}
-                        sx={{ justifyContent: "space-between" }}
-                      >
-                        <div className="flex flex-row items-center gap-2">
-                          <OfferingIcon size={16} />
-                          <span>{option.name}</span>
-                        </div>
-                        {selected ? (
-                          <FaCheck color="info" className="ml-2" />
-                        ) : null}
-                      </MenuItem>
-                    );
-                  }}
-                />
-
-                <FootTypo
-                  footlabel="Design styles of your service"
-                  fontWeight="bold"
-                />
-                {styles ? (
+                <div className="form flex flex-col gap-2">
                   <Autocomplete
-                    sx={{ my: 3, width: 500 }}
                     multiple
-                    options={styles || []}
-                    value={selectedStyle}
-                    onChange={handleStyleChange}
+                    options={offerings || []}
+                    value={selectedServiceOffers}
+                    onChange={handleServiceOffersChange}
                     getOptionLabel={(option) =>
                       typeof option === "string" ? option : option.name
+                    }
+                    isOptionEqualToValue={(option, value) =>
+                      (option.id && value.id && option.id === value.id) ||
+                      option === value ||
+                      option.name === value.name
                     }
                     disableCloseOnSelect
                     className="dark:bg-white"
@@ -571,11 +550,19 @@ const ServiceCreate = () => {
                       <TextField
                         {...params}
                         variant="outlined"
-                        label="Service Styles"
-                        placeholder="Select styles"
+                        label="Service Offerings"
+                        placeholder="Select offerings"
+                        sx={{
+                          width: "100%",
+                          maxWidth: "500px",
+                          "& .MuiOutlinedInput-root": {
+                            backgroundColor: "white",
+                          },
+                        }}
                       />
                     )}
                     renderOption={(props, option, { selected }) => {
+                      const OfferingIcon = getOfferingIcon(option.name);
                       const { key, ...rest } = props;
                       return (
                         <MenuItem
@@ -585,6 +572,7 @@ const ServiceCreate = () => {
                           sx={{ justifyContent: "space-between" }}
                         >
                           <div className="flex flex-row items-center gap-2">
+                            <OfferingIcon size={16} />
                             <span>{option.name}</span>
                           </div>
                           {selected ? (
@@ -594,159 +582,217 @@ const ServiceCreate = () => {
                       );
                     }}
                   />
-                ) : (
-                  <div className="py-2 text-gray-500">
-                    Loading decoration styles...
-                  </div>
-                )}
+                </div>
+
+                <div className="form flex flex-col gap-2">
+                  <FootTypo footlabel="Design styles of your service" />
+                  {styles ? (
+                    <Autocomplete
+                      multiple
+                      options={styles || []}
+                      value={selectedStyle}
+                      onChange={handleStyleChange}
+                      getOptionLabel={(option) =>
+                        typeof option === "string" ? option : option.name
+                      }
+                      disableCloseOnSelect
+                      className="dark:bg-white"
+                      loading={isFetchingOfferingNStyle}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          variant="outlined"
+                          label="Service Styles"
+                          placeholder="Select styles"
+                          sx={{
+                            width: "100%",
+                            maxWidth: "500px",
+                            "& .MuiOutlinedInput-root": {
+                              backgroundColor: "white",
+                            },
+                          }}
+                        />
+                      )}
+                      renderOption={(props, option, { selected }) => {
+                        const { key, ...rest } = props;
+                        return (
+                          <MenuItem
+                            key={key}
+                            {...rest}
+                            value={option.id}
+                            sx={{ justifyContent: "space-between" }}
+                          >
+                            <div className="flex flex-row items-center gap-2">
+                              <span>{option.name}</span>
+                            </div>
+                            {selected ? (
+                              <FaCheck color="info" className="ml-2" />
+                            ) : null}
+                          </MenuItem>
+                        );
+                      }}
+                    />
+                  ) : (
+                    <div className="py-2 text-gray-500">
+                      Loading decoration styles...
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </Step>
         <Step>
-          <Divider
-            textAlign="left"
-            sx={{
-              "&::before, &::after": {
-                borderColor: "primary.main",
-              },
-            }}
-          >
-            <FootTypo footlabel="Service Configuration" fontWeight="bold" />
-          </Divider>
-          <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-            <FootTypo footlabel="Season Tags" className="w-auto" />
-            <div>
-              {dataSeason ? (
-                <MultiSelectChip
-                  options={dataSeason.map((season) => ({
-                    id: season.id,
-                    name: season.seasonName,
-                  }))}
-                  onChange={handleSeasonChange}
-                  label=""
-                />
-              ) : (
-                <p>Loading seasons...</p>
-              )}
-            </div>
-          </div>
-          <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-            <FootTypo footlabel="Start Date" className="w-auto" />
-            <div className="relative w-[300px]">
-              <div
-                className="cursor-pointer border border-gray-300 rounded-md p-2 flex justify-between items-center"
-                onClick={() => setShowCalendar(!showCalendar)}
-              >
-                <span>{formatDate(startDate)}</span>
-                <span>📅</span>
-              </div>
-              {showCalendar && (
-                <div className="absolute z-10 mt-1 bg-white shadow-lg rounded-md">
-                  <Calendar
-                    date={startDate}
-                    onChange={handleDateSelect}
-                    minDate={new Date()}
+          <div className="step-2 form space-y-6">
+            <Divider
+              textAlign="left"
+              sx={{
+                "&::before, &::after": {
+                  borderColor: "primary.main",
+                },
+              }}
+            >
+              <FootTypo footlabel="Service Configuration" fontWeight="bold" />
+            </Divider>
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Season Tags" />
+              <div className="w-full">
+                {dataSeason ? (
+                  <MultiSelectChip
+                    options={dataSeason.map((season) => ({
+                      id: season.id,
+                      name: season.seasonName,
+                    }))}
+                    onChange={handleSeasonChange}
+                    label=""
                   />
-                </div>
-              )}
+                ) : (
+                  <p>Loading seasons...</p>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 grid-rows-1 gap-4">
-            <div className="form inline-flex items-start w-full h-full my-5 gap-5">
-              <FootTypo footlabel="Main Theme" className="w-auto" />
-              <div className="flex flex-col space-y-4">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex flex-row space-x-4 items-center">
-                    <HexColorPicker
-                      color={selectedColor}
-                      onChange={setSelectedColor}
-                      className="w-full h-full"
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Start Date" />
+              <div className="relative w-full max-w-[300px]">
+                <div
+                  className="cursor-pointer border border-gray-300 rounded-md p-2 flex justify-between items-center bg-white"
+                  onClick={() => setShowCalendar(!showCalendar)}
+                >
+                  <span>{formatDate(startDate)}</span>
+                  <span>📅</span>
+                </div>
+                {showCalendar && (
+                  <div className="absolute z-10 mt-1 bg-white shadow-lg rounded-md">
+                    <Calendar
+                      date={startDate}
+                      onChange={handleDateSelect}
+                      minDate={new Date()}
                     />
-
-                    <div className="flex flex-col space-y-2">
-                      <div
-                        className="w-12 h-12 rounded-full border border-gray-300"
-                        style={{ backgroundColor: selectedColor }}
-                      />
-                      <div className="text-sm font-medium">{selectedColor}</div>
-                      <Button
-                        label="Add Theme"
-                        type="button"
-                        onClick={addColor}
-                        icon={<FaPlus size={14} />}
-                      />
-                    </div>
                   </div>
-                </div>
-
-                {savedColors.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-semibold mb-2">
-                      Saved Themes:
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {savedColors.map((color, index) => (
-                        <div
-                          key={`${color}-${index}`}
-                          className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 rounded-full pl-1 pr-2 py-1"
-                        >
-                          <div
-                            className="w-6 h-6 rounded-full border border-gray-300"
-                            style={{ backgroundColor: color }}
-                          />
-                          <span className="text-xs">{color}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeColor(color)}
-                            className="text-red ml-1 hover:text-opacity-80"
-                          >
-                            <FaTrash size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {savedColors.length === 0 && (
-                  <FootTypo
-                    footlabel="No themes added yet. Choose a theme and click 'Add Theme' to create your palette."
-                    fontStyle="italic"
-                  />
                 )}
               </div>
             </div>
-            <div className="flex items-start justify-start gap-2">
-              <FaCircleInfo size={14} />
-              <FootTypo
-                footlabel="Choose the main themes that define this decor style or setup. These will help clients quickly understand the visual vibe and aesthetic of your service (e.g., white & gold, blush pink, rustic green)."
-                fontStyle="italic"
-                className="max-w-lg break-after-all"
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Main Theme" />
+                <div className="flex flex-col space-y-4">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex flex-row space-x-4 items-start">
+                      <HexColorPicker
+                        color={selectedColor}
+                        onChange={setSelectedColor}
+                        className="w-full max-w-[200px]"
+                      />
+
+                      <div className="flex flex-col space-y-2">
+                        <div
+                          className="w-12 h-12 rounded-full border border-gray-300"
+                          style={{ backgroundColor: selectedColor }}
+                        />
+                        <div className="text-sm font-medium">
+                          {selectedColor}
+                        </div>
+                        <Button
+                          label="Add Theme"
+                          type="button"
+                          onClick={addColor}
+                          icon={<FaPlus size={14} />}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {savedColors.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-semibold mb-2">
+                        Saved Themes:
+                      </h3>
+                      <div className="flex flex-wrap gap-3">
+                        {savedColors.map((color, index) => (
+                          <div
+                            key={`${color}-${index}`}
+                            className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 rounded-full pl-1 pr-2 py-1"
+                          >
+                            <div
+                              className="w-6 h-6 rounded-full border border-gray-300"
+                              style={{ backgroundColor: color }}
+                            />
+                            <span className="text-xs">{color}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeColor(color)}
+                              className="text-red ml-1 hover:text-opacity-80"
+                            >
+                              <FaTrash size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {savedColors.length === 0 && (
+                    <FootTypo
+                      footlabel="No themes added yet. Choose a theme and click 'Add Theme' to create your palette."
+                      fontStyle="italic"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <Alert severity="info" className="h-fit">
+                <FootTypo
+                  footlabel="Choose the main themes that define this decor style or setup. These will help clients quickly understand the visual vibe and aesthetic of your service (e.g., white & gold, blush pink, rustic green)."
+                  fontStyle="italic"
+                />
+              </Alert>
+            </div>
+
+            <Divider
+              textAlign="left"
+              sx={{
+                "&::before, &::after": {
+                  borderColor: "primary.main",
+                },
+              }}
+            >
+              <FootTypo footlabel="Images" fontWeight="bold" />
+            </Divider>
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Images" />
+              <ImageUpload
+                onImageChange={handleImageUpload}
+                onImageDelete={handleImageDelete}
+                existingImages={images.map((img) => ({
+                  dataURL: img.preview,
+                  file: img.file,
+                }))}
               />
             </div>
-          </div>
-
-          <Divider
-            textAlign="left"
-            sx={{
-              "&::before, &::after": {
-                borderColor: "primary.main",
-              },
-            }}
-          >
-            <FootTypo footlabel="Images" fontWeight="bold" />
-          </Divider>
-          <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-            <FootTypo footlabel="Images " className="w-auto" />
-            <ImageUpload 
-              onImageChange={handleImageUpload}
-              onImageDelete={handleImageDelete}
-              existingImages={images.map(img => ({
-                dataURL: img.preview,
-                file: img.file
-              }))}
-            />
           </div>
         </Step>
         <Step>

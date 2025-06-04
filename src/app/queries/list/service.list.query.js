@@ -1,4 +1,4 @@
-import { useQuery} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import BaseRequest from "@/app/lib/api/config/Axios-config";
 import nProgress from "nprogress";
 import "nprogress/nprogress.css";
@@ -164,6 +164,57 @@ export function useGetDecorServiceListForCustomer(paginationParams = {}) {
         if (params.maxPrice) url += `&MaxPrice=${params.maxPrice}`;
         if (params.sortBy)
           url += `&SortBy=${encodeURIComponent(params.sortBy)}`;
+
+        const res = await BaseRequest.Get(url, false);
+
+        if (res && typeof res === "object") {
+          if (res.data) {
+            return res.data;
+          } else if (Array.isArray(res)) {
+            return {
+              data: res,
+              totalCount: res.length,
+              totalPages: Math.ceil(res.length / params.pageSize),
+            };
+          }
+        }
+        return {
+          data: [],
+          totalCount: 0,
+          totalPages: 0,
+        };
+      } finally {
+        nProgress.done();
+      }
+    },
+    keepPreviousData: true,
+    staleTime: 30000,
+  });
+}
+
+export function useGetRelatedProductForBooking(paginationParams = {}) {
+  const params = {
+    ...defaultPagination,
+    ...paginationParams,
+  };
+
+  return useQuery({
+    queryKey: ["get_related_product_for_booking", params, params.serviceId],
+    queryFn: async () => {
+      nProgress.start();
+      try {
+        let url = `/${SUB_URL}/getPaginatedRelatedProduct?`;
+
+        // Required parameter
+        url += `ServiceId=${params.serviceId}`;
+
+        // Optional parameters
+        if (params.userId) url += `&UserId=${params.userId}`;
+        if (params.category) url += `&Category=${params.category}`;
+        url += `&PageIndex=${params.pageIndex}`;
+        url += `&PageSize=${params.pageSize}`;
+        if (params.sortBy) url += `&SortBy=${params.sortBy}`;
+        url += `&Descending=${params.descending}`;
 
         const res = await BaseRequest.Get(url, false);
 

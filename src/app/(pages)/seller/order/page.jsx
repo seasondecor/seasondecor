@@ -21,7 +21,8 @@ import { CiWallet } from "react-icons/ci";
 import { BsClock } from "react-icons/bs";
 import { formatDateTime } from "@/app/helpers";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
-
+import { FootTypo } from "@/app/components/ui/Typography";
+import { MdFilterListOff } from "react-icons/md";
 // Skeleton loader for the order table
 const OrderTableSkeleton = () => {
   return (
@@ -169,7 +170,7 @@ const OrderPage = () => {
     },
     {
       header: "Status",
-      cell: ({ row }) => <StatusChip status={row.original.status} />,
+      cell: ({ row }) => <StatusChip status={row.original.status} isOrder={true} />,
     },
   ];
 
@@ -242,6 +243,7 @@ const OrderPage = () => {
       </div>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filters"
         onClick={() => {
           setFilters({

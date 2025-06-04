@@ -4,7 +4,6 @@ import GoogleProvider from "next-auth/providers/google";
 import BaseRequest from "../../../lib/api/config/Axios-config";
 
 export const authOptions = {
-  
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -13,7 +12,9 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials) return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Please provide both email and password");
+        }
 
         try {
           const response = await BaseRequest.Post(`/api/Auth/login`, {
@@ -21,8 +22,9 @@ export const authOptions = {
             password: credentials.password,
           });
 
-         // console.log("API Response:", response);
-
+          if (!response?.token) {
+            throw new Error("Invalid email or password");
+          }
 
           return {
             accessToken: response.token,
@@ -30,8 +32,9 @@ export const authOptions = {
             accountId: response.accountId,
           };
         } catch (error) {
-          console.error("Login error:", error?.response?.data || error.message);
-          throw new Error(error?.response?.data?.message || "Login failed");
+          const errorMessage = error?.response?.data?.message || "Invalid email or password";
+        //  console.error("Login error:", errorMessage);
+          throw new Error(errorMessage);
         }
       },
     }),
@@ -44,42 +47,47 @@ export const authOptions = {
 
   callbacks: {
     async jwt({ token, account, user }) {
-      //console.log("Google data:", account )
       try {
         if (user) {
-          // ✅ Save credentials login token
+          // Credentials login
           token.accessToken = user.accessToken;
           token.roleId = user.roleId;
-          token.accountId = user.accountId !== undefined ? user.accountId : null;
+          token.accountId = user.accountId;
+          token.error = null;
         }
+
         if (account?.id_token) {
-          console.log("Google Login Token:", account.id_token);
-          const response = await BaseRequest.Post("/api/Auth/google-login", {
-            idToken: account.id_token,
-          });
+          // Google login
+          try {
+            const response = await BaseRequest.Post("/api/Auth/google-login", {
+              idToken: account.id_token,
+            });
 
-          if (!response?.success || !response.token) {
-            throw new Error("Google login failed.");
+            if (!response?.token) {
+              throw new Error("Google login failed");
+            }
+
+            token.accessToken = response.token;
+            token.roleId = response.roleId;
+            token.accountId = response.accountId;
+            token.error = null;
+          } catch (error) {
+            console.error("Google login error:", error);
+            token.error = "Google login failed";
           }
-
-          token.accessToken = response.token;
-          token.roleId = response.roleId;
-          token.accountId = response.accountId !== undefined ? response.accountId : null;
         }
       } catch (error) {
         console.error("JWT Callback Error:", error);
+        token.error = error.message;
       }
       return token;
     },
 
     async session({ session, token }) {
-      session.accessToken = token.accessToken || null; // Store accessToken in session
-      session.roleId = token.roleId || null; // Store roleId in session
-      session.accountId = token.accountId !== undefined ? token.accountId : null;
-
-      if (!session.accessToken) {
-        session.error = "There is problem with our sever.";
-      }
+      session.accessToken = token.accessToken;
+      session.roleId = token.roleId;
+      session.accountId = token.accountId;
+      session.error = token.error;
 
       return session;
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Typography,
   Radio,
@@ -148,32 +148,30 @@ const QuotationChangeRequestView = ({ onClose }) => {
   };
 
   return (
-    <Container>
+    <>
       <MuiBreadcrumbs />
 
-      <div className="flex items-center my-6">
+      <Box display="flex" alignItems="center" gap={2} my={3}>
         <TbFileText
           className="text-blue-600 dark:text-blue-400 mr-2"
           size={28}
         />
         <BodyTypo
           bodylabel="Request Changes on Quotation"
-          className="text-xl"
         />
-      </div>
+      </Box>
 
       <Paper
         elevation={0}
         className="p-6 mb-8 rounded-xl shadow-sm border border-gray-100 dark:bg-transparent dark:text-white"
       >
-        <div className="flex gap-6">
-          <div className="flex-shrink-0 w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center">
+        <Box display="flex" gap={6}>
+          <Box display="flex" flexShrink={0} bgcolor="blue.50" borderRadius="full" alignItems="center" justifyContent="center">
             <MdErrorOutline className="text-blue-500" size={36} />
-          </div>
-          <div className="flex flex-col gap-1">
+          </Box>
+          <Box display="flex" flexDirection="column" gap={1}>
             <FootTypo
               footlabel={`Quotation #${quotationCode}`}
-              className="mb-1"
               fontWeight="medium"
             />
             <FootTypo
@@ -183,8 +181,8 @@ const QuotationChangeRequestView = ({ onClose }) => {
                   : "N/A"
               }`}
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
       </Paper>
 
       <form onSubmit={submitForm(onSubmit)}>
@@ -383,7 +381,7 @@ const QuotationChangeRequestView = ({ onClose }) => {
                   }
                   className={
                     reason === "disagree"
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-action text-white"
                       : "bg-red text-white"
                   }
                   isLoading={
@@ -455,7 +453,7 @@ const QuotationChangeRequestView = ({ onClose }) => {
                   </li>
                 </ul>
               ) : (
-                <ul className="space-y-4 mt-4 text-gray-700">
+                <ul className="space-y-4 my-4 text-gray-700">
                   <li className="flex items-start">
                     <div className="bg-indigo-100 rounded-full p-1 mr-3 mt-0.5">
                       <span className="flex items-center justify-center w-5 h-5 text-red font-bold">
@@ -503,7 +501,7 @@ const QuotationChangeRequestView = ({ onClose }) => {
           </Grid>
         </Grid>
       </form>
-    </Container>
+    </>
   );
 };
 

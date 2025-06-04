@@ -7,6 +7,7 @@ import { useGetDecorServiceListForCustomer } from "@/app/queries/list/service.li
 import ServiceCard from "@/app/components/ui/card/ServiceCard";
 import { generateSlug } from "@/app/helpers";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { Box } from "@mui/material";
 
 const ServicesTab = ({ providerId }) => {
   const [pagination, setPagination] = React.useState({
@@ -44,6 +45,7 @@ const ServicesTab = ({ providerId }) => {
         <DataMapper
           data={services}
           Component={ServiceCard}
+          useGrid={false}
           emptyStateComponent={<EmptyState title="No services found" />}
           loading={isLoading}
           getKey={(item) => item.id}
@@ -62,7 +64,7 @@ const ServicesTab = ({ providerId }) => {
     
 
       {totalCount > 0 && (
-        <div className="flex justify-center mt-8 gap-4">
+        <Box display="flex" justifyContent="center" mt={8} gap={2}>
           <button
             onClick={() =>
               pagination.pageIndex > 1 &&
@@ -73,9 +75,9 @@ const ServicesTab = ({ providerId }) => {
           >
             <IoIosArrowBack size={20} />
           </button>
-          <span className="flex items-center">
+          <Box display="flex" alignItems="center">
             Page {pagination.pageIndex} of {totalPages}
-          </span>
+          </Box>
           <button
             onClick={() =>
               pagination.pageIndex < totalPages &&
@@ -86,7 +88,7 @@ const ServicesTab = ({ providerId }) => {
           >
             <IoIosArrowForward size={20} />
           </button>
-        </div>
+        </Box>
       )}
     </div>
   );

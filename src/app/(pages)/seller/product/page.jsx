@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import DataTable from "@/app/components/ui/table/DataTable";
-import { MdOutlineFileUpload } from "react-icons/md";
+import { MdOutlineFileUpload, MdFilterListOff } from "react-icons/md";
 import Image from "next/image";
 import { FootTypo } from "@/app/components/ui/Typography";
 import {
@@ -28,13 +28,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Chip,
 } from "@mui/material";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
 import { IoSearch, IoFilterOutline } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
 import { formatCurrency } from "@/app/helpers";
 import { useRemoveProduct } from "@/app/queries/product/product.query";
-
 
 // Skeleton loader for the product table
 const ProductTableSkeleton = () => {
@@ -208,7 +208,7 @@ const SellerProductManage = () => {
     // Reset filter state
     setFilters({
       status: "",
-      orderCode: ""
+      orderCode: "",
     });
 
     setPagination((prev) => ({
@@ -241,7 +241,7 @@ const SellerProductManage = () => {
             />
           ) : (
             <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-              <FootTypo footlabel="No image" fontSize="12px"/>
+              <FootTypo footlabel="No image" fontSize="12px" />
             </div>
           )}
         </div>
@@ -251,29 +251,27 @@ const SellerProductManage = () => {
       header: "Product Name",
       accessorKey: "productName",
       cell: ({ row }) => (
-        <FootTypo footlabel={row.original.productName} fontWeight="bold"/>
+        <FootTypo footlabel={row.original.productName} fontWeight="bold" />
       ),
     },
     {
       header: "Status",
       accessorKey: "status",
       cell: ({ row }) => (
-        <span
-          className={`${
-            row.original.status === "InStock"
-              ? "text-white bg-green"
-              : "text-white bg-red"
-          } px-2 py-1 rounded-md`}
-        >
-          {row.original.status}
-        </span>
+        <Chip
+          label={row.original.status}
+          color={row.original.status === "InStock" ? "success" : "error"}
+        />
       ),
     },
     {
       header: "Price",
       accessorKey: "productPrice",
       cell: ({ row }) => (
-        <FootTypo footlabel={formatCurrency(row.original.productPrice)} fontWeight="bold"/>
+        <FootTypo
+          footlabel={formatCurrency(row.original.productPrice)}
+          fontWeight="bold"
+        />
       ),
     },
     {
@@ -284,7 +282,10 @@ const SellerProductManage = () => {
       header: "Total Sold",
       accessorKey: "totalSold",
       cell: ({ row }) => (
-        <FootTypo footlabel={`${row.original.totalSold} sold`} fontWeight="bold"/>
+        <FootTypo
+          footlabel={`${row.original.totalSold} sold`}
+          fontWeight="bold"
+        />
       ),
     },
     {
@@ -327,24 +328,23 @@ const SellerProductManage = () => {
 
   const handleDeleteConfirm = () => {
     if (!productToDelete) return;
-    
+
     removeProduct(productToDelete.id, {
-      onSuccess: () => {             
+      onSuccess: () => {
         setDeleteDialogOpen(false);
         setProductToDelete(null);
       },
       onError: (error) => {
-        setDeleteDialogOpen(false); 
+        setDeleteDialogOpen(false);
         setProductToDelete(null);
-      }
+      },
     });
   };
-  
+
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setProductToDelete(null);
   };
-  
 
   const handlePaginationChange = useCallback((newPagination) => {
     setPagination((prev) => ({
@@ -382,8 +382,8 @@ const SellerProductManage = () => {
           <div className="flex gap-3 px-5">
             <Button
               onClick={() => router.push("/seller/product/create")}
-              label="Start selling"
-              className="bg-primary"
+              label="Sell"
+              className="bg-action text-white"
               icon={<MdOutlineFileUpload size={20} />}
             />
             <RefreshButton
@@ -395,7 +395,10 @@ const SellerProductManage = () => {
         </div>
 
         {/* Redesigned Filter Section */}
-        <Paper elevation={0} className="p-4 mb-6 w-full dark:bg-gray-800 dark:text-white">
+        <Paper
+          elevation={0}
+          className="p-4 mb-6 w-full dark:bg-gray-800 dark:text-white"
+        >
           <Box className="flex flex-wrap items-center gap-3">
             <Box className="flex items-center gap-2">
               <IoFilterOutline size={18} />
@@ -470,7 +473,6 @@ const SellerProductManage = () => {
               />
             </Box>
 
-
             {/* Search Input */}
             <div className="flex items-center gap-2 max-w-[350px] w-full">
               <form
@@ -497,11 +499,12 @@ const SellerProductManage = () => {
                 </button>
               </form>
             </div>
-          
+
             <Box className="ml-auto">
               <Button
                 label="Reset Filters"
                 onClick={handleResetFilters}
+                icon={<MdFilterListOff size={20} />}
               />
             </Box>
           </Box>
@@ -515,7 +518,7 @@ const SellerProductManage = () => {
           </div>
         ) : products.length === 0 && !isLoading ? (
           <div>
-            <FootTypo footlabel="No Products Found" fontWeight="bold"/>
+            <FootTypo footlabel="No Products Found" fontWeight="bold" />
             <p className="text-gray-600 dark:text-gray-300">
               {pagination.productName ||
               pagination.minPrice ||
@@ -539,7 +542,7 @@ const SellerProductManage = () => {
             totalCount={totalCount}
           />
         )}
-        
+
         {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialogOpen}
@@ -547,13 +550,11 @@ const SellerProductManage = () => {
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
         >
-          <DialogTitle id="alert-dialog-title">
-            Delete Product
-          </DialogTitle>
+          <DialogTitle id="alert-dialog-title">Delete Product</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              Are you sure you want to delete the product "{productToDelete?.productName}"? 
-              This action cannot be undone.
+              Are you sure you want to delete the product "
+              {productToDelete?.productName}"? This action cannot be undone.
             </DialogContentText>
           </DialogContent>
           <DialogActions>

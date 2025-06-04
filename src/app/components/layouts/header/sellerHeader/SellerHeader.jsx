@@ -12,6 +12,8 @@ import Alert from '@mui/material/Alert';
 const SellerHeader = () => {
   const { data } = useSession();
 
+  //console.log(data);
+
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const toggleDrawer = (open) => () => {

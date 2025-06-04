@@ -21,6 +21,7 @@ const HeaderWrapper = () => {
   if (pathname.startsWith("/seller/")) {
     return <SellerHeader />;
   }
+  
 
   if (pathname === "/authen/login" || pathname === "/authen/signup") {
     return <MinimalHeader />;
@@ -35,6 +36,14 @@ const HeaderWrapper = () => {
   }
 
   if (pathname.startsWith("/sign")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/registration")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/review-journey/")) {
     return null;
   }
 

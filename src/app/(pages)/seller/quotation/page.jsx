@@ -15,14 +15,17 @@ import {
   Paper,
   Modal,
   Typography,
+  Alert,
+  Button as MuiButton,
+  IconButton,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import Button from "@/app/components/ui/Buttons/Button";
 import { TiArrowForward } from "react-icons/ti";
 import StatusChip from "@/app/components/ui/statusChip/StatusChip";
-import { IoIosArrowForward } from "react-icons/io";
-import { IoFilterOutline } from "react-icons/io5";
+import { IoFilterOutline, IoEyeOutline } from "react-icons/io5";
 import { IoSearch } from "react-icons/io5";
-import { MdPlaylistAddCheckCircle } from "react-icons/md";
+import { MdPlaylistAddCheckCircle, MdFilterListOff } from "react-icons/md";
 import { PiEmpty } from "react-icons/pi";
 import Folder from "@/app/components/ui/animated/Folder";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
@@ -30,9 +33,8 @@ import {
   useGetRequestQuotaionChangeDetail,
   useGetRequestQuotaionCancelDetail,
   useApproveToChangeQuotation,
-  useApproveCancelQuotation
+  useApproveCancelQuotation,
 } from "@/app/queries/quotation/quotation.query";
-import { FaEye } from "react-icons/fa";
 import { toast } from "sonner";
 
 // Skeleton loader for the quotation table
@@ -205,7 +207,7 @@ const QuotationPage = () => {
 
   const handleApproveChange = async () => {
     if (modalType !== "change" || !selectedQuotation) return;
-    
+
     try {
       approveChange(selectedQuotation, {
         onSuccess: () => {
@@ -223,7 +225,7 @@ const QuotationPage = () => {
 
   const handleApproveCancel = async () => {
     if (modalType !== "cancel" || !selectedQuotation) return;
-    
+
     try {
       approveCancel(selectedQuotation, {
         onSuccess: () => {
@@ -241,18 +243,14 @@ const QuotationPage = () => {
 
   // Modal content component
   const ModalContent = () => {
-    const { data: changeDetail, isPending: isPendingChange } = useGetRequestQuotaionChangeDetail(
-      selectedQuotation,
-      {
-        enabled: modalType === "change" && !!selectedQuotation
-      }
-    );
-    const { data: cancelDetail, isPending: isPendingCancel } = useGetRequestQuotaionCancelDetail(
-      selectedQuotation,
-      {
-        enabled: modalType === "cancel" && !!selectedQuotation
-      }
-    );
+    const { data: changeDetail, isPending: isPendingChange } =
+      useGetRequestQuotaionChangeDetail(selectedQuotation, {
+        enabled: modalType === "change" && !!selectedQuotation,
+      });
+    const { data: cancelDetail, isPending: isPendingCancel } =
+      useGetRequestQuotaionCancelDetail(selectedQuotation, {
+        enabled: modalType === "cancel" && !!selectedQuotation,
+      });
 
     const detail = modalType === "change" ? changeDetail : cancelDetail;
     const isPending =
@@ -262,89 +260,110 @@ const QuotationPage = () => {
 
     if (isPending) {
       return (
-        <div className="flex justify-center items-center p-8">
+        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
+        </Box>
       );
     }
 
     return (
-      <div className="p-6">
+      <Box sx={{ p: 3 }}>
         {detail ? (
-          <div className="space-y-6">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Customer Information Section */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Customer Information
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid size={{xs: 6}}>
+                  <Typography color="text.secondary" variant="body2" gutterBottom>
+                    Full Name
+                  </Typography>
+                  <Typography>{detail.customer?.fullName || "N/A"}</Typography>
+                </Grid>
+                <Grid size={{xs: 6}}>
+                  <Typography color="text.secondary" variant="body2" gutterBottom>
+                    Email
+                  </Typography>
+                  <Typography>{detail.customer?.email || "N/A"}</Typography>
+                </Grid>
+                <Grid size={{xs: 6}}>
+                  <Typography color="text.secondary" variant="body2" gutterBottom>
+                    Phone
+                  </Typography>
+                  <Typography>{detail.customer?.phone || "N/A"}</Typography>
+                </Grid>
+                <Grid size={{xs: 6}}>
+                  <Typography color="text.secondary" variant="body2" gutterBottom>
+                    Request Date
+                  </Typography>
+                  <Typography>
+                    {detail.requestDate ? new Date(detail.requestDate).toLocaleDateString() : "N/A"}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+
             {modalType === "cancel" && detail.cancelType && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <Typography
-                  variant="subtitle1"
-                  className="font-semibold text-primary mb-2"
-                >
+              <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50' }}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                   Cancellation Type
                 </Typography>
-                <Typography className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                  {detail.cancelType}
-                </Typography>
-              </div>
+                <Typography>{detail.cancelType}</Typography>
+              </Paper>
             )}
-            
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <Typography
-                variant="subtitle1"
-                className="font-semibold text-primary mb-2"
-              >
+
+            <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 Reason for {modalType === "change" ? "Change" : "Cancellation"}
               </Typography>
-              <Typography className="whitespace-pre-wrap">
-                {detail.reason || "No reason provided"}
-              </Typography>
-            </div>
+              <Typography>{detail.reason || "No reason provided"}</Typography>
+            </Paper>
 
             {modalType === "change" && detail.requestedChanges && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <Typography
-                  variant="subtitle1"
-                  className="font-semibold text-primary mb-2"
-                >
+              <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50' }}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                   Requested Changes
                 </Typography>
-                <Typography className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {detail.requestedChanges}
-                </Typography>
-              </div>
+                <Typography>{detail.requestedChanges}</Typography>
+              </Paper>
             )}
 
-            <div className="flex justify-end gap-4 mt-6 pt-4 border-t dark:border-gray-700">
-              <button
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+              <MuiButton
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                 disabled={isApproving}
+                variant="outlined"
+                color="inherit"
               >
                 Cancel
-              </button>
-              <Button
-                label={
-                  modalType === "change"
-                    ? "Approve Changes"
-                    : "Approve Cancellation"
-                }
-                onClick={
-                  modalType === "change"
-                    ? handleApproveChange
-                    : handleApproveCancel
-                }
+              </MuiButton>
+              <MuiButton
+                onClick={modalType === "change" ? handleApproveChange : handleApproveCancel}
                 disabled={isApproving}
-                isLoading={isApproving}
-                className="bg-action text-white"
-              />
-            </div>
-          </div>
+                variant="contained"
+                color="primary"
+              >
+                {isApproving ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                    Processing...
+                  </Box>
+                ) : (
+                  modalType === "change" ? "Approve Changes" : "Approve Cancellation"
+                )}
+              </MuiButton>
+            </Box>
+          </Box>
         ) : (
-          <div className="text-center py-8">
-            <Typography color="error" className="font-medium">
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography color="error" fontWeight="medium">
               No details available for this request
             </Typography>
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     );
   };
 
@@ -391,7 +410,7 @@ const QuotationPage = () => {
       ),
     },
     {
-      header: "Contract",
+      header: "Has Contract",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           {row.original.isContractExisted ? (
@@ -411,61 +430,114 @@ const QuotationPage = () => {
     {
       header: "Action",
       cell: ({ row }) =>
-        row.original.status === 4 ? (
-          <Button
-            label="Remove"
-            onClick={() => removeQuotation(row.original.id)}
-            className="bg-red"
-          />
+        row.original.status === 4 && !row.original.hasTerminated ? (
+          <Alert
+            severity="error"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
+          >
+            The quotation is closed
+          </Alert>
+        ) : row.original.status === 4 && row.original.hasTerminated ? (
+          <Alert
+            severity="error"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
+          >
+            Contract terminated
+          </Alert>
         ) : row.original.status === 0 ? (
-          <div>No action</div>
+          <Alert
+            severity="info"
+            color="warning"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
+          >
+            Pending Confirmation
+          </Alert>
         ) : row.original.isContractExisted ? (
-          <button
-            onClick={() =>
-              router.push(
-                `/seller/contract/create/contract?quotationCode=${row.original.quotationCode}`
-              )
-            }
-            className="flex items-center gap-2 py-2 rounded-md hover:translate-x-2 transition-all duration-300"
+          <Alert
+            severity="success"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
           >
-            <IoIosArrowForward size={20} />
-            View Contract
-          </button>
+            Contract created
+          </Alert>
         ) : row.original.status === 2 ? (
-          <button
-            onClick={() =>
-              handleOpenModal(row.original.quotationCode, "change")
+          <Alert
+            severity="info"
+            color="warning"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
+            action={
+              <MuiButton
+                color="inherit"
+                onClick={() =>
+                  handleOpenModal(row.original.quotationCode, "change")
+                }
+              >
+                VIEW
+              </MuiButton>
             }
-            className="flex items-center gap-2 py-2 rounded-md hover:translate-x-2 transition-all duration-300 underline"
           >
-            <FaEye size={20} />
-            View Change Request
-          </button>
+            Pending Change
+          </Alert>
         ) : row.original.status === 3 ? (
-          <button
-            onClick={() =>
-              handleOpenModal(row.original.quotationCode, "cancel")
+          <Alert
+            severity="info"
+            color="warning"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
+            action={
+              <MuiButton
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  handleOpenModal(row.original.quotationCode, "cancel")
+                }
+              >
+                VIEW
+              </MuiButton>
             }
-            className="flex items-center gap-2 py-2 rounded-md hover:translate-x-2 transition-all duration-300 underline"
           >
-            <FaEye size={20} />
-            View Cancel Request
-          </button>
-        ) : row.original.status === 4 ? ( 
+            Pending Cancel
+          </Alert>
+        ) : row.original.status === 4 ? (
           <div className="text-red">The quotation is closed</div>
-         ) : (
-          <button
-            onClick={() =>
-              router.push(
-                `/seller/contract/create/contract?quotationCode=${row.original.quotationCode}`
-              )
+        ) : (
+          <Alert
+            severity="info"
+            color="warning"
+            sx={{ width: "fit-content", borderRadius: "16px" }}
+            action={
+              <MuiButton
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  router.push(
+                    `/seller/contract/create/contract?quotationCode=${row.original.quotationCode}&surveyDate=${row.original.surveyDate}`
+                  )
+                }
+              >
+                CREATE
+              </MuiButton>
             }
-            className="flex items-center gap-2 py-2 rounded-md hover:translate-x-2 transition-all duration-300 underline"
           >
-            <IoIosArrowForward size={20} />
-            Create Contract
-          </button>
+            Contracting
+          </Alert>
         ),
+    },
+    {
+      header: "Detail",
+      cell: ({ row }) => (
+        <Box
+          component="button"
+          display="flex"
+          alignItems="center"
+          gap={1}
+          onClick={() =>
+            router.push(`/seller/quotation/${row.original.quotationCode}`)
+          }
+          className="hover:underline"
+        >
+          <IoEyeOutline size={20} />
+          View
+        </Box>
+      ),
     },
   ];
 
@@ -538,7 +610,8 @@ const QuotationPage = () => {
       </div>
 
       <Button
-        label="Reset Filters"
+        icon={<MdFilterListOff size={20} />}
+        label="Reset Filter"
         onClick={() => {
           setFilters({
             status: "",
@@ -571,20 +644,37 @@ const QuotationPage = () => {
         aria-labelledby="request-details-modal"
         aria-describedby="modal-showing-request-details"
       >
-        <Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl min-w-[600px] max-w-[90vw] max-h-[90vh] overflow-hidden">
-          <div className="flex justify-between items-center p-6 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-            <Typography
-              variant="h6"
-              component="h2"
-              className="font-bold text-gray-900 dark:text-white"
-            >
-              {modalType === "change"
-                ? "Change Request Details"
-                : "Cancellation Request Details"}
+        <Paper
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'min(90vw, 800px)',
+            maxHeight: '90vh',
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            p: 2, 
+            borderBottom: 1, 
+            borderColor: 'divider',
+            bgcolor: 'grey.50'
+          }}>
+            <Typography variant="h6" component="h2" fontWeight="bold">
+              {modalType === "change" ? "Change Request Details" : "Cancellation Request Details"}
             </Typography>
-            <button
+            <IconButton
               onClick={handleCloseModal}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              size="small"
+              aria-label="close"
+              sx={{ color: 'text.secondary' }}
             >
               <svg
                 className="w-6 h-6"
@@ -599,10 +689,12 @@ const QuotationPage = () => {
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
-            </button>
-          </div>
-          <ModalContent />
-        </Box>
+            </IconButton>
+          </Box>
+          <Box sx={{ maxHeight: 'calc(90vh - 64px)', overflow: 'auto' }}>
+            <ModalContent />
+          </Box>
+        </Paper>
       </Modal>
 
       <FilterSelectors />

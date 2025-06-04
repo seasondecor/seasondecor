@@ -20,6 +20,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import IconButton from "@mui/material/IconButton";
 import { IoClose } from "react-icons/io5";
+import { Box } from "@mui/material";
 
 const UserWallet = () => {
   const router = useRouter();
@@ -74,16 +75,26 @@ const UserWallet = () => {
 
   return (
     <UserWrapper>
-      <div className="flex-grow ml-6 relative">
-        <div className="flex flex-col relative w-full space-y-6">
-          <div className="pb-9 border-b-[1px]">
-            <div className="flex flex-row justify-between items-center">
-              <div className="flex items-center gap-3">
-                <FaWallet size={20} className="text-primary" />
-                <BodyTypo bodylabel="My Wallet" />
-              </div>
-            </div>
-          </div>
+      <Box
+        display="flex"
+        flexDirection="column"
+        flexGrow={1}
+        gap={2}
+        position="relative"
+        p={2}
+      >
+        <Box display="flex" flexDirection="column" gap={3}>
+          <Box
+            display="flex"
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
+              <FaWallet size={20}/>
+              <BodyTypo bodylabel="My Wallet" />
+            </Box>
+          </Box>
 
           {/* Balance Card */}
           <ShinyCard
@@ -93,39 +104,44 @@ const UserWallet = () => {
             <div className="flex flex-col h-full justify-center space-y-4">
               <FootTypo footlabel="Current Balance" className="text-white" />
 
-              <div className="flex items-center gap-2 mb-6">
+              <Box display="flex" flexDirection="row" alignItems="center" gap={2} mb={2}>
                 <FootTypo
                   footlabel={formatCurrency(walletData?.balance || 0)}
                   className="text-white"
                   fontSize="36px"
                 />
-              </div>
+              </Box>
 
-              <div className="flex flex-col space-y-2 mb-8">
-                <div className="flex justify-between text-white text-opacity-90">
+              <Box display="flex" flexDirection="column" gap={2} mb={2}>
+                <Box display="flex" flexDirection="row" justifyContent="space-between">
                   <FootTypo footlabel="Wallet ID" className="text-white" />
-                  <span>#{encryptWalletId(walletData?.walletId)}</span>
-                </div>
-              </div>
+                  <FootTypo footlabel={`#${encryptWalletId(walletData?.walletId)}`} className="text-white" />
+                </Box>
+              </Box>
 
-              <div className="flex gap-4">
+              <Box display="flex" gap={2}>
                 <Button
                   label="Top up"
                   icon={<MdPayments size={20} />}
                   onClick={() => router.push("/user/account/topup")}
                   className="bg-primary"
                 />
-              </div>
+              </Box>
             </div>
           </ShinyCard>
 
           {/* Recent Transactions - Only showing 3 latest */}
-          <div className="mt-8">
-            <div className="flex justify-between items-center mb-4">
+          <Box display="flex" flexDirection="column" gap={2} mt={2}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
               <FootTypo footlabel="Recent Transactions" fontWeight="bold" />
-            </div>
+            </Box>
 
-            <div className="overflow-hidden">
+            <Box display="flex" flexDirection="column" gap={1}>
               {!latestTransactions || latestTransactions.length === 0 ? (
                 <FootTypo footlabel="No transactions found" />
               ) : (
@@ -134,11 +150,21 @@ const UserWallet = () => {
                     transaction.transactionDate || transaction.date
                   );
                   return (
-                    <div
+                    <Box
                       key={transaction.id || transaction.transactionId}
-                      className="flex justify-between items-center p-4 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      display="flex"
+                      flexDirection="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      p={2}
+                      
                     >
-                      <div className="flex items-center gap-3">
+                      <Box
+                        display="flex"
+                        flexDirection="row"
+                        alignItems="center"
+                        gap={2}
+                      >
                         <div
                           className={`p-2 rounded-full ${
                             transaction.amount > 0 ? "text-green" : "text-red"
@@ -156,13 +182,18 @@ const UserWallet = () => {
                           </h3>
                           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                             <FootTypo footlabel={date} />
-                            <div className="flex items-center gap-1 ml-2">
+                            <Box
+                              display="flex"
+                              flexDirection="row"
+                              alignItems="center"
+                              gap={1}
+                            >
                               <BsClock size={14} />
                               <FootTypo footlabel={time} />
-                            </div>
+                            </Box>
                           </div>
                         </div>
-                      </div>
+                      </Box>
                       <div
                         className={`font-medium ${
                           transaction.amount > 0 ? "text-green" : "text-red"
@@ -174,7 +205,7 @@ const UserWallet = () => {
                           }${formatCurrency(transaction.amount || 0)}`}
                         />
                       </div>
-                    </div>
+                    </Box>
                   );
                 })
               )}
@@ -189,10 +220,10 @@ const UserWallet = () => {
                   />
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
       {/* All Transactions Dialog */}
       <Dialog

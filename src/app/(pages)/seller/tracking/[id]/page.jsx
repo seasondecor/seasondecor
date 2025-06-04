@@ -26,7 +26,10 @@ import {
   FormControlLabel,
   Checkbox,
   FormGroup,
+  Box,
+  Alert,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import CloseIcon from "@mui/icons-material/Close";
 import { LuFileCheck } from "react-icons/lu";
 import { useChangeBookingStatus } from "@/app/queries/book/book.query";
@@ -146,7 +149,7 @@ const TrackingPage = () => {
       //console.log("Form submission with data:", formData);
       //console.log("Current images:", images);
       //console.log("Removed image IDs:", removedImageIds);
-      
+
       const apiFormData = new FormData();
 
       // Handle task and note text - coming from TipTap editors
@@ -238,9 +241,10 @@ const TrackingPage = () => {
           // Check if image is an object with required properties
           if (typeof image === "object" && image !== null) {
             // First attempt to get imageUrl from the image object
-            const imageUrl = image.imageURL || image.imageUrl || image.url || "";
-           // console.log("Processing image object:", image, "Found URL:", imageUrl);
-            
+            const imageUrl =
+              image.imageURL || image.imageUrl || image.url || "";
+            // console.log("Processing image object:", image, "Found URL:", imageUrl);
+
             return {
               id: image.id,
               url: imageUrl,
@@ -250,7 +254,7 @@ const TrackingPage = () => {
             };
           } else if (typeof image === "string") {
             // If image is a direct URL string
-           // console.log("Processing image string:", image);
+            // console.log("Processing image string:", image);
             return {
               url: image,
               preview: image,
@@ -308,18 +312,28 @@ const TrackingPage = () => {
 
   return (
     <SellerWrapper>
-      <div className="flex justify-between items-center mb-5">
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
         <button
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 w-fit"
           onClick={() => router.back()}
         >
           <TbArrowLeft size={20} />
-          <FootTypo footlabel="Go Back"/>
+          <FootTypo footlabel="Go Back" />
         </button>
-      </div>
+      </Box>
 
-      <div className="mb-6 flex justify-between items-center w-full">
-        <div className="flex items-center gap-2">
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
+        <Box display="flex" alignItems="center" gap={1}>
           <BodyTypo
             bodylabel={
               isEditMode
@@ -328,23 +342,34 @@ const TrackingPage = () => {
             }
             className="text-xl"
           />
-          <div className="flex items-center bg-primary/10 px-3 py-1 rounded-full">
+          <Box
+            display="flex"
+            alignItems="center"
+            bg="primary.100"
+            px={3}
+            py={1}
+            borderRadius="full"
+          >
             <FootTypo
               footlabel={`Booking: ${id}`}
               fontWeight="bold"
-              className="bg-primary rounded-lg p-1"
+              fontSize="1rem"
+              className="bg-primary rounded-lg p-2"
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div className="flex flex-row items-center gap-2">
+        <Box display="flex" flexDirection="row" alignItems="center" gap={2}>
           <Button
             label="Complete Tracking"
             icon={<LuFileCheck size={18} />}
             onClick={handleCompleteTrackingClick}
             className="bg-action text-white"
             disabled={
-              statusChangePending || !trackingData || trackingData.length === 0 || isEditMode
+              statusChangePending ||
+              !trackingData ||
+              trackingData.length === 0 ||
+              isEditMode
             }
           />
           <Button
@@ -355,8 +380,8 @@ const TrackingPage = () => {
               isEditMode ? "bg-blue-500" : "bg-primary"
             }`}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       <div className="w-full">
         {isEditMode ? (
@@ -372,7 +397,7 @@ const TrackingPage = () => {
             removeImage={removeImage}
           />
         ) : (
-          <div className="grid grid-cols-2 grid-rows-1 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
             <DataMapper
               data={trackingData}
               Component={TrackingCard}
@@ -387,13 +412,15 @@ const TrackingPage = () => {
               componentProps={(tracking) => ({
                 note: tracking.note || "",
                 task: tracking.task || "",
-                imageUrls: tracking.images ? tracking.images.map(img => {
-                  // Handle different possible image formats
-                  if (typeof img === 'object') {
-                    return img.imageUrl || img.imageURL || img.url || '';
-                  }
-                  return img;
-                }) : [],
+                imageUrls: tracking.images
+                  ? tracking.images.map((img) => {
+                      // Handle different possible image formats
+                      if (typeof img === "object") {
+                        return img.imageUrl || img.imageURL || img.url || "";
+                      }
+                      return img;
+                    })
+                  : [],
                 createdAt: tracking.createdAt,
                 editClick: () => handleEditClick(tracking),
                 removeClick: () =>
@@ -493,16 +520,12 @@ const TrackingPage = () => {
               </ul>
             </div>
 
-            <div className="bg-yellow p-4 rounded-lg mb-4 border-l-4 border-yellow">
-              <FootTypo
-                footlabel="Important Notice:"
-                className="font-semibold mr-2"
-              />
-              <FootTypo
-                footlabel="Marking a service as complete without fulfilling all requirements may result in disputes, delayed payments, or account penalties. Make sure all work is properly documented before proceeding."
-                className="text-sm"
-              />
-            </div>
+            <Alert severity="warning">
+              <FootTypo footlabel="Important Notice" fontWeight="bold" />
+              Marking a service as complete without fulfilling all requirements
+              may result in disputes, delayed payments, or account penalties.
+              Make sure all work is properly documented before proceeding.
+            </Alert>
 
             <FormGroup>
               <FormControlLabel

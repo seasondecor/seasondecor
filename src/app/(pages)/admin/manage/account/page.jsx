@@ -3,15 +3,28 @@
 import React, { useState, useCallback, useEffect } from "react";
 import AdminWrapper from "../../components/AdminWrapper";
 import { useGetListAccount } from "@/app/queries/list/account.list.query";
+import { useBanAccount } from "@/app/queries/account/account.query";
 import DataTable from "@/app/components/ui/table/DataTable";
 import Button from "@/app/components/ui/Buttons/Button";
 import { IoPersonRemoveSharp } from "react-icons/io5";
-import { Skeleton } from "@mui/material";
 import RoleChip from "../../components/RoleChip";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
-import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import {
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Skeleton,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { IoFilterOutline } from "react-icons/io5";
+import { MdFilterListOff } from "react-icons/md";
 import { FootTypo } from "@/app/components/ui/Typography";
+import { Chip } from "@mui/material";
 
 const ManageAccount = () => {
   const [pagination, setPagination] = useState({
@@ -31,6 +44,10 @@ const ManageAccount = () => {
     isVerified: "",
     isDisabled: "",
   });
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState(null);
+  const { mutateBan } = useBanAccount();
 
   const { data: accountList, isLoading, error } = useGetListAccount(pagination);
 
@@ -87,7 +104,7 @@ const ManageAccount = () => {
       cell: ({ row }) => <FootTypo footlabel={row.original.id} />,
     },
     {
-      header: "Image",
+      header: "Avatar",
       accessorKey: "imageUrls",
       cell: ({ row }) => (
         <div className="relative w-16 h-16">
@@ -131,14 +148,13 @@ const ManageAccount = () => {
       header: "Status",
       accessorKey: "isDisable",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <FootTypo
-            footlabel={row.original.isDisable ? "Disabled" : "Active"}
-            className={`px-3 py-1 rounded-full text-white text-sm text-center font-bold ${
-              row.original.isDisable ? "bg-red" : "bg-green"
-            }`}
-          />
-        </div>
+        <Chip
+          label={row.original.isDisable ? "Disabled" : "Active"}
+          color={row.original.isDisable ? "error" : "success"}
+          variant="filled"
+          size="medium"
+          className="dark:text-white"
+        />
       ),
     },
     {
@@ -155,14 +171,14 @@ const ManageAccount = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex gap-2">
+        <Box display="flex" gap={1}>
           <Button
-            label="Ban"
-            onClick={() => handleBanAccount(row.original.id)}
+            label="Disable"
+            onClick={() => handleOpenDialog(row.original.id)}
             className="bg-red text-white"
             icon={<IoPersonRemoveSharp size={20} />}
           />
-        </div>
+        </Box>
       ),
     },
   ];
@@ -171,7 +187,7 @@ const ManageAccount = () => {
     pagination.pageIndex > 1 ? pagination.pageIndex - 1 : 0;
 
   const handlePaginationChange = useCallback((newPagination) => {
-    console.log("Pagination changed from DataTable:", newPagination);
+    //console.log("Pagination changed from DataTable:", newPagination);
 
     setPagination((prev) => {
       const updated = {
@@ -179,14 +195,35 @@ const ManageAccount = () => {
         pageIndex: newPagination.pageIndex,
         pageSize: newPagination.pageSize,
       };
-      console.log("Updated pagination state:", updated);
+      // console.log("Updated pagination state:", updated);
       return updated;
     });
   }, []);
 
+  const handleOpenDialog = (accountId) => {
+    setSelectedAccountId(accountId);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedAccountId(null);
+  };
+
+  const handleConfirmBan = async () => {
+    if (selectedAccountId) {
+      try {
+        await mutateBan(selectedAccountId);
+        handleCloseDialog();
+      } catch (error) {
+        console.error("Error banning account:", error);
+      }
+    }
+  };
+
   // Filter selection component
   const FilterSelectors = () => (
-    <div className="mb-6 flex items-center gap-5 p-4 w-full">
+    <Box display="flex" alignItems="center" gap={2} mb={3}>
       <div className="font-medium mr-2 flex items-center gap-2">
         <IoFilterOutline size={18} />
         Filters
@@ -222,6 +259,7 @@ const ManageAccount = () => {
       ))}
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filters"
         onClick={() =>
           setFilters({
@@ -233,11 +271,12 @@ const ManageAccount = () => {
         }
         className="ml-auto"
       />
-    </div>
+    </Box>
   );
 
   return (
     <AdminWrapper>
+      <h1 className="text-2xl font-bold mb-6">Account Management</h1>
       <div className="w-full">
         <FilterSelectors />
 
@@ -250,7 +289,7 @@ const ManageAccount = () => {
               height={40}
             />
           ) : error ? (
-            <div className="bg-red-100 text-red-700 p-4 rounded">
+            <div className="bg-red-100 text-red p-4 rounded">
               Error loading accounts: {error.message}
             </div>
           ) : data.length === 0 && !isLoading ? (
@@ -277,6 +316,37 @@ const ManageAccount = () => {
             />
           )}
         </div>
+
+        {/* Confirmation Dialog */}
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          PaperProps={{
+            className: "dark:bg-gray-800",
+          }}
+        >
+          <DialogTitle className="text-xl font-semibold dark:text-white">
+            Confirm Account Disable
+          </DialogTitle>
+          <DialogContent className="dark:text-gray-300">
+            <p className="mt-4">
+              Are you sure you want to disable this account? This action can be reversed later.
+            </p>
+          </DialogContent>
+          <DialogActions className="p-4">
+            <Button
+              label="Cancel"
+              onClick={handleCloseDialog}
+              className="bg-gray-500 text-white hover:bg-gray-600"
+            />
+            <Button
+              label="Confirm Disable"
+              onClick={handleConfirmBan}
+              className="bg-red text-white"
+              icon={<IoPersonRemoveSharp size={20} />}
+            />
+          </DialogActions>
+        </Dialog>
       </div>
     </AdminWrapper>
   );

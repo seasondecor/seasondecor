@@ -4,6 +4,7 @@ import * as React from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { FootTypo } from "../Typography";
+import { Box } from "@mui/material";
 import Divider from "@mui/material/Divider";
 import { GiCalendarHalfYear } from "react-icons/gi";
 import SearchModal from "./SearchModal";
@@ -153,38 +154,41 @@ export const MultiSearch = ({ onSearch, onSearchResults }) => {
   };
 
   return (
-    <div className="relative w-full max-w-[60vw] dark:text-black">
-      <div className="flex flex-wrap items-stretch justify-between md:justify-center gap-y-1 gap-x-0 bg-white rounded-full shadow-md border border-gray-200 overflow-hidden">
-        <Divider orientation="vertical" variant="middle" flexItem />
-        <div
+    <Box position="relative" width="100%" maxWidth="50vw" className="dark:text-black">
+      <Box display="flex" flexWrap="wrap" alignItems="stretch" justifyContent="between" gap={1} className="bg-white rounded-full shadow-md border border-gray-200 overflow-hidden">
+        <Box
           ref={locationRef}
-          className="w-full sm:w-1/2 md:w-auto flex-1 min-w-[150px] cursor-pointer hover:bg-gray-100 hover:rounded-full"
+          display="flex"
+          flex={1}
+          className="hover:bg-gray-100 hover:rounded-full"
           onClick={() => handleOpenModal("sublocation")}
         >
-          <div className="p-4 flex items-center">
-            <div className="mr-3">
+          <Box display="flex" alignItems="center" justifyContent="center" p={2} className="cursor-pointer">
+            <Box className="mr-3">
               <FaMapMarkerAlt size={20} />
-            </div>
-            <div className="flex flex-col">
+            </Box>
+            <Box display="flex" flexDirection="column">
               <FootTypo footlabel="Where" />
               <FootTypo
                 footlabel={selectedValues.sublocation || "Search by location"}
                 className=" truncate max-w-[130px] "
               />
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
         <Divider orientation="vertical" variant="middle" flexItem />
-        <div
+        <Box
           ref={categoryRef}
-          className="flex-1 w-full md:w-auto relative cursor-pointer hover:bg-gray-100 hover:rounded-full"
+          display="flex"
+          flex={1}
+          className="hover:bg-gray-100 hover:rounded-full"
           onClick={() => handleOpenModal("category")}
         >
-          <div className="p-4 flex items-center">
-            <div className="mr-3">
+          <Box display="flex" alignItems="center" justifyContent="center" p={2} className="cursor-pointer">
+            <Box className="mr-3">
               <MdCategory size={20} />
-            </div>
-            <div className="flex flex-col">
+            </Box>
+            <Box display="flex" flexDirection="column">
               <FootTypo
                 footlabel="Category"
               />
@@ -192,53 +196,56 @@ export const MultiSearch = ({ onSearch, onSearchResults }) => {
                 footlabel={selectedValues.category || "Search by category"}
                 className="truncate max-w-[130px] "
               />
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
 
         <Divider orientation="vertical" variant="middle" flexItem />
-        <div
+        <Box
           ref={seasonRef}
-          className="flex-1 w-full md:w-auto relative cursor-pointer hover:bg-gray-100 hover:rounded-full"
+          display="flex"
+          flex={1}
+          className="hover:bg-gray-100 hover:rounded-full"
           onClick={() => handleOpenModal("season")}
         >
-          <div className="p-4 flex items-center">
-            <div className="mr-3">
+          <Box display="flex" alignItems="center" justifyContent="center" p={2} className="cursor-pointer">
+            <Box className="mr-3">
               <GiCalendarHalfYear size={20} />
-            </div>
-            <div className="flex flex-col">
+            </Box>
+            <Box display="flex" flexDirection="column">
               <FootTypo footlabel="Season" />
               <FootTypo
                 footlabel={selectedValues.season || "Search by season"}
                 className=" truncate max-w-[130px] "
               />
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
 
         <Divider orientation="vertical" variant="middle" flexItem />
-        <div
+        <Box
           ref={designRef}
-          className="flex-1 w-full md:w-auto relative cursor-pointer hover:bg-gray-100 hover:rounded-full"
+          display="flex"
+          flex={1}
+          className="hover:bg-gray-100 hover:rounded-full"
           onClick={() => handleOpenModal("design")}
         >
-          <div className="p-4 flex items-center">
-            <div className="mr-3">
+          <Box display="flex" alignItems="center" justifyContent="center" p={2} className="cursor-pointer">
+            <Box className="mr-3">
               <MdDesignServices size={20} />
-            </div>
-            <div className="flex flex-col">
+            </Box>
+            <Box display="flex" flexDirection="column">
               <FootTypo footlabel="Design"  />
               <FootTypo
                 footlabel={selectedValues.design || "Search by design"}
                 className="truncate max-w-[130px] "
               />
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
         
-
-        <div className="flex w-full sm:w-auto items-center justify-end gap-2 p-2 md:pr-3">
-          <div className="w-[36px] flex justify-center">
+        <Box display="flex" alignItems="center" justifyContent="end" gap={2} p={1} className="md:pr-3">
+          <Box display="flex" alignItems="center" justifyContent="center" className="w-[36px]">
             {(selectedValues.sublocation ||
               selectedValues.category ||
               selectedValues.season ||
@@ -251,7 +258,7 @@ export const MultiSearch = ({ onSearch, onSearchResults }) => {
                 <IoIosClose size={20} />
               </button>
             )}
-          </div>
+          </Box>
           <button
             className="bg-rose-500 hover:bg-rose-600 text-white rounded-full p-3 flex items-center justify-center focus:outline-none transition duration-200"
             onClick={performSearch}
@@ -263,8 +270,8 @@ export const MultiSearch = ({ onSearch, onSearchResults }) => {
               <IoSearchOutline size={24} />
             )}
           </button>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       <SearchModal
         isOpen={activeModal === "sublocation"}
@@ -309,6 +316,6 @@ export const MultiSearch = ({ onSearch, onSearchResults }) => {
         anchorEl={getCurrentAnchorRef()}
       />
       
-    </div>
+    </Box>
   );
 };

@@ -33,6 +33,20 @@ import { TbCurrencyDong, TbMeterSquare } from "react-icons/tb";
 import Particles from "@/app/components/ui/animated/Particles";
 import { useGetListWorkScope } from "@/app/queries/list/workscope.list.query";
 import { Autocomplete } from "@mui/material";
+import AdditionalCard from "./AdditionalCard";
+import { useGetRelatedProductForBooking } from "@/app/queries/list/service.list.query";
+import DataMapper from "@/app/components/DataMapper";
+import EmptyState from "@/app/components/EmptyState";
+import { formatMoney, formatCurrency } from "@/app/helpers";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import {
+  useAddProductToService,
+  useUpdateProductInService,
+  useRemoveProductFromService,
+} from "@/app/queries/service/service.query";
+import { toast } from "sonner";
+import { useGetAddedProducts } from "@/app/queries/service/service.query";
+import Image from "next/image";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide ref={ref} {...props} />;
@@ -40,19 +54,47 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 const getDesignStyleName = (styleId) => {
   const styleMap = {
-    1: 'Modern',
-    2: 'Traditional',
-    3: 'Coastal',
-    4: 'Scandinavian',
-    5: 'Industrial'
+    1: "Modern",
+    2: "Traditional",
+    3: "Coastal",
+    4: "Scandinavian",
+    5: "Industrial",
   };
-  return styleMap[styleId] || 'Unknown Style';
+  return styleMap[styleId] || "Unknown Style";
 };
 
 const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
   const [images, setImages] = useState([]);
   const [step, setStep] = useState(0);
   const [wantCustomize, setWantCustomize] = useState(null);
+  const [pagination, setPagination] = useState({
+    pageIndex: 1,
+    pageSize: 10,
+  });
+
+  const {
+    mutate: addProductToService,
+    isPending: isAddProductToServiceLoading,
+  } = useAddProductToService();
+  const {
+    mutate: updateProductInService,
+    isPending: isUpdateProductInServiceLoading,
+  } = useUpdateProductInService();
+  const {
+    mutate: removeProductFromService,
+    isPending: isRemoveProductFromServiceLoading,
+  } = useRemoveProductFromService();
+
+  const { data: addedProducts, isPending: isAddedProductsLoading } =
+    useGetAddedProducts(serviceDetail?.id);
+
+  // Handle pagination change
+  const handlePaginationChange = (newPage) => {
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: newPage,
+    }));
+  };
 
   const { data: workScopeList, isPending: isWorkScopeLoading } =
     useGetListWorkScope();
@@ -68,6 +110,15 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
     workScopes: [],
   });
 
+  const { data: relatedProducts, isPending: isRelatedProductLoading } =
+    useGetRelatedProductForBooking({
+      ...pagination,
+      serviceId: serviceDetail?.id,
+    });
+
+  const products = relatedProducts?.data || [];
+  const totalCount = relatedProducts?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pagination.pageSize) || 1;
 
   const steps = [
     "Customization Choice",
@@ -75,6 +126,7 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
     "Color Themes",
     "Specific Information",
     "Additional Notes",
+    "Additional Products",
     "Review",
   ];
 
@@ -122,15 +174,15 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
   };
 
   const handleImageChange = (files) => {
-    const imageFiles = files.map(file => ({
+    const imageFiles = files.map((file) => ({
       file,
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
     }));
     setImages(imageFiles);
   };
 
   const handleImageDelete = (indexToRemove) => {
-    setImages(prevImages => {
+    setImages((prevImages) => {
       // Revoke the URL of the image being removed
       if (prevImages[indexToRemove]?.preview) {
         URL.revokeObjectURL(prevImages[indexToRemove].preview);
@@ -142,7 +194,7 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
   // Cleanup URLs when component unmounts
   React.useEffect(() => {
     return () => {
-      images.forEach(image => {
+      images.forEach((image) => {
         if (image.preview) {
           URL.revokeObjectURL(image.preview);
         }
@@ -160,7 +212,7 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
       estimatedBudget: customData.estimatedBudget,
       primaryUser: customData.primaryUser,
       workScopes: customData.workScopes,
-      images: images.map(img => img.file)
+      images: images.map((img) => img.file),
     };
 
     onSubmit(formData);
@@ -181,15 +233,6 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
     },
   };
 
-  // Add this function to format number with thousand separators
-  const formatMoney = (value) => {
-    if (!value) return "";
-    // Remove any non-digit characters
-    const number = value.replace(/\D/g, "");
-    // Format with thousand separator
-    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
   // Add this function to handle money input
   const handleMoneyInput = (e) => {
     const value = e.target.value;
@@ -200,6 +243,59 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
       ...prev,
       estimatedBudget: rawValue,
     }));
+  };
+
+  // Handle adding product to service
+  const handleAddProductToService = (productId, quantity) => {
+    addProductToService(
+      {
+        serviceId: serviceDetail?.id,
+        productId: productId,
+        quantity: quantity,
+      },
+      {
+        onSuccess: () => {},
+        onError: (error) => {
+          console.error("Error adding product:", error);
+          toast.error("Failed to add product");
+        },
+      }
+    );
+  };
+
+  // Handle updating product quantity
+  const handleUpdateProductQuantity = (productId, quantity) => {
+    updateProductInService(
+      {
+        serviceId: serviceDetail?.id,
+        productId: productId,
+        quantity: quantity,
+      },
+      {
+        onSuccess: () => {},
+        onError: (error) => {
+          console.error("Error updating quantity:", error);
+          toast.error("Failed to update quantity");
+        },
+      }
+    );
+  };
+
+  // Handle removing product
+  const handleRemoveProduct = (productId) => {
+    removeProductFromService(
+      {
+        serviceId: serviceDetail?.id,
+        productId: productId,
+      },
+      {
+        onSuccess: () => {},
+        onError: (error) => {
+          console.error("Error removing product:", error);
+          toast.error("Failed to remove product");
+        },
+      }
+    );
   };
 
   return (
@@ -316,6 +412,12 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                     your needs
                   </Typography>
 
+                  <Alert severity="info">
+                    This is optional, you can{" "}
+                    <strong>Skip</strong> {""}this form if you don't want to
+                    provide any customization preferences.
+                  </Alert>
+
                   <Box
                     sx={{
                       display: "flex",
@@ -374,6 +476,163 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                     />
                   )}
                 </Box>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      borderRadius: "16px",
+                      border: "1px solid",
+                      borderColor: "divider",
+                      backgroundColor: "#FFFFFF",
+                      boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
+                      position: "sticky",
+                      top: 24,
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        boxShadow: "0px 8px 25px rgba(0, 0, 0, 0.08)",
+                      },
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      sx={{
+                        fontWeight: 700,
+                        mb: 3,
+                        color: "#1a1a1a",
+                        fontSize: "1.25rem",
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      Design Style Guide
+                    </Typography>
+
+                    {customData.selectedDesign ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <Box
+                          sx={{
+                            position: "relative",
+                            p: 3,
+                            borderRadius: "12px",
+                            backgroundColor:
+                              customData.selectedDesign === 1
+                                ? "rgba(37, 99, 235, 0.05)"
+                                : customData.selectedDesign === 2
+                                ? "rgba(147, 51, 234, 0.05)"
+                                : customData.selectedDesign === 3
+                                ? "rgba(8, 145, 178, 0.05)"
+                                : customData.selectedDesign === 4
+                                ? "rgba(5, 150, 105, 0.05)"
+                                : "rgba(71, 85, 105, 0.05)",
+                            border: "1px solid",
+                            borderColor:
+                              customData.selectedDesign === 1
+                                ? "rgba(37, 99, 235, 0.1)"
+                                : customData.selectedDesign === 2
+                                ? "rgba(147, 51, 234, 0.1)"
+                                : customData.selectedDesign === 3
+                                ? "rgba(8, 145, 178, 0.1)"
+                                : customData.selectedDesign === 4
+                                ? "rgba(5, 150, 105, 0.1)"
+                                : "rgba(71, 85, 105, 0.1)",
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle1"
+                            sx={{
+                              fontWeight: 600,
+                              mb: 2,
+                              color:
+                                customData.selectedDesign === 1
+                                  ? "#2563eb"
+                                  : customData.selectedDesign === 2
+                                  ? "#9333ea"
+                                  : customData.selectedDesign === 3
+                                  ? "#0891b2"
+                                  : customData.selectedDesign === 4
+                                  ? "#059669"
+                                  : "#475569",
+                              fontSize: "1.1rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            {getDesignStyleName(customData.selectedDesign)}
+                            <Box
+                              component="span"
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                backgroundColor:
+                                  customData.selectedDesign === 1
+                                    ? "#2563eb"
+                                    : customData.selectedDesign === 2
+                                    ? "#9333ea"
+                                    : customData.selectedDesign === 3
+                                    ? "#0891b2"
+                                    : customData.selectedDesign === 4
+                                    ? "#059669"
+                                    : "#475569",
+                                display: "inline-block",
+                              }}
+                            />
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#4b5563",
+                              lineHeight: 1.8,
+                              fontSize: "0.95rem",
+                              letterSpacing: "0.01em",
+                            }}
+                          >
+                            {customData.selectedDesign === 1 &&
+                              "Clean lines, minimalism, and a neutral color palette define Modern design. It often incorporates sleek materials like glass, steel, and polished wood for a sophisticated and uncluttered look."}
+                            {customData.selectedDesign === 2 &&
+                              "Elegant and timeless, Traditional design features classic furniture, rich colors, and ornate details. It draws inspiration from 18th and 19th-century European décor, creating a warm and formal atmosphere."}
+                            {customData.selectedDesign === 3 &&
+                              "Light, airy, and relaxed, Coastal design takes cues from the beach. Think soft blues, whites, natural textures like rattan and linen, and plenty of natural light to evoke a seaside vibe."}
+                            {customData.selectedDesign === 4 &&
+                              "Scandinavian design emphasizes simplicity, functionality, and coziness. It features neutral tones, natural wood, and clean lines, often with touches of hygge—comfort and warmth."}
+                            {customData.selectedDesign === 5 &&
+                              "Inspired by warehouses and factories, Industrial design showcases raw materials like exposed brick, metal, and wood. It's rugged, edgy, and utilitarian, often with a masculine aesthetic."}
+                          </Typography>
+                        </Box>
+                      </motion.div>
+                    ) : (
+                      <Alert
+                        severity="info"
+                        sx={{
+                          mt: 2,
+                          borderRadius: "12px",
+                          "& .MuiAlert-message": {
+                            fontSize: "0.925rem",
+                            color: "#3b82f6",
+                          },
+                          "& .MuiAlert-icon": {
+                            color: "#3b82f6",
+                          },
+                          backgroundColor: "#eff6ff",
+                          border: "1px solid #bfdbfe",
+                        }}
+                      >
+                        Select a design style to see its description
+                      </Alert>
+                    )}
+                  </Paper>
+                </motion.div>
 
                 <Box
                   sx={{
@@ -596,7 +855,6 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                           </Typography>
                           <TextField
                             fullWidth
-                            
                             placeholder="Enter your budget"
                             value={formatMoney(customData.estimatedBudget)}
                             onChange={handleMoneyInput}
@@ -743,9 +1001,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                         <ImageUpload
                           onImageChange={handleImageChange}
                           onImageDelete={handleImageDelete}
-                          existingImages={images.map(img => ({
+                          existingImages={images.map((img) => ({
                             dataURL: img.preview,
-                            file: img.file
+                            file: img.file,
                           }))}
                           className="mt-2"
                         />
@@ -878,15 +1136,20 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                     p: 3,
                     mb: 3,
                     borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
+                    border: "1px solid",
+                    borderColor: "divider",
                   }}
                 >
                   <Typography variant="h6" gutterBottom fontWeight={600}>
                     Special Requirements or Notes
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Please provide any additional requirements, preferences, or special notes for the service provider.
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Please provide any additional requirements, preferences, or
+                    special notes for the service provider.
                   </Typography>
                   <TextField
                     fullWidth
@@ -934,10 +1197,118 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
               </motion.div>
             )}
 
-            {/* Step 5: Review */}
+            {/* Step 5: Additional Products */}
             {step === 5 && (
               <motion.div
                 key="step5"
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="w-full"
+              >
+                <Typography variant="h5" gutterBottom mb={4}>
+                  Base on your request, we suggest for you some decorative furnitures to
+                  make your
+                  <PointerHighlight
+                    rectangleClassName="bg-neutral-200 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
+                    pointerClassName="text-yellow"
+                    containerClassName="inline-block mx-2"
+                  >
+                    <span className="relative z-10">
+                      {serviceDetail?.categoryName}
+                    </span>
+                  </PointerHighlight>
+                  more beautiful
+                </Typography>
+
+                <Grid container spacing={12}>
+                  <DataMapper
+                    data={products}
+                    Component={AdditionalCard}
+                    emptyStateComponent={
+                      <EmptyState title="No products found" />
+                    }
+                    loading={isRelatedProductLoading}
+                    getKey={(item) => item.id}
+                    componentProps={(product) => ({
+                      image: product.imageUrls,
+                      productName: product.productName,
+                      rate: product.rate,
+                      price: product.productPrice,
+                      totalQuantity: product.quantity,
+                      totalSold: product.totalSold,
+                      description: product.description,
+                      category: product.category,
+                      productId: product.id,
+                      id: product.id,
+                      relatedProducts: addedProducts || [],
+                      onAddProduct: handleAddProductToService,
+                      onUpdateQuantity: handleUpdateProductQuantity,
+                      onRemoveProduct: handleRemoveProduct,
+                      isLoading:
+                        isAddProductToServiceLoading ||
+                        isUpdateProductInServiceLoading ||
+                        isRemoveProductFromServiceLoading,
+                    })}
+                  />
+                </Grid>
+                {totalCount > 0 && (
+                  <div className="flex justify-center mt-4 gap-4">
+                    <button
+                      onClick={() =>
+                        pagination.pageIndex > 1 &&
+                        handlePaginationChange(pagination.pageIndex - 1)
+                      }
+                      disabled={pagination.pageIndex <= 1}
+                      className="p-1 border rounded-full disabled:opacity-50"
+                    >
+                      <IoIosArrowBack size={20} />
+                    </button>
+                    <span className="flex items-center">
+                      Page {pagination.pageIndex} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() =>
+                        pagination.pageIndex < totalPages &&
+                        handlePaginationChange(pagination.pageIndex + 1)
+                      }
+                      disabled={pagination.pageIndex >= totalPages}
+                      className="p-1 border rounded-full disabled:opacity-50"
+                    >
+                      <IoIosArrowForward size={20} />
+                    </button>
+                  </div>
+                )}
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    mt: 4,
+                  }}
+                >
+                  <Button
+                    icon={<MdArrowBack />}
+                    label="Back"
+                    onClick={handleBack}
+                    className="min-w-[120px] bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  />
+                  <Button
+                    icon={<MdArrowForward />}
+                    label="Next"
+                    onClick={handleNext}
+                    className="min-w-[120px] bg-action text-white"
+                  />
+                </Box>
+              </motion.div>
+            )}
+
+            {/* Step 6: Review */}
+            {step === 6 && (
+              <motion.div
+                key="step6"
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
@@ -964,16 +1335,17 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                         p: 3,
                         mb: 3,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: "1px solid",
+                        borderColor: "divider",
                       }}
                     >
                       <Typography variant="h6" gutterBottom fontWeight={600}>
                         Design Preferences
                       </Typography>
                       {customData.selectedDesign ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
                           <Box>
                             <Typography variant="subtitle1" fontWeight={500}>
                               {getDesignStyleName(customData.selectedDesign)}
@@ -984,7 +1356,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                           </Box>
                         </Box>
                       ) : (
-                        <Alert severity="warning">No design style selected</Alert>
+                        <Alert severity="warning">
+                          No design style selected
+                        </Alert>
                       )}
                     </Paper>
 
@@ -995,21 +1369,22 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                         p: 3,
                         mb: 3,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: "1px solid",
+                        borderColor: "divider",
                       }}
                     >
                       <Typography variant="h6" gutterBottom fontWeight={600}>
                         Color Themes
                       </Typography>
                       {customData.selectedColors?.length > 0 ? (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                           {customData.selectedColors.map((selectedColorId) => {
                             // Find the matching color from serviceDetail
-                            const colorDetails = serviceDetail?.themeColors?.find(
-                              (color) => color.id === selectedColorId
-                            );
-                            
+                            const colorDetails =
+                              serviceDetail?.themeColors?.find(
+                                (color) => color.id === selectedColorId
+                              );
+
                             return colorDetails ? (
                               <Box
                                 key={colorDetails.id}
@@ -1017,9 +1392,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                                   px: 2,
                                   py: 1,
                                   borderRadius: 1,
-                                  backgroundColor: 'action.selected',
-                                  display: 'flex',
-                                  alignItems: 'center',
+                                  backgroundColor: "action.selected",
+                                  display: "flex",
+                                  alignItems: "center",
                                   gap: 1,
                                 }}
                               >
@@ -1027,10 +1402,10 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                                   sx={{
                                     width: 16,
                                     height: 16,
-                                    borderRadius: '50%',
+                                    borderRadius: "50%",
                                     backgroundColor: colorDetails.colorCode,
-                                    border: '1px solid',
-                                    borderColor: 'divider',
+                                    border: "1px solid",
+                                    borderColor: "divider",
                                   }}
                                 />
                                 <Typography variant="body2">
@@ -1041,7 +1416,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                           })}
                         </Box>
                       ) : (
-                        <Alert severity="warning">No color themes selected</Alert>
+                        <Alert severity="warning">
+                          No color themes selected
+                        </Alert>
                       )}
                     </Paper>
 
@@ -1052,8 +1429,8 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                         p: 3,
                         mb: 3,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: "1px solid",
+                        borderColor: "divider",
                       }}
                     >
                       <Typography variant="h6" gutterBottom fontWeight={600}>
@@ -1065,7 +1442,7 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                             Property Type
                           </Typography>
                           <Typography variant="subtitle1" fontWeight={500}>
-                            {customData.propertyType || 'Not specified'}
+                            {customData.propertyType || "Not specified"}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 6 }}>
@@ -1073,7 +1450,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                             Space Area
                           </Typography>
                           <Typography variant="subtitle1" fontWeight={500}>
-                            {customData.spaceArea ? `${customData.spaceArea} sqm` : 'Not specified'}
+                            {customData.spaceArea
+                              ? `${customData.spaceArea} m²`
+                              : "Not specified"}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 6 }}>
@@ -1081,7 +1460,7 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                             Primary User
                           </Typography>
                           <Typography variant="subtitle1" fontWeight={500}>
-                            {customData.primaryUser || 'Not specified'}
+                            {customData.primaryUser || "Not specified"}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 6 }}>
@@ -1089,9 +1468,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                             Estimated Budget
                           </Typography>
                           <Typography variant="subtitle1" fontWeight={500}>
-                            {customData.estimatedBudget ? 
-                              `${formatMoney(customData.estimatedBudget)} đ` : 
-                              'Not specified'}
+                            {customData.estimatedBudget
+                              ? `${formatMoney(customData.estimatedBudget)} đ`
+                              : "Not specified"}
                           </Typography>
                         </Grid>
                       </Grid>
@@ -1104,25 +1483,31 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                         p: 3,
                         mb: 3,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: "1px solid",
+                        borderColor: "divider",
                       }}
                     >
                       <Typography variant="h6" gutterBottom fontWeight={600}>
                         Selected Work Scopes
                       </Typography>
                       {customData.workScopes?.length > 0 ? (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                          }}
+                        >
                           {customData.workScopes.map((scope) => (
                             <Box
                               key={scope.id}
                               sx={{
-                                display: 'flex',
-                                alignItems: 'center',
+                                display: "flex",
+                                alignItems: "center",
                                 gap: 2,
                                 p: 2,
                                 borderRadius: 1,
-                                backgroundColor: 'action.selected',
+                                backgroundColor: "action.selected",
                               }}
                             >
                               <Typography variant="body1">
@@ -1132,7 +1517,9 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                           ))}
                         </Box>
                       ) : (
-                        <Alert severity="warning">No work scopes selected</Alert>
+                        <Alert severity="warning">
+                          No work scopes selected
+                        </Alert>
                       )}
                     </Paper>
 
@@ -1143,19 +1530,127 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                         p: 3,
                         mb: 3,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: "1px solid",
+                        borderColor: "divider",
                       }}
                     >
                       <Typography variant="h6" gutterBottom fontWeight={600}>
                         Additional Notes
                       </Typography>
                       {customData.note ? (
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                        <Typography
+                          variant="body1"
+                          sx={{ whiteSpace: "pre-wrap" }}
+                        >
                           {customData.note}
                         </Typography>
                       ) : (
-                        <Alert severity="info">No additional notes provided</Alert>
+                        <Alert severity="info">
+                          No additional notes provided
+                        </Alert>
+                      )}
+                    </Paper>
+
+                    {/* Added Products */}
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        mb: 3,
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom fontWeight={600}>
+                        Added Products
+                      </Typography>
+                      {addedProducts && addedProducts.length > 0 ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                          }}
+                        >
+                          {addedProducts.map((product) => (
+                            <Box
+                              key={product.productId}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2,
+                                p: 2,
+                                borderRadius: 1,
+                                backgroundColor: "action.selected",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: 60,
+                                  height: 60,
+                                  position: "relative",
+                                  borderRadius: 1,
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <Image
+                                  src={product.image}
+                                  alt={product.productName}
+                                  fill
+                                  style={{ objectFit: "cover" }}
+                                  sizes="(max-width: 768px) 100vw, 60px"
+                                />
+                              </Box>
+                              <Box sx={{ flexGrow: 1 }}>
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight={500}
+                                >
+                                  {product.productName}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  Quantity: {product.quantity} ×{" "}
+                                  {formatCurrency(product.unitPrice)}
+                                </Typography>
+                              </Box>
+                              <Typography variant="subtitle1" fontWeight={600}>
+                                {formatCurrency(
+                                  product.quantity * product.unitPrice
+                                )}
+                              </Typography>
+                            </Box>
+                          ))}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "flex-end",
+                              pt: 2,
+                              borderTop: "1px solid",
+                              borderColor: "divider",
+                            }}
+                          >
+                            <Typography variant="h6" fontWeight={600}>
+                              Total:{" "}
+                              {formatCurrency(
+                                addedProducts.reduce(
+                                  (sum, product) =>
+                                    sum + product.quantity * product.unitPrice,
+                                  0
+                                )
+                              )}
+                            </Typography>
+                          </Box>
+                          <Alert severity="info">
+                            This cost will be included in your quotation during
+                            the design process.
+                          </Alert>
+                        </Box>
+                      ) : (
+                        <Alert severity="info">No products added</Alert>
                       )}
                     </Paper>
 
@@ -1167,8 +1662,8 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                           p: 3,
                           mb: 3,
                           borderRadius: 2,
-                          border: '1px solid',
-                          borderColor: 'divider',
+                          border: "1px solid",
+                          borderColor: "divider",
                         }}
                       >
                         <Typography variant="h6" gutterBottom fontWeight={600}>
@@ -1179,23 +1674,23 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                             <Grid key={index} size={{ xs: 6, md: 4 }}>
                               <Box
                                 sx={{
-                                  width: '100%',
-                                  paddingTop: '100%',
-                                  position: 'relative',
+                                  width: "100%",
+                                  paddingTop: "100%",
+                                  position: "relative",
                                   borderRadius: 1,
-                                  overflow: 'hidden',
+                                  overflow: "hidden",
                                 }}
                               >
                                 <img
                                   src={image.preview}
                                   alt={`Reference ${index + 1}`}
                                   style={{
-                                    position: 'absolute',
+                                    position: "absolute",
                                     top: 0,
                                     left: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
                                   }}
                                 />
                               </Box>
@@ -1212,17 +1707,22 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
                       sx={{
                         p: 3,
                         borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        position: 'sticky',
+                        border: "1px solid",
+                        borderColor: "divider",
+                        position: "sticky",
                         top: 24,
                       }}
                     >
                       <Typography variant="h6" gutterBottom fontWeight={600}>
                         Ready to Complete?
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
-                        Please review all your selections carefully. You can go back to make any changes if needed.
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        paragraph
+                      >
+                        Please review all your selections carefully. You can go
+                        back to make any changes if needed.
                       </Typography>
                       <Box sx={{ mt: 3 }}>
                         <Button
@@ -1238,8 +1738,8 @@ const CustomizeModal = ({ open, onClose, onSubmit, onSkip, serviceDetail }) => {
 
                 <Box
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
+                    display: "flex",
+                    justifyContent: "space-between",
                     mt: 4,
                     gap: 2,
                   }}

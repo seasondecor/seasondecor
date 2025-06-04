@@ -7,7 +7,7 @@ import Link from "next/link";
 const RightWrapper = () => {
   return (
     <Link href="/authen/login">
-      <Button label="Login" icon={<MdOutlineLogin />} link="/authen/login" className="" />
+      <Button label="Login" icon={<MdOutlineLogin />} link="/authen/login" className="bg-action text-white" />
     </Link>
   );
 };

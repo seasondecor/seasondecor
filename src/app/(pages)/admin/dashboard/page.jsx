@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { BorderBox } from "@/app/components/ui/BorderBox";
 import AdminWrapper from "../components/AdminWrapper";
 import {
   useGetAdminDashboard,
@@ -24,8 +23,26 @@ import {
 import { Bar, Line, Pie } from "react-chartjs-2";
 import { useTheme } from "next-themes";
 import { formatCurrency } from "@/app/helpers";
-import { FootTypo } from "@/app/components/ui/Typography";
 import CountUp from "@/app/components/ui/animated/CountUp";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Skeleton,
+  IconButton,
+} from "@mui/material";
+import Grid from "@mui/material/Grid2";
+import {
+  TrendingUp,
+  People,
+  BookOnline,
+  CheckCircle,
+  Cancel,
+  AccountBalance,
+  ArrowUpward,
+  ArrowDownward,
+} from "@mui/icons-material";
 
 // Register Chart.js components
 Chart.register(
@@ -39,6 +56,66 @@ Chart.register(
   Title,
   Tooltip,
   Legend
+);
+
+const StatCard = ({ title, value, icon, color, isLoading, trend }) => (
+  <Card
+    sx={{
+      height: "100%",
+      background: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(10px)",
+    }}
+    className="dark:text-white"
+  >
+    <CardContent>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography variant="subtitle2" className="dark:text-white">
+            {title}
+          </Typography>
+          {isLoading ? (
+            <Skeleton width={100} height={40} />
+          ) : (
+            <Typography variant="h4" sx={{ mt: 1}}>
+              <CountUp to={value} duration={1} separator="." />
+            </Typography>
+          )}
+        </Box>
+        <IconButton sx={{ backgroundColor: `${color}20`, color: color }}>
+          {icon}
+        </IconButton>
+      </Box>
+      {trend && (
+        <Box display="flex" alignItems="center" mt={2}>
+          {trend > 0 ? (
+            <ArrowUpward sx={{ color: "success.main", fontSize: 16 }} />
+          ) : (
+            <ArrowDownward sx={{ color: "error.main", fontSize: 16 }} />
+          )}
+          <Typography variant="caption" sx={{ ml: 0.5 }}>
+            {Math.abs(trend)}% from last week
+          </Typography>
+        </Box>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const ChartCard = ({ title, children, height = 400 }) => (
+  <Card
+    sx={{
+      height: "100%",
+      background: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(10px)",
+    }}
+  >
+    <CardContent>
+      <Typography variant="h6" gutterBottom className="dark:text-white">
+        {title}
+      </Typography>
+      <Box height={height}>{children}</Box>
+    </CardContent>
+  </Card>
 );
 
 const AdminDashboard = () => {
@@ -186,18 +263,15 @@ const AdminDashboard = () => {
     const totalProviders = adminDashboard?.totalProviders || 0;
 
     return {
-      labels: ['Customers', 'Providers'],
+      labels: ["Customers", "Providers"],
       datasets: [
         {
           data: [totalCustomers, totalProviders],
           backgroundColor: [
-            'rgba(54, 162, 235, 0.8)',
-            'rgba(255, 99, 132, 0.8)',
+            "rgba(54, 162, 235, 0.8)",
+            "rgba(255, 99, 132, 0.8)",
           ],
-          borderColor: [
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 99, 132, 1)',
-          ],
+          borderColor: ["rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)"],
           borderWidth: 1,
           hoverOffset: 4,
         },
@@ -303,13 +377,13 @@ const AdminDashboard = () => {
         borderWidth: 1,
         padding: 12,
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             const value = context.raw;
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
             const percentage = Math.round((value / total) * 100);
             return `${context.label}: ${value} (${percentage}%)`;
-          }
-        }
+          },
+        },
       },
     },
   };
@@ -339,142 +413,111 @@ const AdminDashboard = () => {
 
   return (
     <AdminWrapper>
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 grid-rows-auto md:grid-rows-3 gap-4">
-        <BorderBox className="col-span-1 md:col-span-2 row-span-2 p-4">
-          <div className="flex flex-col h-full">
-            <FootTypo
-              footlabel="Revenue Analysis"
-              className="!m-0 pb-2 text-lg font-semibold"
+      <Box sx={{ overflowX: "hidden"}}>
+        <Grid container spacing={3}>
+          {/* Revenue Stats */}
+          <Grid size={{ xs: 12, md: 3 }}>
+            <StatCard
+              title="Total Revenue"
+              value={totalRevenue}
+              icon={<AccountBalance />}
+              color="#00d8ff"
+              isLoading={isLoadingAdminMonthlyRevenue}
+              trend={5.2}
             />
-            <div className="h-[400px] mt-2">
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <StatCard
+              title="Total Accounts"
+              value={adminDashboard?.totalAccounts || 0}
+              icon={<People />}
+              color="#3f51b5"
+              isLoading={isLoadingAdminDashboard}
+              trend={2.4}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <StatCard
+              title="Total Bookings"
+              value={adminDashboard?.totalBookings || 0}
+              icon={<BookOnline />}
+              color="#4caf50"
+              isLoading={isLoadingAdminDashboard}
+              trend={-1.5}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <StatCard
+              title="Completed Bookings"
+              value={adminDashboard?.completedBookings || 0}
+              icon={<CheckCircle />}
+              color="#ff9800"
+              isLoading={isLoadingAdminDashboard}
+              trend={3.8}
+            />
+          </Grid>
+
+          {/* Charts */}
+          <Grid size={{ xs: 12, md: 8 }}>
+            <ChartCard title="Revenue Analysis">
               {!isLoadingAdminMonthlyRevenue && (
                 <Bar options={barChartOptions} data={chartData} />
               )}
-            </div>
-          </div>
-        </BorderBox>
+            </ChartCard>
+          </Grid>
 
-        <BorderBox className="col-span-1 md:col-start-3 row-span-1 p-4">
-          <div className="flex flex-col h-full">
-            <div className="h-[180px] mt-2">
+          <Grid size={{ xs: 12, md: 4 }}>
+            <ChartCard title="User Distribution" height={300}>
               {!isLoadingAdminDashboard && (
                 <Pie options={pieChartOptions} data={pieChartData} />
               )}
-            </div>
-            <div className="flex justify-between mt-2 text-sm">
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-[rgba(54,162,235,0.8)] mr-2"></div>
-                <span>Customers: {adminDashboard?.totalCustomers || 0}</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-[rgba(255,99,132,0.8)] mr-2"></div>
-                <span>Providers: {adminDashboard?.totalProviders || 0}</span>
-              </div>
-            </div>
-          </div>
-        </BorderBox>
+            </ChartCard>
+          </Grid>
 
-        <BorderBox className="col-span-1 md:col-start-3 row-start-2 p-4">
-          <div className="flex flex-col h-full">
-            <FootTypo
-              footlabel="Total Revenue"
-              className="!m-0 pb-2 text-lg font-semibold"
-            />
-            <div className="flex flex-col items-center justify-center h-full">
-              <div className="text-3xl font-bold text-primary mb-2">
-                {isLoadingAdminMonthlyRevenue ? (
-                  "Loading..."
-                ) : (
-                  <>
-                    <CountUp
-                      to={totalRevenue}
-                      duration={1}
-                      formatter={(value) => formatNumber(value)}
-                    />
-                    <span className="ml-1">₫</span>
-                  </>
-                )}
-              </div>
-              <FootTypo
-                footlabel="Total Revenue for 2025"
-                className="!m-0 text-gray-500"
-              />
-            </div>
-          </div>
-        </BorderBox>
-
-        <BorderBox className="col-span-1 md:col-span-3 row-span-1 p-4">
-          <div className="flex flex-col h-full">
-            <FootTypo
-              footlabel="Revenue Trend"
-              className="!m-0 pb-2 text-lg font-semibold"
-            />
-            <div className="h-[200px] mt-2">
+          <Grid size={{ xs: 12 }}>
+            <ChartCard title="Revenue Trend" height={250}>
               {!isLoadingAdminMonthlyRevenue && (
                 <Line options={lineChartOptions} data={lineChartData} />
               )}
-            </div>
-          </div>
-        </BorderBox>
-      </div>
+            </ChartCard>
+          </Grid>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-        <BorderBox className="p-4">
-          <FootTypo
-            footlabel="Total Accounts"
-            className="!m-0 pb-2 text-lg font-semibold"
-          />
-          <div className="text-3xl font-bold text-blue-500">
-            {isLoadingAdminDashboard ? (
-              "Loading..."
-            ) : (
-              <CountUp to={adminDashboard?.totalAccounts || 0} duration={1} />
-            )}
-          </div>
-        </BorderBox>
-
-        <BorderBox className="p-4">
-          <FootTypo
-            footlabel="Total Bookings"
-            className="!m-0 pb-2 text-lg font-semibold"
-          />
-          <div className="text-3xl font-bold text-green-500">
-            {isLoadingAdminDashboard ? (
-              "Loading..."
-            ) : (
-              <CountUp to={adminDashboard?.totalBookings || 0} duration={1} />
-            )}
-          </div>
-        </BorderBox>
-
-        <BorderBox className="p-4">
-          <FootTypo
-            footlabel="Completed Bookings"
-            className="!m-0 pb-2 text-lg font-semibold"
-          />
-          <div className="text-3xl font-bold text-yellow-500">
-            {isLoadingAdminDashboard ? (
-              "Loading..."
-            ) : (
-              <CountUp to={adminDashboard?.completedBookings || 0} duration={1} />
-            )}
-          </div>
-        </BorderBox>
-
-        <BorderBox className="p-4">
-          <FootTypo
-            footlabel="Cancelled Bookings"
-            className="!m-0 pb-2 text-lg font-semibold"
-          />
-          <div className="text-3xl font-bold text-red-500">
-            {isLoadingAdminDashboard ? (
-              "Loading..."
-            ) : (
-              <CountUp to={adminDashboard?.canceledBookings || 0} duration={1} />
-            )}
-          </div>
-        </BorderBox>
-      </div>
+          {/* Additional Stats */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <StatCard
+              title="Cancelled Bookings"
+              value={adminDashboard?.canceledBookings || 0}
+              icon={<Cancel />}
+              color="#f44336"
+              isLoading={isLoadingAdminDashboard}
+              trend={-2.1}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <StatCard
+              title="Revenue Growth"
+              value={adminDashboard?.revenueGrowthPercentage || 0}
+              icon={<TrendingUp />}
+              color="#2196f3"
+              isLoading={isLoadingAdminDashboard}
+              trend={1.7}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <StatCard
+              title="Active Users"
+              value={
+                (adminDashboard?.totalCustomers || 0) +
+                (adminDashboard?.totalProviders || 0)
+              }
+              icon={<People />}
+              color="#9c27b0"
+              isLoading={isLoadingAdminDashboard}
+              trend={4.3}
+            />
+          </Grid>
+        </Grid>
+      </Box>
     </AdminWrapper>
   );
 };

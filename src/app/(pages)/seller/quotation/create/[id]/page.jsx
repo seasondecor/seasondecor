@@ -22,6 +22,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useGetBookingDetailForProvider } from "@/app/queries/book/book.query";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
 import { formatDateVN } from "@/app/helpers";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Import MUI components
 import {
@@ -31,7 +32,21 @@ import {
   Divider,
   Box,
   Skeleton,
+  CardActions,
+  Chip,
+  Stack,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Alert,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import {
   MdEmail,
   MdLocalPhone,
@@ -43,7 +58,11 @@ import {
   MdPerson,
   MdBuild,
   MdOutlineDesignServices,
+  MdWarning,
+  MdCheckCircle,
+  MdError,
 } from "react-icons/md";
+import Image from "next/image";
 
 const QuotationPage = () => {
   const router = useRouter();
@@ -71,8 +90,7 @@ const QuotationPage = () => {
         materialName: "",
         quantity: 1,
         cost: 0,
-        category: "",
-        detailNote: "",
+        note: "",
       },
     ],
     constructionTasks: [
@@ -81,7 +99,7 @@ const QuotationPage = () => {
         cost: 0,
         unit: "",
         area: 0,
-        detailNote: "",
+        note: "",
       },
     ],
   });
@@ -89,6 +107,8 @@ const QuotationPage = () => {
   const { register, handleSubmit, setValue, getValues, control } = useForm({
     defaultValues: {},
   });
+
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
   // Initialize form data on component mount
   useEffect(() => {
@@ -162,7 +182,6 @@ const QuotationPage = () => {
       materialName: "",
       quantity: 1,
       cost: 0,
-      category: "",
       note: "",
     };
 
@@ -293,7 +312,7 @@ const QuotationPage = () => {
     const result = parseFloat(cleanStr);
 
     // Log the parsing for debugging
-    console.log(`Parsing "${value}" -> "${cleanStr}" -> ${result}`);
+    //console.log(`Parsing "${value}" -> "${cleanStr}" -> ${result}`);
 
     return isNaN(result) ? 0 : result;
   };
@@ -315,8 +334,23 @@ const QuotationPage = () => {
     }, 0);
   };
 
+  // Add this function to calculate product total
+  const calculateProductTotal = () => {
+    return (
+      bookingData?.productDetails?.reduce(
+        (total, product) => total + product.quantity * product.unitPrice,
+        0
+      ) || 0
+    );
+  };
+
+  // Update the grand total calculation to include products
   const calculateGrandTotal = () => {
-    return calculateMaterialTotal() + calculateConstructionTotal();
+    return (
+      calculateMaterialTotal() +
+      calculateConstructionTotal() +
+      calculateProductTotal()
+    );
   };
 
   // Helper function to check if an item is valid
@@ -425,6 +459,8 @@ const QuotationPage = () => {
       primaryUser: bookingData?.bookingForm?.primaryUser || "Not specified",
       // Scope of work - pass the entire array
       scopeOfWorks: bookingData?.bookingForm?.scopeOfWorks || [],
+      // Add related product items
+      relatedProductItems: bookingData?.productDetails || [],
     };
 
     // Show the PDF viewer
@@ -439,6 +475,22 @@ const QuotationPage = () => {
         setIsPdfReady(true);
       });
     }, 50);
+  };
+
+  // Function to handle dialog open
+  const handleOpenConfirmDialog = () => {
+    setOpenConfirmDialog(true);
+  };
+
+  // Function to handle dialog close
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+  };
+
+  // Modify the existing onSubmit function
+  const handleConfirmSubmit = async () => {
+    handleCloseConfirmDialog();
+    await onSubmit();
   };
 
   // Function to submit quotation and upload PDF
@@ -474,10 +526,12 @@ const QuotationPage = () => {
         // Booking form data - extract specific properties
         spaceType: bookingData?.bookingForm?.spaceStyle || "Not specified",
         roomSize: bookingData?.bookingForm?.roomSize || "Not specified",
-        primaryUser: bookingData?.bookingForm?.primaryUser || "Not specified",    
+        primaryUser: bookingData?.bookingForm?.primaryUser || "Not specified",
         // Scope of work - pass the entire array
         scopeOfWorks: bookingData?.bookingForm?.scopeOfWorks || [],
         depositPercentage: depositPercentage,
+        // Add related product items
+        relatedProductItems: bookingData?.productDetails || [],
       };
 
       // Create API payload
@@ -500,7 +554,7 @@ const QuotationPage = () => {
               // Second API call: Upload PDF file
               uploadQuotationFile(formData, {
                 onSuccess: (uploadResponse) => {
-                  console.log("PDF uploaded successfully:", uploadResponse);
+                 // console.log("PDF uploaded successfully:", uploadResponse);
                   setIsProcessing(false);
                   router.push("/seller/request");
                 },
@@ -550,6 +604,196 @@ const QuotationPage = () => {
     });
   };
 
+  // Add the ConfirmationDialog component
+  const ConfirmationDialog = () => {
+    const dialogVariants = {
+      hidden: {
+        opacity: 0,
+        scale: 0.95,
+      },
+      visible: {
+        opacity: 1,
+        scale: 1,
+        transition: {
+          duration: 0.2,
+        },
+      },
+      exit: {
+        opacity: 0,
+        scale: 0.95,
+        transition: {
+          duration: 0.2,
+        },
+      },
+    };
+
+    return (
+      <Dialog
+        open={openConfirmDialog}
+        onClose={handleCloseConfirmDialog}
+        PaperComponent={motion.div}
+        slotProps={{
+          paper: {
+            initial: "hidden",
+            animate: "visible",
+            exit: "exit",
+            variants: dialogVariants,
+            sx: {
+              bgcolor: 'background.paper',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '600px',
+            }
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            pb: 2,
+            pt: 2,
+            px: 3,
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <MdWarning className="text-yellow-500" size={24} />
+            <Typography variant="h6" sx={{ fontSize: '1.25rem', fontWeight: 600 }}>
+              Confirm Quotation Submission
+            </Typography>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 3, pb: 2 }}>
+            <Alert 
+              severity="info" 
+              sx={{ 
+                mb: 3,
+                '& .MuiAlert-message': {
+                  color: 'info.main',
+                  fontWeight: 500
+                }
+              }}
+            >
+              Please review the following information before submitting !
+            </Alert>
+
+            <List sx={{ '& .MuiListItem-root': { px: 0, py: 1.5 } }}>
+              <ListItem>
+                <ListItemIcon sx={{ minWidth: '36px' }}>
+                  <MdCheckCircle color="green" size={20} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={
+                    <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5 }}>
+                      Materials and Labor
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="body2" color="text.secondary">
+                      Total: {formatCurrency(calculateMaterialTotal() + calculateConstructionTotal())}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon sx={{ minWidth: '36px' }}>
+                  <MdCheckCircle color="green" size={20} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={
+                    <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5 }}>
+                      Add-On Products
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="body2" color="text.secondary">
+                      Total: {formatCurrency(calculateProductTotal())}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon sx={{ minWidth: '36px' }}>
+                  <MdCheckCircle color="green" size={20} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={
+                    <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5 }}>
+                      Customer Commitment Deposit Charged
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="body2" color="text.secondary">
+                      Amount: {formatCurrency(500000)}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon sx={{ minWidth: '36px' }}>
+                  <MdCheckCircle color="green" size={20} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={
+                    <Typography variant="body1" sx={{ fontWeight: 500, mb: 0.5 }}>
+                      Final Total
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="body2" color="text.secondary">
+                      Amount: {formatCurrency(calculateGrandTotal() - 500000)}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            </List>
+
+            <Alert 
+              severity="warning" 
+              sx={{ 
+                mt: 1,
+                '& .MuiAlert-message': {
+                  color: 'warning.main',
+                  fontWeight: 500
+                }
+              }}
+            >
+              Once submitted, you cannot modify this quotation.
+            </Alert>
+          </Box>
+        </DialogContent>
+
+        <DialogActions 
+          sx={{ 
+            p: 2.5,
+            pt: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            gap: 1
+          }}
+        >
+          <Button
+            label="Cancel"
+            onClick={handleCloseConfirmDialog}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700"
+          />
+          <Button
+            label={isProcessing ? "Processing..." : "Confirm & Submit"}
+            onClick={handleConfirmSubmit}
+            className="bg-black text-white hover:bg-gray-900"
+            disabled={isProcessing}
+            isLoading={isProcessing}
+          />
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
   return (
     <SellerWrapper>
       <button
@@ -583,8 +827,10 @@ const QuotationPage = () => {
               <Button
                 label={isProcessing ? "Processing..." : "Submit Quotation"}
                 icon={<AiOutlineUpload size={20} />}
-                className={isQuotationValid() ? "bg-yellow w-fit" : "w-fit"}
-                onClick={handleSubmit(onSubmit)}
+                className={
+                  isQuotationValid() ? "bg-action text-white w-fit" : "w-fit"
+                }
+                onClick={handleOpenConfirmDialog}
                 disabled={
                   isProcessing ||
                   isCreatingQuotation ||
@@ -593,14 +839,6 @@ const QuotationPage = () => {
                 }
                 isLoading={isProcessing}
               />
-
-              {!isQuotationValid() && (
-                <div className="text-red text-xs mt-1">
-                  {quotationData.materials.some((item) =>
-                    isItemEmpty(item, "material")
-                  ) && <p>Please fill in all required material fields</p>}
-                </div>
-              )}
             </div>
 
             {!showEditor && isPdfReady && (
@@ -883,26 +1121,28 @@ const QuotationPage = () => {
                               >
                                 Main Theme Colors
                               </Typography>
-                              <Box sx={{ display: 'flex', gap: 2 }}>
-                                {bookingData?.themeColors?.map((color, index) => (
-                                  <Box
-                                    key={index}
-                                    sx={{
-                                      width: 70,
-                                      height: 30,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      borderRadius: "4px",
-                                      backgroundColor: color.colorCode,
-                                      border: "1px solid #ddd",
-                                    }}
-                                  >
-                                    <Typography variant="body2" color="white">
-                                      {color.colorCode}
-                                    </Typography>
-                                  </Box>
-                                ))}
+                              <Box sx={{ display: "flex", gap: 2 }}>
+                                {bookingData?.themeColors?.map(
+                                  (color, index) => (
+                                    <Box
+                                      key={index}
+                                      sx={{
+                                        width: 70,
+                                        height: 30,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: "4px",
+                                        backgroundColor: color.colorCode,
+                                        border: "1px solid #ddd",
+                                      }}
+                                    >
+                                      <Typography variant="body2" color="white">
+                                        {color.colorCode}
+                                      </Typography>
+                                    </Box>
+                                  )
+                                )}
                               </Box>
                             </Box>
                           </Box>
@@ -1038,16 +1278,20 @@ const QuotationPage = () => {
                               >
                                 Scope of Work
                               </Typography>
-                              {bookingData?.bookingForm?.scopeOfWorks && bookingData?.bookingForm?.scopeOfWorks?.length > 0 ? (
-                                bookingData?.bookingForm?.scopeOfWorks.map((work, index) => (
-                                  <Typography
-                                    key={`scope-${index}`}
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    {work.workType || "Not specified"}
-                                  </Typography>
-                                ))
+                              {bookingData?.bookingForm?.scopeOfWorks &&
+                              bookingData?.bookingForm?.scopeOfWorks?.length >
+                                0 ? (
+                                bookingData?.bookingForm?.scopeOfWorks.map(
+                                  (work, index) => (
+                                    <Typography
+                                      key={`scope-${index}`}
+                                      variant="body2"
+                                      color="text.secondary"
+                                    >
+                                      {work.workType || "Not specified"}
+                                    </Typography>
+                                  )
+                                )
                               ) : (
                                 <Typography
                                   variant="body2"
@@ -1095,6 +1339,188 @@ const QuotationPage = () => {
                             </Box>
                           </Box>
                         </Box>
+
+                        <Divider textAlign="left" sx={{ my: 2 }}>
+                          Products Add-Ons
+                        </Divider>
+
+                        {bookingData?.productDetails &&
+                        bookingData.productDetails.length > 0 ? (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography
+                              variant="h6"
+                              fontWeight="bold"
+                              gutterBottom
+                              sx={{ mb: 3 }}
+                            >
+                              Customer Selected Products (
+                              {bookingData.productDetails.length})
+                            </Typography>
+                            <Grid container spacing={3}>
+                              {bookingData.productDetails.map((product) => (
+                                <Grid size={3} key={product.id}>
+                                  <Card
+                                    elevation={2}
+                                    sx={{
+                                      height: "100%",
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      transition:
+                                        "transform 0.2s, box-shadow 0.2s",
+                                      "&:hover": {
+                                        transform: "translateY(-4px)",
+                                        boxShadow: 8,
+                                      },
+                                    }}
+                                  >
+                                    <div className="relative w-full h-48">
+                                      <Image
+                                        src={product.image}
+                                        alt={product.productName}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                      />
+                                    </div>
+                                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                                      <Typography
+                                        variant="h6"
+                                        gutterBottom
+                                        sx={{
+                                          fontSize: "1.1rem",
+                                          fontWeight: "600",
+                                          mb: 2,
+                                          height: "2.8em",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          display: "-webkit-box",
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: "vertical",
+                                        }}
+                                      >
+                                        {product.productName}
+                                      </Typography>
+
+                                      <Stack spacing={1.5}>
+                                        <Box className="flex justify-between items-center">
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ fontWeight: 500 }}
+                                          >
+                                            Quantity
+                                          </Typography>
+                                          <Chip
+                                            label={product.quantity}
+                                            size="small"
+                                            color="primary"
+                                            variant="outlined"
+                                          />
+                                        </Box>
+
+                                        <Box className="flex justify-between items-center">
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ fontWeight: 500 }}
+                                          >
+                                            Price
+                                          </Typography>
+                                          <Typography
+                                            variant="body1"
+                                            color="primary"
+                                            sx={{ fontWeight: 600 }}
+                                          >
+                                            {formatCurrency(product.unitPrice)}
+                                          </Typography>
+                                        </Box>
+                                      </Stack>
+                                    </CardContent>
+                                    <CardActions
+                                      sx={{
+                                        bgcolor: "grey.50",
+                                        borderTop: 1,
+                                        borderColor: "grey.200",
+                                        p: 2,
+                                      }}
+                                    >
+                                      <Box className="flex justify-between items-center w-full">
+                                        <Typography
+                                          variant="body2"
+                                          color="text.secondary"
+                                          sx={{ fontWeight: 500 }}
+                                        >
+                                          Total
+                                        </Typography>
+                                        <Typography
+                                          variant="body1"
+                                          color="primary.main"
+                                          sx={{ fontWeight: 700 }}
+                                        >
+                                          {formatCurrency(
+                                            product.quantity * product.unitPrice
+                                          )}
+                                        </Typography>
+                                      </Box>
+                                    </CardActions>
+                                  </Card>
+                                </Grid>
+                              ))}
+                            </Grid>
+
+                            <Card
+                              elevation={2}
+                              sx={{
+                                mt: 3,
+                                borderRadius: 2,
+                              }}
+                            >
+                              <CardContent
+                                sx={{ py: 2, "&:last-child": { pb: 2 } }}
+                              >
+                                <Box className="flex justify-between items-center">
+                                  <Typography
+                                    variant="h6"
+                                    sx={{ fontWeight: 500 }}
+                                  >
+                                    Total Products Cost
+                                  </Typography>
+                                  <Typography
+                                    variant="h6"
+                                    sx={{ fontWeight: 700 }}
+                                  >
+                                    {formatCurrency(
+                                      bookingData.productDetails.reduce(
+                                        (total, product) =>
+                                          total +
+                                          product.quantity * product.unitPrice,
+                                        0
+                                      )
+                                    )}
+                                  </Typography>
+                                </Box>
+                              </CardContent>
+                            </Card>
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              textAlign: "center",
+                              py: 4,
+                              px: 2,
+                              bgcolor: "grey.50",
+                              borderRadius: 2,
+                            }}
+                          >
+                            <Typography
+                              variant="body1"
+                              color="text.secondary"
+                              sx={{ fontWeight: 500 }}
+                            >
+                              No products have been added yet.
+                            </Typography>
+                          </Box>
+                        )}
                       </CardContent>
                     </Card>
                   )}
@@ -1144,26 +1570,171 @@ const QuotationPage = () => {
                       <h3 className="text-lg font-bold mb-4">
                         Quotation Summary
                       </h3>
-                      <div className="flex justify-between items-center mb-2">
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <span>Materials Total:</span>
                         <span className="font-bold">
                           {formatCurrency(calculateMaterialTotal())}
                         </span>
-                      </div>
-                      <div className="flex justify-between items-center mb-2">
+                      </Box>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <span>Construction Total:</span>
                         <span className="font-bold">
                           {formatCurrency(calculateConstructionTotal())}
                         </span>
-                      </div>
+                      </Box>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                        <span>Products Total:</span>
+                        <span className="font-bold">
+                          {formatCurrency(calculateProductTotal())}
+                        </span>
+                      </Box>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                        <span>Customer Commitment Deposit Charged:</span>
+                        <span className="font-bold text-red">
+                          -{formatCurrency(500000)}
+                        </span>
+                      </Box>
                     </div>
 
-                    <div className="flex justify-between items-center mb-2 text-lg">
-                      <span>Grand Total:</span>
-                      <span className="font-bold">
-                        {formatCurrency(calculateGrandTotal())}
-                      </span>
-                    </div>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      className="border-b pb-4"
+                    >
+                      <FootTypo
+                        fontWeight={600}
+                        fontSize={16}
+                        footlabel="Subtotal:"
+                      />
+                      <FootTypo
+                        fontWeight={600}
+                        fontSize={16}
+                        footlabel={`${formatCurrency(
+                          calculateGrandTotal()
+                        )}`}
+                      />
+                    </Box>
+
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      className="bg-primary/10 p-4 rounded-lg"
+                    >
+                      <FootTypo
+                        fontWeight={700}
+                        fontSize={18}
+                        footlabel="Final Total:"
+                      />
+                      <FootTypo
+                        fontWeight={700}
+                        fontSize={18}
+                        footlabel={`${formatCurrency(
+                          calculateGrandTotal() - 500000
+                        )}`}
+                      />
+                    </Box>
+
+                    {bookingData?.productDetails &&
+                      bookingData.productDetails.length > 0 && (
+                        <Box sx={{ mt: 4 }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ mb: 1.5, fontWeight: 600 }}
+                          >
+                            Additional Products:
+                          </Typography>
+                          <Paper
+                            variant="outlined"
+                            sx={{
+                              borderRadius: 2,
+                              overflow: "hidden",
+                              bgcolor: "background.paper",
+                            }}
+                          >
+                            {bookingData.productDetails.map(
+                              (product, index) => (
+                                <Box
+                                  key={product.id}
+                                  sx={{
+                                    p: 1.5,
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    borderBottom:
+                                      index !==
+                                      bookingData.productDetails.length - 1
+                                        ? 1
+                                        : 0,
+                                    borderColor: "divider",
+                                    "&:hover": {
+                                      bgcolor: "action.hover",
+                                    },
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1.5,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        position: "relative",
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: 1,
+                                        overflow: "hidden",
+                                      }}
+                                    >
+                                      <Image
+                                        src={product.image}
+                                        alt={product.productName}
+                                        fill
+                                        className="object-cover"
+                                        sizes="48px"
+                                        unoptimized
+                                      />
+                                    </Box>
+                                    <Box>
+                                      <Typography
+                                        variant="body1"
+                                        sx={{ fontWeight: 500 }}
+                                      >
+                                        {product.productName}
+                                      </Typography>
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                      >
+                                        Quantity: {product.quantity}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                  <Box sx={{ textAlign: "right" }}>
+                                    <Typography
+                                      variant="body1"
+                                      sx={{ fontWeight: 600 }}
+                                    >
+                                      {formatCurrency(
+                                        product.quantity * product.unitPrice
+                                      )}
+                                    </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                    >
+                                      {formatCurrency(product.unitPrice)} /each
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              )
+                            )}
+                          </Paper>
+                        </Box>
+                      )}
                   </div>
                 </TabPanel>
               </TabPanels>
@@ -1187,6 +1758,9 @@ const QuotationPage = () => {
           )}
         </div>
       </div>
+      <AnimatePresence>
+        <ConfirmationDialog />
+      </AnimatePresence>
     </SellerWrapper>
   );
 };

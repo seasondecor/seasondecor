@@ -13,27 +13,33 @@ import {
   Box,
   Paper,
   Alert,
+  Dialog,
+  IconButton,
+  ButtonGroup,
+  Tooltip,
 } from "@mui/material";
 import StatusChip from "@/app/components/ui/statusChip/StatusChip";
 import { FaCheck } from "react-icons/fa6";
-import { MdCancel } from "react-icons/md";
+import { MdCancel, MdClose } from "react-icons/md";
 import Button from "@/app/components/ui/Buttons/Button";
 import { IoEyeOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { useRejectBooking } from "@/app/queries/book/book.query";
 import Avatar from "@/app/components/ui/Avatar/Avatar";
 import { useApproveBooking } from "@/app/queries/book/book.query";
-import { TbReportAnalytics } from "react-icons/tb";
+import { TbList, TbCalendar, TbReportAnalytics } from "react-icons/tb";
 import { useChangeBookingStatus } from "@/app/queries/book/book.query";
 import { MdOutlineEditNote } from "react-icons/md";
 import { FootTypo } from "@/app/components/ui/Typography";
 import { IoFilterOutline } from "react-icons/io5";
 import { GoQuestion } from "react-icons/go";
-import { LuClipboardList } from "react-icons/lu";
 import { FaTruck } from "react-icons/fa";
 import { IoBuild } from "react-icons/io5";
-import { MdOutlineFileUpload } from "react-icons/md";
+import { MdOutlineFileUpload, MdFilterListOff } from "react-icons/md";
 import RefreshButton from "@/app/components/ui/Buttons/RefreshButton";
+import CustomFullCalendar from "@/app/components/ui/fullcalendar/FullCalendar";
+import { useGetProviderMeetingForCustomer } from "@/app/queries/meeting/meeting.query";
+import { STATUS_CONFIG } from "@/app/constant/statusConfig";
 
 // Skeleton loader for the request table
 const RequestTableSkeleton = () => {
@@ -143,6 +149,14 @@ const SellerOrderManage = () => {
     descending: true,
   });
 
+  const [viewMode, setViewMode] = useState("list"); // 'grid' or 'calendar'
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const handleCloseCalendar = () => {
+    setIsCalendarOpen(false);
+    setViewMode("list");
+  };
+
   // Update pagination when filters change
   useEffect(() => {
     setPagination((prev) => ({
@@ -167,6 +181,11 @@ const SellerOrderManage = () => {
   const bookings = bookingsData?.data || [];
   const totalCount = bookingsData?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / pagination.pageSize) || 1;
+
+  const { data: meetingData, isPending: isMeetingLoading } =
+    useGetProviderMeetingForCustomer();
+
+  const meetings = meetingData?.data || [];
 
   // Status options for the filter
   const statusOptions = [
@@ -203,19 +222,17 @@ const SellerOrderManage = () => {
 
     // Helper function to set loading state for this specific booking
     const setLoading = (isLoading) => {
-      setBookingLoading(prev => ({
+      setBookingLoading((prev) => ({
         ...prev,
-        [bookingCode]: isLoading
+        [bookingCode]: isLoading,
       }));
     };
 
     // Helper function for routing to quotation creation
     const navigateToQuotation = () => {
-      router.push(
-        `/seller/quotation/create/${bookingCode}`
-      );
+      router.push(`/seller/quotation/create/${bookingCode}`);
     };
-    
+
     // Helper function to handle status changes with loading state
     const handleStatusChange = (callback) => {
       setLoading(true);
@@ -226,7 +243,7 @@ const SellerOrderManage = () => {
         },
         onError: () => {
           setLoading(false);
-        }
+        },
       });
     };
 
@@ -235,7 +252,7 @@ const SellerOrderManage = () => {
       setLoading(true);
       approveBooking(bookingCode, {
         onSuccess: () => setLoading(false),
-        onError: () => setLoading(false)
+        onError: () => setLoading(false),
       });
     };
 
@@ -244,7 +261,7 @@ const SellerOrderManage = () => {
       setLoading(true);
       rejectBooking(bookingCode, {
         onSuccess: () => setLoading(false),
-        onError: () => setLoading(false)
+        onError: () => setLoading(false),
       });
     };
 
@@ -321,20 +338,25 @@ const SellerOrderManage = () => {
     // Contracting status with quote
     if (status === 3 && isQuoteExisted) {
       return (
-        <FootTypo
-          footlabel="Preparing Contract"
-          className="!m-0 text-green font-medium"
-        />
+        <Alert
+          severity="info"
+          variant="outlined"
+          color="warning"
+          sx={{
+            paddingX: 1,
+            paddingY: 0.2,
+            borderRadius: 100,
+            justifyContent: "start",
+            width: "fit-content",
+          }}
+        >
+          Contracting
+        </Alert>
       );
     }
 
     if (status === 4) {
-      return (
-        <FootTypo
-          footlabel="Confirmed"
-          className="!m-0 text-green font-medium"
-        />
-      );
+      return <FootTypo footlabel="Confirmed" className=" text-green" />;
     }
 
     // Deposit paid status
@@ -344,7 +366,7 @@ const SellerOrderManage = () => {
           label="Preparing"
           className="bg-primary"
           onClick={() => handleStatusChange()}
-          icon={<LuClipboardList size={20} />}
+          icon={<TbReportAnalytics size={20} />}
           isLoading={isLoading}
         />
       );
@@ -410,7 +432,6 @@ const SellerOrderManage = () => {
       return (
         <Button
           label="Progress Tracking"
-          className=""
           onClick={() => router.push(`/seller/tracking/${bookingCode}`)}
           icon={<MdOutlineFileUpload size={20} />}
           isLoading={isLoading}
@@ -420,9 +441,7 @@ const SellerOrderManage = () => {
 
     // Cancelled status
     if (status === 13) {
-      return (
-        <FootTypo footlabel="Cancelled" className="text-red" />
-      );
+      return <FootTypo footlabel="Cancelled" className="text-red" />;
     }
 
     // Quote exists but not yet confirmed
@@ -433,9 +452,7 @@ const SellerOrderManage = () => {
     }
 
     // Default - No specific action
-    return (
-      <FootTypo footlabel="No action required"/>
-    );
+    return <FootTypo footlabel="No action required" />;
   };
 
   // Update the columns definition to use the ActionButtons component
@@ -443,22 +460,24 @@ const SellerOrderManage = () => {
     {
       header: "ID",
       accessorKey: "id",
-      cell: ({ row }) => (
-        <FootTypo footlabel={row.original.bookingId}/>
-      ),
+      cell: ({ row }) => <FootTypo footlabel={row.original.bookingId} />,
     },
     {
       header: "Code",
       accessorKey: "Code",
       cell: ({ row }) => (
-        <FootTypo footlabel={row.original.bookingCode} fontWeight="bold"/>
+        <FootTypo footlabel={row.original.bookingCode} fontWeight="bold" />
       ),
     },
     {
       header: "Created At",
       accessorKey: "createdAt",
       cell: ({ row }) => (
-        <FootTypo footlabel={new Date(row.original.createdAt).toLocaleDateString("vi-VN")}/>
+        <FootTypo
+          footlabel={new Date(row.original.createdAt).toLocaleDateString(
+            "vi-VN"
+          )}
+        />
       ),
     },
     {
@@ -472,15 +491,15 @@ const SellerOrderManage = () => {
       header: "From",
       accessorKey: "from",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <Box display="flex" alignItems="center" gap={1}>
           <Avatar
             userImg={row.original.customer.avatar}
             alt={row.original.customer.businessName}
             w={40}
             h={40}
           />
-          <FootTypo footlabel={row.original.customer.email}/>
-        </div>
+          <FootTypo footlabel={row.original.customer.fullName} />
+        </Box>
       ),
     },
 
@@ -491,17 +510,19 @@ const SellerOrderManage = () => {
     {
       header: "Detail",
       cell: ({ row }) => (
-        <div className="flex gap-2 relative">
-          <button
-            onClick={() =>
-              router.push(`/seller/request/${row.original.bookingCode}`)
-            }
-            className="inline-flex items-center gap-2 underline"
-          >
-            <IoEyeOutline size={20} />
-            View
-          </button>
-        </div>
+        <Box
+          component="button"
+          display="flex"
+          alignItems="center"
+          gap={1}
+          onClick={() =>
+            router.push(`/seller/request/${row.original.bookingCode}`)
+          }
+          className="hover:underline"
+        >
+          <IoEyeOutline size={20} />
+          View
+        </Box>
       ),
     },
     {
@@ -509,17 +530,18 @@ const SellerOrderManage = () => {
       cell: ({ row }) => {
         const isCommitted = row.original.isCommitDepositPaid;
         return (
-          <div className={`${
-            isCommitted 
-            ? "bg-success-light" 
-            : "bg-error-light"
-          }`}>
-            <Alert severity={isCommitted ? "success" : "error"} sx={{
-              paddingX: 0.1,
-              paddingY: 0.2,
-              borderRadius: 100,
-              justifyContent: "center",
-            }}>
+          <div
+            className={`${isCommitted ? "bg-success-light" : "bg-error-light"}`}
+          >
+            <Alert
+              severity={isCommitted ? "success" : "error"}
+              sx={{
+                paddingX: 0,
+                paddingY: 0.2,
+                borderRadius: 100,
+                justifyContent: "center",
+              }}
+            >
               {isCommitted ? "Committed" : "Not Committed"}
             </Alert>
           </div>
@@ -574,6 +596,7 @@ const SellerOrderManage = () => {
       </FormControl>
 
       <Button
+        icon={<MdFilterListOff size={20} />}
         label="Reset Filter"
         onClick={() =>
           setFilters({
@@ -585,44 +608,257 @@ const SellerOrderManage = () => {
     </div>
   );
 
+  // Function to get event color based on status
+  const getEventColor = (status) => {
+    // Get the booking status config from StatusChip
+    const bookingStatus = STATUS_CONFIG.booking[status];
+
+    // MUI theme color mapping to hex values
+    const colorMap = {
+      success: "#4caf50", // Green
+      warning: "#ff9800", // Orange
+      primary: "#2196f3", // Blue
+      error: "#f44336", // Red
+      default: "#9e9e9e", // Grey
+    };
+
+    return bookingStatus ? colorMap[bookingStatus.color] : colorMap.default;
+  };
+
+  // Function to get status label
+  const getStatusLabel = (status) => {
+    return STATUS_CONFIG.booking[status]?.label || "Unknown";
+  };
+
+  // Function to format events for the calendar
+  const formatEventsForCalendar = (bookings) => {
+    // Group bookings by date
+    const bookingsByDate = bookings.reduce((acc, booking) => {
+      const date = new Date(booking.createdAt).toISOString().split("T")[0];
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(booking);
+      return acc;
+    }, {});
+
+    // Create events array
+    return Object.entries(bookingsByDate).flatMap(([date, dateBookings]) => {
+      // Create individual events for each booking
+      const events = dateBookings.map((booking) => ({
+        id: booking.bookingCode,
+        title: `Request #${booking.bookingId}`,
+        start: booking.createdAt,
+        backgroundColor: getEventColor(booking.status),
+        borderColor: "transparent",
+        textColor: "#fff",
+        extendedProps: {
+          status: booking.status,
+          customerName: booking.customer.fullName,
+          customerEmail: booking.customer.email,
+          bookingCode: booking.bookingCode,
+          avatar: booking.customer.avatar,
+          statusLabel: getStatusLabel(booking.status),
+          statusColor: getEventColor(booking.status),
+          totalRequests: dateBookings.length,
+        },
+      }));
+
+      return events;
+    });
+  };
+
+  // Handle calendar event click
+  const handleEventClick = (info) => {
+    const { bookingCode } = info.event.extendedProps;
+    router.push(`/seller/request/${bookingCode}`);
+  };
+
+  // Custom event content renderer
+  const renderEventContent = (eventInfo) => ({
+    html: `
+      <div class="flex flex-col gap-1 p-1.5 w-full h-full">
+        <div class="flex items-center gap-2">
+          <img 
+            src="${
+              eventInfo.event.extendedProps.avatar || "/img/user-ava.jpg"
+            }" 
+            alt="${eventInfo.event.extendedProps.customerName || "User"}"
+            class="w-5 h-5 rounded-full ring-1 ring-gray-300"
+            onerror="this.onerror=null; this.src='/img/user-ava.jpg';"
+          />
+          <span class="font-medium text-sm truncate">
+            ${eventInfo.event.title}
+          </span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs truncate">
+            ${eventInfo.event.extendedProps.customerName || "Unknown User"}
+          </span>
+          <span class="text-xs font-semibold ">
+            ${eventInfo.event.extendedProps.statusLabel}
+          </span>
+        </div>
+      </div>
+    `,
+  });
+
   return (
     <SellerWrapper>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Request Management</h1>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Box display="flex" alignItems="center" gap={2}>
+          <h1 className="text-2xl font-bold">Request Management</h1>
+
+          <ButtonGroup
+            variant="outlined"
+            size="small"
+            sx={{
+              gap: 1,
+              "& .MuiButton-root": {
+                borderColor: "divider",
+                "&:hover": {
+                  borderColor: "primary.main",
+                  bgcolor: "action.hover",
+                },
+              },
+            }}
+          >
+            <Tooltip title="List View">
+              <Button
+                onClick={() => setViewMode("list")}
+                className={viewMode === "list" ? "bg-primary" : ""}
+                icon={<TbList size={20} />}
+                label="List"
+              />
+            </Tooltip>
+            <Tooltip title="Calendar View">
+              <Button
+                onClick={() => {
+                  setViewMode("calendar");
+                  setIsCalendarOpen(true);
+                }}
+                className={
+                  viewMode === "calendar" ? "!bg-primary !text-white" : ""
+                }
+                icon={<TbCalendar size={20} />}
+                label="Calendar"
+              />
+            </Tooltip>
+          </ButtonGroup>
+        </Box>
+
         <RefreshButton
           onRefresh={refetch}
           isLoading={isLoading}
           tooltip="Refresh request list"
         />
-      </div>
+      </Box>
+
+      {/* Calendar Dialog */}
+      <Dialog
+        fullScreen
+        open={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        sx={{
+          "& .MuiDialog-paper": {
+            bgcolor: "background.default",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            p: 3,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: 1,
+            borderColor: "divider",
+            position: "relative",
+            bgcolor: "background.paper",
+            boxShadow: 1,
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2}>
+            <h2 className="text-xl font-semibold">Request Calendar View</h2>
+          </Box>
+          <Tooltip title="Close">
+            <IconButton
+              onClick={handleCloseCalendar}
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  color: "text.primary",
+                  bgcolor: "action.hover",
+                },
+              }}
+            >
+              <MdClose size={24} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        <Box
+          sx={{
+            p: 3,
+            height: "calc(100vh - 70px)",
+          }}
+        >
+          <CustomFullCalendar
+            events={formatEventsForCalendar(bookings)}
+            eventClick={handleEventClick}
+            eventContent={renderEventContent}
+            height="100%"
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+            }}
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            eventClassNames="overflow-hidden hover:opacity-90 transition-opacity"
+            dayCellClassNames="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            eventMinHeight={80}
+            eventDisplay="block"
+          />
+        </Box>
+      </Dialog>
 
       <FilterSelectors />
 
-      {isLoading && bookings.length === 0 ? (
-        <RequestTableSkeleton />
-      ) : bookings.length === 0 && !isLoading ? (
-        <div className="">
-          <h2 className="text-xl font-semibold mb-4">No Orders Found</h2>
-          <p>
-            {filters.status
-              ? "No requests match your filter criteria. Try adjusting your filters."
-              : "You don't have any requests at the moment."}
-          </p>
-        </div>
-      ) : (
-        <DataTable
-          data={bookings}
-          columns={columns}
-          isLoading={isLoading}
-          showPagination={true}
-          pageSize={pagination.pageSize}
-          initialPageIndex={tablePageIndex}
-          manualPagination={true}
-          manualSorting={false}
-          pageCount={totalPages}
-          onPaginationChange={handlePaginationChange}
-          totalCount={totalCount}
-        />
+      {viewMode === "list" && (
+        <>
+          {isLoading && bookings.length === 0 ? (
+            <RequestTableSkeleton />
+          ) : bookings.length === 0 && !isLoading ? (
+            <div className="">
+              <h2 className="text-xl font-semibold mb-4">No Orders Found</h2>
+              <p>
+                {filters.status
+                  ? "No requests match your filter criteria. Try adjusting your filters."
+                  : "You don't have any requests at the moment."}
+              </p>
+            </div>
+          ) : (
+            <DataTable
+              data={bookings}
+              columns={columns}
+              isLoading={isLoading}
+              showPagination={true}
+              pageSize={pagination.pageSize}
+              initialPageIndex={tablePageIndex}
+              manualPagination={true}
+              manualSorting={false}
+              pageCount={totalPages}
+              onPaginationChange={handlePaginationChange}
+              totalCount={totalCount}
+            />
+          )}
+        </>
       )}
     </SellerWrapper>
   );

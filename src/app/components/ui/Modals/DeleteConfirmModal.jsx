@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-
 import Modal from "../Modal";
 import Heading from "./components/Heading";
 import { ClipLoader } from "react-spinners";
@@ -18,6 +17,7 @@ import { useCancelBookingRequest } from "@/app/queries/book/book.query";
 import { toast } from "sonner";
 import { FootTypo } from "../Typography";
 import { useRemoveTracking } from "@/app/queries/tracking/tracking.query";
+import { Alert } from "@mui/material";
 
 const DeleteConfirmModal = () => {
   const deleteConfirmModal = useDeleteConfimModal();
@@ -35,16 +35,14 @@ const DeleteConfirmModal = () => {
   const shouldFetchCancelTypes =
     deleteConfirmModal.isOpen && deleteConfirmModal.type === "request";
 
-  const { data: cancelType } = useGetCancelType(
-    shouldFetchCancelTypes
-  );
+  const { data: cancelType } = useGetCancelType(shouldFetchCancelTypes);
 
   // Track loading state for all mutations
   const isLoading =
     deleteMutation.isPending ||
     cancelOrderMutation.isPending ||
     cancelRequestMutation.isPending ||
-    removeTrackingMutation.isPending
+    removeTrackingMutation.isPending;
   // Reset form values when modal opens/closes
   useEffect(() => {
     if (!deleteConfirmModal.isOpen) {
@@ -102,7 +100,7 @@ const DeleteConfirmModal = () => {
         onError: (error) => {
           console.error("Error deleting tracking:", error);
         },
-      }); 
+      });
     }
   };
 
@@ -120,7 +118,7 @@ const DeleteConfirmModal = () => {
     }
 
     if (type === "tracking") {
-      return `Are you sure you want to delete this ${title}`
+      return `Are you sure you want to delete this ${title}`;
     }
 
     return `Are you sure you want to delete this ${title}?`;
@@ -196,19 +194,10 @@ const DeleteConfirmModal = () => {
   const footerContent = (
     <div className="flex flex-col gap-4 mt-3 ">
       {deleteConfirmModal.type === "request" && (
-        <div className="w-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <div className="text-amber-600 dark:text-amber-400 mt-0.5">
-              <IoWarningOutline size={20} />
-            </div>
-            <div>
-              <FootTypo
-                footlabel="Since your request is being processed by provider, you can only cancel it if you have a valid reason and provider agrees to cancel it."
-                className="text-sm break-words text-amber-700 dark:text-amber-200 leading-relaxed"
-              />
-            </div>
-          </div>
-        </div>
+        <Alert severity="warning">
+          Since your request is being processed by provider, you can only cancel
+          it if you have a valid reason and provider agrees to cancel it.
+        </Alert>
       )}
     </div>
   );

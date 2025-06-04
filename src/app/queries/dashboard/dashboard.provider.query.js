@@ -64,7 +64,7 @@ export function useGetPaginatedProviderTransactions(paginationParams = {}) {
 
         if (params.paymentType) url += `&PaymentType=${params.paymentType}`;
 
-        if (params.TransactionType) url += `&TransactionType=${params.TransactionType}`;
+        if (params.transactionType) url += `&TransactionType=${params.transactionType}`;
 
         if (params.sortBy) url += `&SortBy=${params.sortBy}`;
 

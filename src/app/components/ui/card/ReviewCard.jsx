@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import Avatar from "../Avatar/Avatar";
 import { FootTypo } from "@/app/components/ui/Typography";
 import { Rating } from "@mui/material";
-import { formatDate } from "@/app/helpers";
+import { formatDate, formatTimeAgo } from "@/app/helpers";
 import Image from "next/image";
+import { Box } from "@mui/material";
+import { LuDot } from "react-icons/lu";
 
 const ReviewCard = ({
   comment,
@@ -18,26 +20,25 @@ const ReviewCard = ({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="ReviewCard mb-10">
-      <div className="flex flex-col max-w-[400px]">
+    <Box className="ReviewCard mb-10">
+      <Box className="flex flex-col max-w-[400px]">
         {/* User Info and Date */}
-        <div className="flex items-center gap-3 mb-3">
+        <Box className="flex items-center gap-3 mb-3">
           <Avatar w={48} h={48} userImg={userAvatar} />
           <div className="flex flex-col">
-            <FootTypo
-              footlabel={username || "Anonymous"}
-              className="!m-0 text-lg font-semibold"
-            />
+            <FootTypo footlabel={username || "Anonymous"} fontWeight="bold" />
             <span className="text-sm text-gray-500">
               {formatDate(createAt)}
             </span>
           </div>
-        </div>
+        </Box>
 
         {/* Rating and Date */}
-        <div className="flex items-center gap-2 mb-2">
+        <Box display="flex" justifyContent="start" alignItems="center">
           <Rating value={rate || 0} readOnly precision={0.5} size="small" />
-        </div>
+          <LuDot />
+          <FootTypo footlabel={formatTimeAgo(createAt)} fontWeight="bold" />
+        </Box>
         <div className="text-sm">
           <p
             className={`whitespace-pre-line break-words ${
@@ -59,8 +60,8 @@ const ReviewCard = ({
 
         {/* Review Images Grid */}
         {images && images.length > 0 && (
-          <div className="mt-4">
-            <div className="grid grid-cols-3 gap-2">
+          <Box className="mt-4">
+            <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={2}>
               {images.map((img, index) => (
                 <div
                   key={index}
@@ -75,11 +76,11 @@ const ReviewCard = ({
                   />
                 </div>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,4 +1,5 @@
 import { TiArrowSortedUp, TiArrowSortedDown } from "react-icons/ti";
+import { formatDistanceToNow } from "date-fns";
 
 export const stripHtmlTags = (html) => {
   if (!html) return "";
@@ -187,18 +188,18 @@ export const formatDateTime = (dateString) => {
   const date = new Date(dateString || Date.now());
 
   // Format date as DD/MM/YYYY
-  const formattedDate = date.toLocaleDateString("en-GB", {
+  const formattedDate = date.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 
   // Format time as HH:MM AM/PM (12-hour format)
-  const formattedTime = date.toLocaleTimeString("en-US", {
+  const formattedTime = date.toLocaleTimeString("vi-VN", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  });
+  }).replace("SA", "AM").replace("CH", "PM");
 
   return { date: formattedDate, time: formattedTime };
 };
@@ -237,5 +238,23 @@ export const renderAttachment = (url) => {
         {url.split('/').pop()}
       </a>
     );
+  }
+};
+
+// Add this function to format number with thousand separators
+export const formatMoney = (value) => {
+  if (!value) return "";
+  // Remove any non-digit characters
+  const number = value.replace(/\D/g, "");
+  // Format with thousand separator
+  return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+export const formatTimeAgo = (dateString) => {
+  try {
+    const date = new Date(dateString);
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch (error) {
+    return "some time ago";
   }
 };

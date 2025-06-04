@@ -10,11 +10,12 @@ import {
   IconBrandTabler,
   IconChartBarPopular,
   IconSettings,
-  IconFileInfo
+  IconFileInfo,
 } from "@tabler/icons-react";
 import { cn } from "@/app/utils/Utils";
 import ScrollToTop from "@/app/components/ScrollToTop";
 import { usePathname } from "next/navigation";
+import { Box } from "@mui/material";
 
 const SidebarLinkWithActiveState = ({ link }) => {
   const pathname = usePathname();
@@ -55,7 +56,7 @@ export default function AdminWrapper({ children }) {
     },
     {
       label: "Settings",
-      href: "#",
+      href: "/admin/setting",
       icon: <IconSettings className=" h-5 w-5 flex-shrink-0" />,
     },
   ];
@@ -63,18 +64,26 @@ export default function AdminWrapper({ children }) {
   return (
     <div
       className={cn(
-        "mx-auto flex min-h-screen w-full flex-col rounded-md md:flex-row"
+        "mx-auto flex min-h-screen w-full flex-col rounded-md md:flex-row overflow-x-clip"
       )}
     >
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="mt-8 flex flex-col gap-4">
+          <Box
+            display="flex"
+            flexDirection="column"
+            flex={1}
+            sx={{
+              overflowX: "hidden",
+              overflowY: "auto",
+            }}
+          >
+            <Box display="flex" flexDirection="column" gap={2} mt={2}>
               {links.map((link, idx) => (
                 <SidebarLinkWithActiveState key={idx} link={link} />
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         </SidebarBody>
       </Sidebar>
       <ScrollToTop />
@@ -86,12 +95,17 @@ export default function AdminWrapper({ children }) {
 // Dummy dashboard component with content
 const Dashboard = ({ props }) => {
   return (
-    <div className="flex flex-1">
-      <div className="flex h-full w-full flex-col gap-2 rounded-tl-2xl border border-neutral-200 p-2 md:p-10">
-        <div className="flex flex-grow flex-col items-start justify-start">
-          {props}
-        </div>
-      </div>
-    </div>
+    <Box display="flex" flex={1}>
+      <Box
+        display="flex"
+        flexDirection="column"
+        width="100%"
+        borderLeft="1px solid #e0e0e0"
+        borderRadius={2}
+        p={4}
+      >
+        {props}
+      </Box>
+    </Box>
   );
 };

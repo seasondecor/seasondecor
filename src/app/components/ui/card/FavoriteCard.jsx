@@ -14,11 +14,11 @@ import { seasons } from "@/app/constant/season";
 import { TbShoppingBagCheck } from "react-icons/tb";
 import { IoIosPricetag } from "react-icons/io";
 import { formatCurrency } from "@/app/helpers";
+import { Box } from "@mui/material";
 
 const FavoriteCard = ({
   image,
   name,
-  description,
   location,
   price,
   rating,
@@ -30,7 +30,6 @@ const FavoriteCard = ({
   onRemoveFavorite,
   onClick,
   madeIn,
-  shipForm,
   totalSold,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -76,32 +75,47 @@ const FavoriteCard = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="inline-flex items-center h-0">
-        <div className="absolute top-0 left-0 w-fit rounded-full p-1">
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box position="absolute" top={0} left={5}>
           <CiSquareRemove
             size={30}
             className="hover:bg-rose-500 hover:text-white transition-all duration-300 rounded-lg"
             onClick={onRemoveFavorite}
           />
-        </div>
+        </Box>
         {isService ? (
-          <div className="absolute top-0 right-0 w-fit bg-yellow rounded-bl-lg p-1">
-            <FootTypo
-              footlabel="Service"
-              className=" !m-0 text-sm font-semibold"
-            />
-          </div>
+          <Box
+            position="absolute"
+            top={0}
+            right={0}
+            width="fit-content"
+            borderRadius="10px"
+            p={1}
+            className="bg-yellow"
+          >
+            <FootTypo footlabel="Service" fontWeight="bold" />
+          </Box>
         ) : (
-          <div className="absolute top-0 right-0 w-fit bg-yellow rounded-bl-lg p-1">
-            <FootTypo
-              footlabel="Product"
-              className=" !m-0 text-sm font-semibold"
-            />
-          </div>
+          <Box
+            position="absolute"
+            top={0}
+            right={0}
+            width="fit-content"
+            borderRadius="10px"
+            p={1}
+            className="bg-yellow"
+          >
+            <FootTypo footlabel="Product" fontWeight="bold" />
+          </Box>
         )}
-      </div>
+      </Box>
 
-      <div className="flex flex-col h-full" onClick={onClick}>
+      <Box
+        display="flex"
+        flexDirection="column"
+        height="100%"
+        onClick={onClick}
+      >
         <div className="relative w-full h-48 overflow-hidden">
           <Image
             src={imageUrl}
@@ -125,13 +139,18 @@ const FavoriteCard = ({
 
         {/* Content */}
         {isService ? (
-          <div
-            className="p-3 flex flex-col flex-grow space-y-3"
+          <Box
+            display="flex"
+            flexDirection="column"
+            flexGrow={1}
+            gap={2}
             onClick={handleClick}
           >
             <FootTypo
               footlabel={name}
-              className="!m-0 font-semibold text-lg mb-1"
+              fontWeight="bold"
+              fontSize="20px"
+              mb={1}
             />
             <div className="flex flex-wrap gap-2 items-center">
               {Array.isArray(season) && season.length > 0 ? (
@@ -156,13 +175,9 @@ const FavoriteCard = ({
               )}
             </div>
 
-
             <div className="flex items-center gap-1">
               <MdLocationOn size={20} />
-              <FootTypo
-                footlabel={location}
-                className="!m-0 text-sm font-semibold line-clamp-2"
-              />
+              <FootTypo footlabel={location} className="line-clamp-2" />
             </div>
 
             <div className="mt-auto">
@@ -171,15 +186,21 @@ const FavoriteCard = ({
                 <span className="text-sm">{rating || "No ratings"}</span>
               </div>
             </div>
-          </div>
+          </Box>
         ) : (
-          <div
-            className="p-3 flex flex-col flex-grow space-y-3"
+          <Box
+            display="flex"
+            flexDirection="column"
+            flexGrow={1}
+            gap={2}
             onClick={handleClick}
           >
             <FootTypo
               footlabel={name}
-              className="!m-0 font-semibold text-lg mb-1 line-clamp-1"
+              fontWeight="bold"
+              fontSize="20px"
+              className="line-clamp-1"
+              mb={1}
             />
 
             <div className="flex items-center gap-2">
@@ -209,7 +230,7 @@ const FavoriteCard = ({
 
             <div className="mt-auto">
               <div className="flex items-center gap-1 mb-2">
-                <IoIosStar size={20}/>
+                <IoIosStar size={20} />
                 <span className="text-sm">{rating || "No ratings"}</span>
               </div>
             </div>
@@ -225,9 +246,9 @@ const FavoriteCard = ({
                 className="!m-0 text-lg font-semibold "
               />
             </div>
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </BorderBox>
   );
 };

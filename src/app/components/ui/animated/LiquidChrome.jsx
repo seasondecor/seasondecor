@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useLayoutEffect } from "react";
 import { Renderer, Program, Mesh, Triangle } from "ogl";
 
 export const LiquidChrome = ({
@@ -12,7 +12,7 @@ export const LiquidChrome = ({
 }) => {
   const containerRef = useRef(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!containerRef.current) return;
 
     const container = containerRef.current;
@@ -119,8 +119,14 @@ export const LiquidChrome = ({
       resUniform[1] = gl.canvas.height;
       resUniform[2] = gl.canvas.width / gl.canvas.height;
     }
-    window.addEventListener("resize", resize);
-    resize();
+    
+    // Use ResizeObserver for more reliable element resize detection
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+    });
+
+    // Observe the container element
+    resizeObserver.observe(container);
 
     // Mouse and touch move handlers for interactivity.
     function handleMouseMove(event) {
@@ -163,7 +169,8 @@ export const LiquidChrome = ({
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
+      // Disconnect the ResizeObserver
+      resizeObserver.disconnect();
       if (interactive) {
         container.removeEventListener("mousemove", handleMouseMove);
         container.removeEventListener("touchmove", handleTouchMove);

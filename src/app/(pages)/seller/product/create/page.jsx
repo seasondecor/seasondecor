@@ -5,7 +5,6 @@ import SellerWrapper from "../../components/SellerWrapper";
 import Stepper, { Step } from "@/app/components/ui/animated/Stepper";
 import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
-import Input from "@/app/components/ui/Inputs/Input";
 import { TbCurrencyDong } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import { Field } from "@headlessui/react";
@@ -22,6 +21,7 @@ import { toast } from "sonner";
 import { Divider } from "@mui/material";
 import { useGetListSeason } from "@/app/queries/list/category.list.query";
 import MultiSelectChip from "@/app/components/ui/chip/Chip";
+import { TextField, InputAdornment } from "@mui/material";
 
 const ProductCreate = () => {
   const { user } = useUser();
@@ -107,6 +107,7 @@ const ProductCreate = () => {
       providerId: "",
     },
   });
+  
 
   const providerId = dataProvider?.id;
 
@@ -125,7 +126,9 @@ const ProductCreate = () => {
       const formData = new FormData();
       formData.append("ProductName", data.name);
       formData.append("Description", data.description);
-      formData.append("ProductPrice", data.price);
+      // Convert price string to number by removing commas and converting to integer
+      const cleanPrice = data.price.replace(/[,\.]/g, '');
+      formData.append("ProductPrice", cleanPrice);
       formData.append("Quantity", quantity);
       formData.append("MadeIn", data.madein);
       formData.append("ShipFrom", data.shipForm);
@@ -204,17 +207,28 @@ const ProductCreate = () => {
         <Step validateStep={validateStep}>
           <div className="step-1 form-detail">
             <BodyTypo bodylabel="Basic information" fontWeight="bold" />
-            <div className="space-y-10 mt-3">
-              <div className="form flex items-center gap-5">
-                <FootTypo footlabel="Product Name" className="w-auto" />
-                <Input
-                  id="name"
+            <div className="space-y-6 mt-3">
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Product Name" />
+                <TextField
                   placeholder="Product name"
-                  required
-                  className="pl-3"
-                  register={register}
+                  size="small"
+                  {...register("name", { required: "Product name is required" })}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  sx={{
+                    width: "100%",
+                    maxWidth: "300px",
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
                 />
               </div>
+
               <Divider
                 textAlign="left"
                 sx={{
@@ -225,20 +239,58 @@ const ProductCreate = () => {
               >
                 <FootTypo footlabel="Price & Description" fontWeight="bold" />
               </Divider>
-              <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-                <FootTypo footlabel="Product Price" className="w-auto" />
-                <Input
-                  id="price"
+
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Product Price" />
+                <TextField
                   placeholder="Price"
-                  required
-                  icon={<TbCurrencyDong size={20} />}
-                  formatPrice
-                  control={control}
-                  register={register}
+                  size="small"
+                  type="text"
+                  {...register("price", { 
+                    required: "Price is required",
+                    validate: {
+                      positive: (value) => {
+                        // Remove commas and convert to number
+                        const numValue = Number(value.replace(/[,\.]/g, ''));
+                        return numValue > 0 || "Price must be greater than 0";
+                      }
+                    }
+                  })}
+                  error={!!errors.price}
+                  helperText={errors.price?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <TbCurrencyDong size={20} />
+                      </InputAdornment>
+                    ),
+                    inputMode: 'numeric',
+                    onChange: (e) => {
+                      // Remove non-numeric characters except commas
+                      const value = e.target.value.replace(/[^\d]/g, '');
+                      if (value) {
+                        const formattedValue = new Intl.NumberFormat('vi-VN').format(value);
+                        setValue("price", formattedValue);
+                      } else {
+                        setValue("price", "");
+                      }
+                    }
+                  }}
+                  sx={{
+                    width: "100%",
+                    maxWidth: "300px",
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
                 />
               </div>
-              <div className="form inline-flex items-start w-full h-full my-5 gap-5">
-                <FootTypo footlabel="Descriptions" className="w-auto" />
+
+              <div className="form flex flex-col gap-2">
+                <FootTypo footlabel="Descriptions" />
                 <div className="w-full">
                   <Field>
                     <TipTapEditor
@@ -260,7 +312,7 @@ const ProductCreate = () => {
           </div>
         </Step>
         <Step>
-          <div className="step-2 form space-y-10">
+          <div className="step-2 form space-y-6">
             <Divider
               textAlign="left"
               sx={{
@@ -271,45 +323,68 @@ const ProductCreate = () => {
             >
               <FootTypo footlabel="Additional information" fontWeight="bold" />
             </Divider>
-            <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-              <FootTypo footlabel="Quantity" className="w-auto" />
-              <ExampleNumberField
-                value={quantity}
-                onChange={(value) => setQuantity(value)}
-              />
-            </div>
-            <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-              <FootTypo footlabel="Origin" className="w-auto" />
-              <Input
-                id="madein"
-                placeholder="Made in"
-                type="text"
-                required
-                register={register}
-                className="pl-3"
-              />
-            </div>
-            <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-              <FootTypo footlabel="Ship From" className="w-auto" />
 
-              <Input
-                id="shipForm"
-                placeholder=""
-                defaultValue={dataProvider?.address}
-                disabled={true}
-                required
-                register={register}
-                className="pl-3"
-              />
-              <FootTypo
-                footlabel="Note: If this is not your address, please update your profile"
-                className=" text-gray-500"
-                fontStyle="italic"
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Quantity" />
+              <div className="w-full max-w-[300px]">
+                <ExampleNumberField
+                  value={quantity}
+                  onChange={(value) => setQuantity(value)}
+                />
+              </div>
+            </div>
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Origin" />
+              <TextField
+                placeholder="Made in"
+                size="small"
+                {...register("madein", { required: "Origin is required" })}
+                error={!!errors.madein}
+                helperText={errors.madein?.message}
+                sx={{
+                  width: "100%",
+                  maxWidth: "300px",
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'white',
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  },
+                }}
               />
             </div>
-            <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-              <FootTypo footlabel="Season Tags" className="w-auto" />
-              <div>
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Ship From" />
+              <div className="flex flex-col gap-1">
+                <TextField
+                  defaultValue={dataProvider?.address}
+                  size="small"
+                  disabled
+                  {...register("shipForm", { required: true })}
+                  sx={{
+                    width: "100%",
+                    maxWidth: "300px",
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+                <FootTypo
+                  footlabel="Note: If this is not your address, please update your profile"
+                  className="text-gray-500"
+                  fontStyle="italic"
+                />
+              </div>
+            </div>
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Season Tags" />
+              <div className="w-full">
                 {dataSeason ? (
                   <MultiSelectChip
                     options={dataSeason.map((season) => ({
@@ -324,9 +399,10 @@ const ProductCreate = () => {
                 )}
               </div>
             </div>
-            <div className="form inline-flex items-center w-full h-full my-5 gap-5">
-              <FootTypo footlabel="Category" className="w-auto" />
-              <div className="w-[200px]">
+
+            <div className="form flex flex-col gap-2">
+              <FootTypo footlabel="Category" />
+              <div className="w-full max-w-[300px]">
                 <DropdownSelectReturnObj
                   options={CategoryOptions}
                   value={selectedCategory}
@@ -335,10 +411,10 @@ const ProductCreate = () => {
                   valueKey="value"
                   returnObject={true}
                   lisboxClassName="mt-10"
-                  className="w-full"
                 />
               </div>
             </div>
+
             <Divider
               textAlign="left"
               sx={{

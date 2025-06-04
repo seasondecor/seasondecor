@@ -2,7 +2,6 @@
 
 import React, { useCallback, useState } from "react";
 import { Label } from "@/app/components/ui/Inputs/Label";
-import Input from "@/app/components/ui/Inputs/Input";
 import ThemeSwitch from "@/app/components/ThemeSwitch";
 import Logo from "@/app/components/Logo";
 import Link from "next/link";
@@ -10,7 +9,7 @@ import Button2 from "@/app/components/ui/Buttons/Button2";
 import LiquidChrome from "@/app/components/ui/animated/LiquidChrome";
 import { EditAvatar } from "@/app/components/logic/EditAvatar";
 import { useUser } from "@/app/providers/userprovider";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useCreateProviderProfile } from "@/app/queries/user/provider.query";
@@ -18,16 +17,18 @@ import { useRouter } from "next/navigation";
 import { FaAngleRight } from "react-icons/fa6";
 import TipTapEditor from "@/app/components/ui/editors/TipTapEditor";
 import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
-import { Divider } from "@mui/material";
+import { 
+  Divider, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem, 
+  FormHelperText,
+  TextField,
+  Box
+} from "@mui/material";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
 import { useGetProviderOptions } from "@/app/queries/user/provider.query";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-} from "@mui/material";
 import { toast } from "sonner";
 
 const schema = yup.object().shape({
@@ -35,7 +36,11 @@ const schema = yup.object().shape({
   bio: yup.string().required("Bio is required"),
   phone: yup.string().required("Phone is required"),
   address: yup.string().required("Address is required"),
-  yearOfExperience: yup.number().required("Year of experience is required"),
+  yearOfExperience: yup.number()
+    .required("Year of experience is required")
+    .min(1, "Years of experience must be at least 1")
+    .integer("Years of experience must be a whole number")
+    .typeError("Please enter a valid number"),
   pastWorkPlaces: yup.string().required("Past work places is required"),
   pastProjects: yup.string().required("Past projects is required"),
   skillId: yup.number().required("Skill is required"),
@@ -58,7 +63,7 @@ export default function RegistrationPage() {
   const style = providerOptions?.decorationStyles;
 
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
     setValue,
@@ -149,7 +154,7 @@ export default function RegistrationPage() {
         <LiquidChrome 
           baseColor={[0.1, 0.1, 0.1]} 
           speed={0.1} 
-          amplitude={0} 
+          amplitude={0.1} 
           interactive={false}
         />
       </div>
@@ -181,75 +186,87 @@ export default function RegistrationPage() {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            <div className="flex justify-center sm:justify-start">
+            <Box display="flex" sm="flex" justifyContent="start">
               <EditAvatar
                 userImg={user?.avatar}
                 className="justify-center sm:justify-start"
               />
-            </div>
+            </Box>
 
             <div className="mb-2 sm:mb-4 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
               <div className="flex w-full flex-col space-y-1 sm:space-y-2">
-                <Label htmlFor="providerName">Provider's name *</Label>
-                <Input
-                  id="name"
-                  placeholder="John Doe"
-                  type="text"
-                  required
-                  className="pl-3"
-                  register={register}
+                <Label htmlFor="providerName">Display name *</Label>
+                <Controller
+                  name="name"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      placeholder="John Doe"
+                      error={!!errors.name}
+                      helperText={errors.name?.message}
+                      className="dark:bg-neutral-800"
+                    />
+                  )}
                 />
-                {errors.name && (
-                  <p className="text-red text-sm">{errors.name.message}</p>
-                )}
               </div>
               <div className="flex w-full flex-col space-y-1 sm:space-y-2">
-                <Label htmlFor="providerPhone"> Phone number *</Label>
-                <Input
-                  id="phone"
-                  placeholder="+84"
-                  type="number"
-                  required
-                  className="pl-3"
-                  register={register}
+                <Label htmlFor="providerPhone">Phone number *</Label>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      type="tel"
+                      placeholder="+84"
+                      error={!!errors.phone}
+                      helperText={errors.phone?.message}
+                      className="dark:bg-neutral-800"
+                    />
+                  )}
                 />
-                {errors.phone && (
-                  <p className="text-red text-sm">{errors.phone.message}</p>
-                )}
               </div>
             </div>
 
             <div className="space-y-1 sm:space-y-2">
               <Label htmlFor="providerBio">Bio *</Label>
               <div className="w-full">
-                <TipTapEditor
-                  id="bio"
-                  //value={watch("bio") || ""}
-                  onChange={(html) => setValue("bio", html)}
-                  placeholder="Introduce yourself..."
-                  register={register}
-                  required={true}
-                  errors={errors}
+                <Controller
+                  name="bio"
+                  control={control}
+                  render={({ field }) => (
+                    <TipTapEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Introduce yourself..."
+                      required={true}
+                      error={!!errors.bio}
+                      helperText={errors.bio?.message}
+                    />
+                  )}
                 />
-                {errors.bio && (
-                  <p className="text-red text-sm">{errors.bio.message}</p>
-                )}
               </div>
             </div>
 
             <div className="space-y-1 sm:space-y-2">
               <Label htmlFor="providerAddress">Current Address *</Label>
-              <Input
-                id="address"
-                placeholder="ward, district, city"
-                type="text"
-                required
-                className="pl-3"
-                register={register}
+              <Controller
+                name="address"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    placeholder="ward, district, city"
+                    error={!!errors.address}
+                    helperText={errors.address?.message}
+                    className="dark:bg-neutral-800"
+                  />
+                )}
               />
-              {errors.address && (
-                <p className="text-red text-sm">{errors.address.message}</p>
-              )}
             </div>
 
             <Divider
@@ -262,51 +279,64 @@ export default function RegistrationPage() {
 
             <div className="mb-2 sm:mb-4 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
               <div className="flex w-full flex-col space-y-1 sm:space-y-2">
-                <Label htmlFor="yearOfExperience">
-                  Years of experience *
-                </Label>
-                <Input
-                  id="yearOfExperience"
-                  placeholder="5"
-                  type="number"
-                  required
-                  className="pl-3"
-                  register={register}
+                <Label htmlFor="yearOfExperience">Years of experience *</Label>
+                <Controller
+                  name="yearOfExperience"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      type="number"
+                      InputProps={{ inputProps: { min: 1 } }}
+                      placeholder="5"
+                      error={!!errors.yearOfExperience}
+                      helperText={errors.yearOfExperience?.message}
+                      className="dark:bg-neutral-800"
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (value > 0 || e.target.value === "") {
+                          field.onChange(e);
+                        }
+                      }}
+                    />
+                  )}
                 />
-                {errors.yearOfExperience && (
-                  <p className="text-red text-sm">
-                    {errors.yearOfExperience.message}
-                  </p>
-                )}
               </div>
               <div className="flex w-full flex-col space-y-1 sm:space-y-2">
                 <Label htmlFor="pastWorkPlaces">Past Work Places *</Label>
-                <Input
-                  id="pastWorkPlaces"
-                  placeholder="Previous employers"
-                  type="text"
-                  required
-                  className="pl-3"
-                  register={register}
+                <Controller
+                  name="pastWorkPlaces"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      placeholder="Previous employers"
+                      error={!!errors.pastWorkPlaces}
+                      helperText={errors.pastWorkPlaces?.message}
+                      className="dark:bg-neutral-800"
+                    />
+                  )}
                 />
-                {errors.pastWorkPlaces && (
-                  <p className="text-red text-sm">
-                    {errors.pastWorkPlaces.message}
-                  </p>
-                )}
               </div>
             </div>
 
             <div className="space-y-1 sm:space-y-2">
               <Label htmlFor="pastProjects">Past Projects *</Label>
-              <TipTapEditor
-                id="pastProjects"
-                //value={watch("pastProjects") || ""}
-                onChange={(html) => setValue("pastProjects", html)}
-                placeholder="Past projects you've worked on"
-                register={register}
-                required={true}
-                errors={errors}
+              <Controller
+                name="pastProjects"
+                control={control}
+                render={({ field }) => (
+                  <TipTapEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Past projects you've worked on"
+                    required={true}
+                    error={!!errors.pastProjects}
+                    helperText={errors.pastProjects?.message}
+                  />
+                )}
               />
               {errors.pastProjects && (
                 <p className="text-red text-sm">

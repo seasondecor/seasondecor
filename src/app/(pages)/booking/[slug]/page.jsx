@@ -26,11 +26,7 @@ import OverallRating from "@/app/components/ui/review/OverallRating";
 import ReviewCard from "@/app/components/ui/card/ReviewCard";
 import Link from "next/link";
 import HostSection from "@/app/(pages)/booking/components/HostSection";
-import {
-  Skeleton,
-  Box,
-  Alert,
-} from "@mui/material";
+import { Skeleton, Box, Alert } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import useInfoModal from "@/app/hooks/useInfoModal";
 import PickDate from "@/app/(pages)/booking/components/PickDate";
@@ -412,7 +408,7 @@ const ServiceDetail = () => {
 
   const reviewData = review?.data || [];
 
-  const { mutate: addFavoriteDecorService, isPending } =
+  const { mutate: addFavoriteDecorService, isPending: isAddingFavorite } =
     useAddFavoriteDecorService();
 
   // Use pagination to prevent loading all services at once
@@ -460,7 +456,7 @@ const ServiceDetail = () => {
 
     addFavoriteDecorService(serviceId, {
       onSuccess: () => {
-        console.log("Added to favorite");
+        // console.log("Added to favorite");
         queryClient.invalidateQueries({ queryKey: ["get_list_favorite"] });
       },
       onError: (error) => {
@@ -519,7 +515,7 @@ const ServiceDetail = () => {
         //console.log("Booking successful");
         setResultModalData({
           title: "Booking successful",
-          message: `Booking successful ! Your survey is scheduled for ${selectedBookingData.formattedDate}`,
+          message: `Your survey is scheduled for ${selectedBookingData.formattedDate}`,
           type: "success",
         });
         setResultModalOpen(true);
@@ -554,6 +550,8 @@ const ServiceDetail = () => {
 
     if (customData.propertyType)
       formData.append("SpaceStyle", customData.propertyType);
+    if (customData.estimatedBudget)
+      formData.append("EstimatedBudget", customData.estimatedBudget);
     if (customData.spaceArea) formData.append("RoomSize", customData.spaceArea);
     if (customData.selectedDesign)
       formData.append("DecorationStyleId", customData.selectedDesign);
@@ -574,7 +572,7 @@ const ServiceDetail = () => {
       });
     }
 
-    console.log("Customized booking data being sent as FormData");
+    //console.log("Customized booking data being sent as FormData");
 
     bookService(formData, {
       onSuccess: () => {
@@ -701,11 +699,16 @@ const ServiceDetail = () => {
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, sm: 7 }}>
             <Box className="space-y-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="flex flex-row items-center gap-2">
+              <Box display="flex" alignItems="center" gap={2}>
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  alignItems="center"
+                  gap={1}
+                >
                   <MdCategory size={20} />
                   <FootTypo footlabel="This service is suitable for" />
-                </span>
+                </Box>
 
                 <div className="bg-gray-800 text-white px-3 rounded-lg py-1">
                   <FootTypo
@@ -713,11 +716,11 @@ const ServiceDetail = () => {
                     fontWeight="bold"
                   />
                 </div>
-              </div>
+              </Box>
 
-              <div className="flex flex-wrap gap-2 items-center">
+              <Box display="flex" flexWrap="wrap" alignItems="center" gap={2}>
                 <FootTypo footlabel="Suitable for:" />
-                <div className="flex flex-wrap gap-2">
+                <Box display="flex" flexWrap="wrap" gap={2}>
                   {serviceDetail.seasons && serviceDetail.seasons.length > 0 ? (
                     serviceDetail.seasons.map((season, index) => {
                       const { icon, bgColor } = getSeasonConfig(
@@ -737,10 +740,10 @@ const ServiceDetail = () => {
                   ) : (
                     <FootTypo footlabel="All seasons" fontWeight="bold" />
                   )}
-                </div>
-              </div>
+                </Box>
+              </Box>
 
-              <div className="flex items-center gap-2">
+              <Box display="flex" alignItems="center" gap={1}>
                 <MdLocationOn size={20} />
                 <span className="inline-flex items-center gap-2">
                   Fast support in
@@ -751,9 +754,9 @@ const ServiceDetail = () => {
                     fontWeight="bold"
                   />
                 </span>
-              </div>
+              </Box>
 
-              <div className="flex items-start gap-3">
+              <Box display="flex" alignItems="start" gap={1}>
                 <RiErrorWarningFill
                   size={20}
                   className="text-warning mt-0.5 flex-shrink-0"
@@ -767,16 +770,16 @@ const ServiceDetail = () => {
                     fontWeight="bold"
                   />
                 </div>
-              </div>
+              </Box>
 
-              <div className="flex items-center gap-2">
+              <Box display="flex" alignItems="center" gap={1}>
                 <MdFavorite size={20} />
                 <FootTypo footlabel="People liked : " />
                 <FootTypo
                   footlabel={serviceDetail.favoriteCount || "No favorite yet"}
                   fontWeight="bold"
                 />
-              </div>
+              </Box>
               <div className="space-y-6">
                 <div>
                   <FootTypo footlabel="Description" fontWeight="bold" />
@@ -874,7 +877,7 @@ const ServiceDetail = () => {
           </Grid>
 
           <Grid size={{ xs: 12, sm: 5 }}>
-            <Box className="sticky top-20">
+            <Box position="sticky" top={100}>
               <div className="space-y-5 my-5 w-full">
                 {serviceDetail.isBooked ? (
                   <BorderBox className="flex flex-col gap-2">
@@ -966,6 +969,7 @@ const ServiceDetail = () => {
                           <IoCallOutline size={20} />
                         )
                       }
+                      isLoading={isBookingPending}
                       disabled={
                         serviceDetail.isBooked ||
                         !selectedAddress ||
@@ -987,7 +991,7 @@ const ServiceDetail = () => {
                         )
                       }
                       onClick={handleAddToFavorites}
-                      disabled={isInFavorites || isPending}
+                      disabled={isInFavorites || isAddingFavorite}
                     />
                   </div>
                 ) : (
@@ -1074,16 +1078,9 @@ const ServiceDetail = () => {
               <Grid container spacing={3}>
                 <DataMapper
                   data={reviewData}
-                  Component={(props) => (
-                    <Grid item size={{ xs: 12, sm: 6 }}>
-                      <ReviewCard {...props} />
-                    </Grid>
-                  )}
-                  emptyStateComponent={
-                    <Grid size={{ xs: 12 }}>
-                      <EmptyState title="No reviews yet" />
-                    </Grid>
-                  }
+                  Component={ReviewCard}
+                  useGrid={false}
+                  emptyStateComponent={<EmptyState title="No reviews yet" />}
                   getKey={(review) => review.id}
                   componentProps={(review) => ({
                     id: review.id,

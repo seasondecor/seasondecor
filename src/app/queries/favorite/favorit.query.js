@@ -60,7 +60,7 @@ export function useRemoveFavoriteDecorProduct() {
       return res;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["product_list"] });
+      queryClient.invalidateQueries({ queryKey: ["get_list_favorite_product"] });
     },
   });
 }
