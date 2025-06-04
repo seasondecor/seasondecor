@@ -84,8 +84,8 @@ const ManageApplication = () => {
   } = useGetVerifiedApplicationList();
 
   const applicationList = isViewingVerified
-    ? verifiedApplicationList
-    : pendingApplicationList;
+    ? verifiedApplicationList || []
+    : pendingApplicationList || [];
   const isLoading = isViewingVerified ? isVerifiedLoading : isPendingLoading;
   const error = isViewingVerified ? verifiedError : pendingError;
 
@@ -133,7 +133,7 @@ const ManageApplication = () => {
       cell: ({ row }) => <FootTypo footlabel={row.original.accountId} />,
     },
     {
-      header: "Image",
+      header: "Avatar",
       accessorKey: "imageUrls",
       cell: ({ row }) => (
         <div className="relative w-16 h-16">
@@ -176,18 +176,13 @@ const ManageApplication = () => {
       accessorKey: "businessAddress",
       cell: ({ row }) => <FootTypo footlabel={row.original.businessAddress} />,
     },
-    {
+    ...(isViewingVerified ? [{
       header: "Status",
       accessorKey: "status",
       cell: ({ row }) => (
-        <Chip
-          icon={<IoCheckmarkCircle />}
-          label="Verified"
-          color="success"
-        />
+        <Chip icon={<IoCheckmarkCircle />} label="Verified" color="success" />
       ),
-    },
-
+    }] : []),
     {
       header: "Actions",
       cell: ({ row }) => (
@@ -647,6 +642,7 @@ const ManageApplication = () => {
               }}
             >
               <Button
+                icon={<IoCloseCircle />}
                 label="Reject"
                 onClick={handleReject}
                 className="bg-red text-white"
@@ -655,6 +651,7 @@ const ManageApplication = () => {
                 }
               />
               <Button
+                icon={<IoCheckmarkCircle />}
                 label={
                   processingId === accountId && isApproving
                     ? "Approving..."
@@ -858,7 +855,8 @@ const ManageApplication = () => {
           {isViewingVerified ? "Verified Applications" : "Pending Applications"}
         </h1>
         <Button
-          label={isViewingVerified ? "View Pending" : "View Verified"}
+          icon={isViewingVerified ? <IoCheckmarkCircle /> : <IoCloseCircle />}
+          label={isViewingVerified ? "View Pending" : "Verified Applications"}
           onClick={() => setIsViewingVerified(!isViewingVerified)}
           className={isViewingVerified ? "bg-blue-500" : "bg-green-500"}
         />

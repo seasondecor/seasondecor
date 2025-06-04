@@ -128,16 +128,3 @@ export const NotificationBtn = ({ toggleDrawer, isDrawerOpen }) => {
   );
 };
 
-export const SearchBtn = ({ searchClick }) => {
-  const searchModal = useSearchModal();
-  return (
-    <div className="relative">
-      <IconButton
-        className="dark:hover:bg-zinc-700"
-        onClick={searchModal.onOpen}
-      >
-        <IoSearchSharp size={20} className="dark:text-white" />
-      </IconButton>
-    </div>
-  );
-};

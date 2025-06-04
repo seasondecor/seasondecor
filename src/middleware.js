@@ -43,7 +43,7 @@ export async function middleware(req) {
   const userRoleId = token.roleId;
 
   // Role-based redirections for root path
-  if (pathname === "/" || pathname === "") {
+  if ((pathname === "/" || pathname === "") && accessToken) {
     switch (userRoleId) {
       case 1: // Admin
         return NextResponse.redirect(new URL("/admin/dashboard", req.url));

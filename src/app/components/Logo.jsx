@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import ShinyText from "./ui/animated/ShinyText";
 import { usePathname } from "next/navigation";
 import { useUser } from "../providers/userprovider";
+import { Box } from "@mui/material";
 
 const Logo = ({ outsideStyle, insideStyle }) => {
   const pathname = usePathname();
@@ -52,30 +53,30 @@ const Logo = ({ outsideStyle, insideStyle }) => {
           </div>
 
           {/* Text Container */}
-          <div className="flex flex-col relative ml-2">
+          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" position="relative" ml={1}>
             {isSeller && (
-              <span className="absolute -top-5 right-[-30]">
+              <Box position="absolute" top={-20} right={-30}>
                 <ShinyText
                   text="Provider"
                   disabled={false}
                   speed={3}
                   className="text-xs font-semibold font-tertiary"
                 />
-              </span>
+              </Box>
             )}
 
             {isAdmin && (
-              <span className="absolute -top-5 right-[-30]">
+              <Box position="absolute" top={-20} right={-30}>
                 <ShinyText
                   text="Administrator"
                   disabled={false}
                   speed={3}
                   className="text-xs font-semibold font-tertiary"
                 />
-              </span>
+              </Box>
             )}
             <h1 className="text-black dark:text-white font-tertiary">SeasonDecor</h1>
-          </div>
+          </Box>
         </Link>
       </div>
     </div>

@@ -14,29 +14,35 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useCreateProviderProfile } from "@/app/queries/user/provider.query";
 import { useRouter } from "next/navigation";
-import { FaAngleRight } from "react-icons/fa6";
+import { FaAngleRight, FaCheck } from "react-icons/fa6";
 import TipTapEditor from "@/app/components/ui/editors/TipTapEditor";
 import { FootTypo, BodyTypo } from "@/app/components/ui/Typography";
-import { 
-  Divider, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
+import {
+  Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   FormHelperText,
   TextField,
-  Box
+  Box,
+  Dialog,
+  DialogContent,
+  Typography,
+  Alert,
 } from "@mui/material";
 import ImageUpload from "@/app/components/ui/upload/ImageUpload";
 import { useGetProviderOptions } from "@/app/queries/user/provider.query";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
   bio: yup.string().required("Bio is required"),
   phone: yup.string().required("Phone is required"),
   address: yup.string().required("Address is required"),
-  yearOfExperience: yup.number()
+  yearOfExperience: yup
+    .number()
     .required("Year of experience is required")
     .min(1, "Years of experience must be at least 1")
     .integer("Years of experience must be a whole number")
@@ -55,6 +61,8 @@ export default function RegistrationPage() {
   const mutationCreate = useCreateProviderProfile();
   const router = useRouter();
   const [certificates, setCertificates] = useState([]);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
 
   const { data: providerOptions, isLoading: isLoadingProviderOptions } =
     useGetProviderOptions();
@@ -114,7 +122,6 @@ export default function RegistrationPage() {
         return;
       }
 
-      // Create FormData to properly handle file uploads
       const formData = new FormData();
       formData.append("Name", data.name);
       formData.append("Bio", data.bio);
@@ -125,36 +132,100 @@ export default function RegistrationPage() {
       formData.append("PastProjects", data.pastProjects);
       formData.append("SkillId", Number(data.skillId));
 
-      // Append each certificate image file to FormData
       certificates.forEach((file, index) => {
         formData.append("CertificateImages", file);
       });
 
-      console.log(
-        "Submitting provider profile with certificates:",
-        certificates.length
-      );
-
       mutationCreate.mutate(formData, {
         onSuccess: () => {
+          setSubmittedData(data);
+          setShowSuccessDialog(true);
           reset();
-          router.push("/");
         },
         onError: (error) => {
+          toast.error("Registration failed. Please try again.");
         },
       });
     },
-    [mutationCreate, certificates, reset, router]
+    [mutationCreate, certificates, reset]
+  );
+
+  const SuccessDialog = () => (
+    <Dialog
+      open={showSuccessDialog}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          bgcolor: "background.paper",
+          overflow: "hidden",
+        },
+      }}
+    >
+      <DialogContent sx={{ p: 4 }}>
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="mb-4"
+          >
+            <FaCheck size={80} className="text-green" />
+          </motion.div>
+
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Registration Successful!
+          </Typography>
+
+          <Typography variant="body1" color="text.secondary" paragraph>
+            Your application has been submitted successfully.
+          </Typography>
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Alert severity="success" sx={{ my: 2 }}>
+              Your application is pending approval by admin. Hang on!
+            </Alert>
+          </motion.div>
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="w-full"
+          >
+            <Button2
+              onClick={() => {
+                setShowSuccessDialog(false);
+                router.push("/");
+              }}
+              label="Return to Home"
+              btnClass="w-full"
+              labelClass="justify-center p-2 sm:p-3"
+            />
+          </motion.div>
+        </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 
   return (
     <div className="w-full min-h-screen relative">
       {/* LiquidChrome background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <LiquidChrome 
-          baseColor={[0.1, 0.1, 0.1]} 
-          speed={0.1} 
-          amplitude={0.1} 
+        <LiquidChrome
+          baseColor={[0.1, 0.1, 0.1]}
+          speed={0.1}
+          amplitude={0.1}
           interactive={false}
         />
       </div>
@@ -164,25 +235,18 @@ export default function RegistrationPage() {
         <div className="absolute right-4 top-4 bg-white rounded-full dark:bg-neutral-900">
           <ThemeSwitch />
         </div>
-        
+
         <div className="bg-white dark:bg-neutral-900 max-w-7xl rounded-xl w-full p-6 md:p-10">
           <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
             <div className="logo-wrapper flex justify-center sm:justify-start items-center relative mb-2 sm:mb-0 sm:mr-6">
               <Logo outsideStyle="!m-0" insideStyle="!m-0" />
             </div>
           </div>
-          
+
           <div className="flex flex-col space-y-2 mb-6">
-            <BodyTypo
-              bodylabel="Provide more information"
-              fontWeight="bold"
-            />
-            <FootTypo
-              footlabel="Please fill out the form below to complete your registration"
-            />
-            <FootTypo
-              footlabel="Required fields are marked with an asterisk (*)"
-            />
+            <BodyTypo bodylabel="Provide more information" fontWeight="bold" />
+            <FootTypo footlabel="Please fill out the form below to complete your registration" />
+            <FootTypo footlabel="Required fields are marked with an asterisk (*)" />
           </div>
 
           <div className="space-y-4 sm:space-y-6">
@@ -347,8 +411,8 @@ export default function RegistrationPage() {
 
             <div className="flex w-full flex-col space-y-1 sm:space-y-2">
               <Label htmlFor="certificateImages">
-                Your degree certificate or any other professional
-                certificate... *
+                Your degree certificate or any other professional certificate...
+                *
               </Label>
               <ImageUpload
                 onImageChange={handleImageUpload}
@@ -366,10 +430,7 @@ export default function RegistrationPage() {
 
             <div className="space-y-4">
               <FormControl fullWidth error={!!errors.skillId}>
-                <InputLabel
-                  className="dark:text-white"
-                  id="skill-select-label"
-                >
+                <InputLabel className="dark:text-white" id="skill-select-label">
                   Skill *
                 </InputLabel>
                 <Select
@@ -413,6 +474,9 @@ export default function RegistrationPage() {
           </div>
         </div>
       </div>
+
+      {/* Add SuccessDialog component */}
+      <SuccessDialog />
     </div>
   );
 }
